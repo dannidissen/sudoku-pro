@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#090d16">
+    <title>סודוקו פרו - גרסת מומחים עם Snyder Notation ורמזים מדורגים</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
+</head>
+<body>
+    <!-- Top App Bar (Compact, Zero-Scroll) -->
+    <header class="top-header">
+        <div class="logo-section">
+            <span class="logo-emoji">🧩</span>
+            <div>
+                <h1>סודוקו פרו</h1>
+                <span class="subtitle">Snyder Notation • רמזים דדוקטיביים • צביעת תאים • אפס גלילה</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="pencil-size-control" title="גודל כתב רישומי העיפרון">
+                <span class="control-tag">עיפרון:</span>
+                <button id="btn-pencil-size-normal" class="size-btn active">רגיל</button>
+                <button id="btn-pencil-size-large" class="size-btn">גדול</button>
+                <button id="btn-pencil-size-xlarge" class="size-btn">ענק</button>
+            </div>
+            <button id="btn-custom-puzzle" class="icon-btn" title="טען סודוקו משלך">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                <span>לוח אישי</span>
+            </button>
+            <button id="btn-credits" class="icon-btn" title="אודות ומקור החידות">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <span>מאגר</span>
+            </button>
+            <button id="btn-settings" class="icon-btn" title="הגדרות">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <button id="btn-theme" class="icon-btn" title="החלף מצב לילה/יום">
+                <span id="theme-icon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace (Desktop 2-column, 100dvh zero scroll) -->
+    <div class="workspace-wrapper">
+        
+        <!-- Left/Main Column: Sudoku Board & On-Screen Numpad -->
+        <section class="board-column">
+            <!-- Progressive Hint Banner -->
+            <div id="hint-banner" class="hint-banner hidden">
+                <div class="hint-banner-content">
+                    <span class="hint-badge" id="hint-stage-badge">שלב 1</span>
+                    <span id="hint-text" class="hint-text">כאן יופיע הסבר הרמז</span>
+                </div>
+                <div class="hint-banner-actions">
+                    <button id="btn-hint-next" class="hint-step-btn">המשך לשלב הבא 👈</button>
+                    <button id="btn-hint-dismiss" class="hint-close-btn" title="סגור רמז">&times;</button>
+                </div>
+            </div>
+
+            <!-- Board Container -->
+            <div class="board-container">
+                <div id="sudoku-board" class="sudoku-board"></div>
+
+                <!-- Pause Overlay -->
+                <div id="pause-overlay" class="pause-overlay hidden">
+                    <span style="font-size: 3.5rem;">⏸️</span>
+                    <h2>המשחק מושהה</h2>
+                    <p>הלוח מוסתר כדי לעצור את מדידת הזמן</p>
+                    <button id="btn-resume" class="action-btn primary large-btn">
+                        המשך לשחק
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cascade Auto-Complete Banner (Positioned safely above Numpad, never blocks board cells) -->
+            <div id="cascade-banner" class="cascade-banner hidden">
+                <div class="cascade-content">
+                    <span class="cascade-icon">⚡</span>
+                    <span class="cascade-text">כל המשבצות הנותרות ברורות!</span>
+                </div>
+                <div class="cascade-actions">
+                    <button id="btn-cascade-autocomplete" class="cascade-btn" title="השלם אוטומטית את כל התאים הנותרים וסיים">
+                        השלם אוטומטית וסיים 🚀
+                    </button>
+                    <button id="btn-cascade-dismiss" class="cascade-dismiss-btn" title="סגור באנר והמשך לפתור לבד">&times;</button>
+                </div>
+            </div>
+
+            <!-- Number Keypad: Sleek horizontal row directly below the board -->
+            <div class="numpad-row" id="numpad">
+                <!-- 1 to 9 generated dynamically -->
+            </div>
+
+            <!-- Input Modes (Snyder / Normal / Center) & Cell Color Palette Row -->
+            <div class="board-controls-row">
+                <!-- Snyder Mode Selector -->
+                <div class="mode-selector-group" title="בחירת מצב הזנה">
+                    <button id="mode-normal" class="mode-btn active" data-mode="normal">
+                        <span>✍️ רגיל</span>
+                    </button>
+                    <button id="mode-corner" class="mode-btn" data-mode="corner" title="סימון פינתי לספרות מוגבלות בבלוק (Snyder)">
+                        <span>📐 פינתי (Snyder)</span>
+                    </button>
+                    <button id="mode-center" class="mode-btn" data-mode="center" title="סימון מרכזי לכל המועמדים האפשריים">
+                        <span>🎯 מרכזי</span>
+                    </button>
+                </div>
+
+                <!-- Cell Coloring Palette -->
+                <div class="color-palette-group" title="צביעת תאים למעקב אחר שרשראות (Chains)">
+                    <button class="color-btn" data-color="green" style="--c: #86efac;" title="ירוק"></button>
+                    <button class="color-btn" data-color="blue" style="--c: #93c5fd;" title="כחול"></button>
+                    <button class="color-btn" data-color="orange" style="--c: #fdba74;" title="כתום"></button>
+                    <button class="color-btn" data-color="purple" style="--c: #d8b4fe;" title="סגול"></button>
+                    <button class="color-btn clear-color" data-color="" title="נקה צבע תא">🚫</button>
+                </div>
+            </div>
+
+            <!-- Keyboard shortcut footer -->
+            <div class="keyboard-helper">
+                <span>💡 מקשים:</span>
+                <kbd>1-9</kbd> מספרים
+                <span>•</span>
+                <kbd>Space</kbd> החלף מצב כתיבה
+                <span>•</span>
+                <kbd>Shift + 1-9</kbd> סימון פינתי
+                <span>•</span>
+                <kbd>Ctrl + 1-9</kbd> סימון מרכזי
+                <span>•</span>
+                <kbd>חיצים</kbd> ניווט
+                <span>•</span>
+                <kbd>Backspace</kbd> מחיקה
+                <span>•</span>
+                <kbd>Ctrl+Z</kbd> ביטול
+                <span>•</span>
+                <kbd>H</kbd> רמז לוגי
+            </div>
+        </section>
+
+        <!-- Right Column: Compact Control Center -->
+        <aside class="control-column">
+
+            <!-- Difficulty & New Game Card -->
+            <div class="panel-card diff-card">
+                <div class="diff-header">
+                    <label for="difficulty-select" class="panel-label">דרגת קושי:</label>
+                    <select id="difficulty-select" class="diff-select">
+                        <option value="easy" selected>🟢 קל (דירוג ~1.2)</option>
+                        <option value="medium">🟡 בינוני (דירוג ~2.3)</option>
+                        <option value="hard">🟠 קשה (דירוג ~3.5)</option>
+                        <option value="expert">🔴 מומחה (דירוג 5.0 - 6.8)</option>
+                        <option value="master">🟣 מאסטר / שטני (דירוג 7.0 - 9.1+)</option>
+                        <option value="extreme">☠️ סיוט עולמי (Top1465 / אקסטרים 10-11)</option>
+                    </select>
+                </div>
+
+                <div class="diff-actions">
+                    <button id="btn-new-game" class="action-btn primary full-width">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        <span>הגרל לוח חדש</span>
+                    </button>
+                </div>
+
+                <!-- Info Badges -->
+                <div class="meta-row">
+                    <div class="meta-item">
+                        <span class="meta-title">לוח:</span>
+                        <span id="puzzle-id-display" class="meta-val">Top1465-0001</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-title">דירוג:</span>
+                        <span id="puzzle-rating-display" class="meta-val badge-rating">11.0</span>
+                    </div>
+                </div>
+                <div id="puzzle-note-display" class="puzzle-note"></div>
+            </div>
+
+            <!-- Timer Card -->
+            <div class="panel-card timer-card">
+                <div class="timer-display-group">
+                    <span class="timer-icon">⏱️</span>
+                    <span id="timer-display" class="timer-digits">00:00</span>
+                </div>
+                <button id="btn-pause" class="action-btn compact-btn" title="השהה משחק">
+                    <svg id="pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    <span>השהה</span>
+                </button>
+            </div>
+
+            <!-- Deductive Hints & Reveal Card (Separated as requested!) -->
+            <div class="panel-card hint-card">
+                <div class="panel-card-title">💡 עזרי פתרון ורמזים:</div>
+                <div class="hint-buttons-grid">
+                    <button id="btn-deductive-hint" class="action-btn hint-main-btn" title="רמז דדוקטיבי מדורג ב-3 שלבים: כיוון, הדגשה ופתרון מלא">
+                        <span style="font-size: 1.2rem;">🧠</span>
+                        <div class="btn-text-col">
+                            <span class="btn-title">רמז לוגי (Hint)</span>
+                            <span class="btn-subtitle">3 שלבים: כיוון 👈 הדגשה 👈 פתרון</span>
+                        </div>
+                    </button>
+                    <button id="btn-reveal-cell" class="action-btn reveal-btn" title="חושף ישירות את המספר הנכון לתא המסומן מתוך הפתרון המלא">
+                        <span style="font-size: 1.2rem;">👁️</span>
+                        <div class="btn-text-col">
+                            <span class="btn-title">חשוף תא (Reveal)</span>
+                            <span class="btn-subtitle">חשיפה ישירה מהפתרון</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pencil Tools & Safety Card -->
+            <div class="panel-card pencil-tools-card">
+                <div class="panel-card-title">✏️ כלי מועמדים ובטיחות:</div>
+                <div class="pencil-tools-grid">
+                    <button id="btn-autofill-pencil" class="action-btn autofill-accent-btn" title="חשב ומלא אוטומטית את כל המועמדים החוקיים לכל התאים הריקים">
+                        <span style="font-size: 1.2rem;">🪄</span>
+                        <span>מילוי מועמדים</span>
+                    </button>
+                    <button id="btn-refresh-neighborhood" class="action-btn" title="מחשב מחדש מועמדים חוקיים לשורה, לטור ולבלוק של התא הנבחר">
+                        <span style="font-size: 1.1rem;">🔄</span>
+                        <span>רענן סביבה</span>
+                    </button>
+                    <button id="btn-clear-pencil" class="action-btn" title="מחק את כל רישומי העיפרון בלוח">
+                        <span style="font-size: 1.1rem;">🧹</span>
+                        <span>נקה מועמדים</span>
+                    </button>
+                    <button id="btn-erase" class="action-btn" title="מחק תא מסומן (Backspace)">
+                        <span style="font-size: 1.1rem;">⌫</span>
+                        <span>מחק תא</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Action Toolbar -->
+            <div class="panel-card quick-card">
+                <div class="quick-tools-grid">
+                    <button id="btn-undo" class="quick-btn" title="בטל פעולה (Ctrl+Z)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                        <span>בטל</span>
+                    </button>
+                    <button id="btn-redo" class="quick-btn" title="בצע שוב (Ctrl+Y)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+                        <span>שוב</span>
+                    </button>
+                    <button id="btn-solve" class="quick-btn" title="פתור את הלוח במלואו">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3"/></svg>
+                        <span>פתור הכל</span>
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>הגדרות ממשק ותצוגה</h2>
+                <button class="modal-close" data-close="modal-settings">&times;</button>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">אפשר סימון פינתי (Snyder Notation)</span>
+                        <span class="setting-desc">מוסיף מצב סימון פינתי למועמדים מוגבלים בבלוק (מאפשר מעבר משולש במקש רווח). כבוי כברירת מחדל</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-enable-snyder">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">צלילי משחק עדינים (Audio FX)</span>
+                        <span class="setting-desc">משמיע קליקים סינתטיים עדינים בהזנה וצליל ניצחון</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-sound-enabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">הדגש מספרים זהים</span>
+                        <span class="setting-desc">מדגיש את כל המופעים של המספר הנבחר (כולל ברישומי העיפרון)</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-highlight-same" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">הדגש שורה, טור ובלוק של התא המסומן</span>
+                        <span class="setting-desc">מציג רקע רך סביב אזור התא הנבחר</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-highlight-area" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">הצללת שורות, טורים וקוביות של הספרה (Cross-hatching)</span>
+                        <span class="setting-desc">מסמן את כל השורות, הטורים והבלוקים שבהם הספרה כבר קיימת כדי לזהות מיד היכן חסר</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-highlight-digit-lines" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">הסרת מועמדים אוטומטית (עם שחזור בטוח במחיקה)</span>
+                        <span class="setting-desc">בעת הצבת מספר סופי, מסיר אותו מהסביבה. אם תמחק את המספר - המועמדים ישוחזרו אוטומטית!</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-auto-remove-pencil" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">התראת שגיאות בזמן אמת ורטט</span>
+                        <span class="setting-desc">מסמן באדום ומרטיט את התא אם הוזן מספר סותר באותה שורה, טור או בלוק</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-highlight-conflicts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">התראת שגיאות מול הפתרון בזמן אמת</span>
+                        <span class="setting-desc">מתריע ומסמן כשגיאה מיידית אם הוזן מספר שאינו תואם את פתרון החידה</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-validate-solution" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">חסימת ספרות מתנגשות במקלדת (Smart Numpad)</span>
+                        <span class="setting-desc">מעמעם וחוסם ספרות שכבר קיימות באותה שורה, טור או בלוק למניעת הקשות שגויות</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-block-conflicts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-title">סידור מועמדים חכם (רשת 3×3)</span>
+                        <span class="setting-desc">מציג כל ספרת עיפרון במיקום קבוע בלוח 3×3 (כמו מקלדת נומרית) לסריקה ויזואלית מיידית</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-smart-pencil-grid" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <button class="action-btn primary full-width" data-close="modal-settings" style="margin-top: 10px;">שמור וסגור</button>
+        </div>
+    </div>
+
+    <!-- Custom Puzzle Modal -->
+    <div id="modal-custom" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>הזנת סודוקו מותאם אישית</h2>
+                <button class="modal-close" data-close="modal-custom">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+                הדבק מחרוזת של 81 תווים (ספרות 1-9, ו-0 או נקודה עבור תא ריק):
+            </p>
+            <textarea id="custom-puzzle-input" class="custom-puzzle-textarea" placeholder="...5.1...4.............002..."></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-load-custom" class="action-btn primary" style="flex: 1;">טען ושחק</button>
+                <button class="action-btn" data-close="modal-custom">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits / About Modal -->
+    <div id="modal-credits" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>מאגרי החידות והקרדיטים</h2>
+                <button class="modal-close" data-close="modal-credits">&times;</button>
+            </div>
+            <div class="credits-body">
+                <p>
+                    🎮 <b>סודוקו פרו - גרסה מקצועית למתקדמים:</b><br>
+                    כולל מנוע רמזים דדוקטיבי (Hidden Single, Pointing, Pairs, X-Wing), שיטת Snyder Notation, צביעת תאים, אפס גלילה, וחידות ברמת אקסטרים.
+                </p>
+                <div class="credit-box">
+                    <h4>📚 מאגר 1: Sudoku Exchange Puzzle Bank</h4>
+                    <p>נוצר ע"י Grant McLean בעזרת QQWing ודורג על ידי Sudoku Explainer. משמש לרמות קל, בינוני, קשה, מומחה ומאסטר (דירוגים 1.0 עד 9.1+). ברישיון <b>נחלת הכלל (Public Domain / CC0)</b>.</p>
+                </div>
+                <div class="credit-box">
+                    <h4>☠️ מאגר 2: Top1465 Benchmark & היסטוריית האקסטרים</h4>
+                    <p>מאגר ה-1,465 החידות הקשות ביותר שנאספו בהיסטוריה (מאת Guenter Stertenbrink), יחד עם יצירות המופת של ד"ר Arto Inkala (כגון <b>AI Escargot</b> ו-<b>Platinum Blonde</b>, בדירוג 11/10) ו-<b>Easter Monster</b>.</p>
+                </div>
+            </div>
+            <button class="action-btn primary full-width" data-close="modal-credits">הבנתי, סגור</button>
+        </div>
+    </div>
+
+    <!-- Victory Modal with Advanced Stats and Social Share -->
+    <div id="modal-victory" class="modal-backdrop">
+        <div class="modal-card victory-card">
+            <div class="victory-icon">🏆</div>
+            <h2>ניצחון אדיר! פתרת את הלוח!</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">פתרון מושלם ללא שום שגיאה שנותרה.</p>
+            
+            <div class="victory-stats">
+                <div class="stat-box">
+                    <div class="stat-val" id="victory-time">00:00</div>
+                    <div class="stat-label">זמן פתרון</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="victory-difficulty">סיוט עולמי</div>
+                    <div class="stat-label">רמת קושי</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="victory-mistakes">0</div>
+                    <div class="stat-label">טעויות שנעשו</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="victory-hints">0</div>
+                    <div class="stat-label">רמזים שנלקחו</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button id="btn-share-result" class="action-btn" style="flex: 1; padding: 12px; font-size: 1rem; border-color: var(--accent); color: var(--accent);">
+                    📋 שתף תוצאה
+                </button>
+                <button id="btn-victory-new-game" class="action-btn primary" style="flex: 1.5; padding: 12px; font-size: 1rem;">
+                    משחק חדש 🎉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="puzzles.js"></script>
+    <script src="solver.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
