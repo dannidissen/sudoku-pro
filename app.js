@@ -11,6 +11,10 @@
  * - Conflict Shake & Advanced Victory Stats with Wordle-style Share
  */
 
+function tr(key, params = {}) {
+    return window.SudokuI18n ? window.SudokuI18n.t(key, params) : key;
+}
+
 class SoundEffects {
     constructor() {
         this.ctx = null;
@@ -221,7 +225,7 @@ class SudokuApp {
     setupEvents() {
         // New Game Button
         document.getElementById('btn-new-game').addEventListener('click', () => {
-            if (this.hasGameProgress() && !confirm('יש התקדמות בלוח הנוכחי. להתחיל לוח חדש ולאבד אותה?')) {
+            if (this.hasGameProgress() && !confirm(tr('confirm.newGame'))) {
                 return;
             }
             this.startNewGame(this.diffSelect.value);
@@ -229,7 +233,7 @@ class SudokuApp {
 
         this.diffSelect.addEventListener('change', (e) => {
             const newDifficulty = e.target.value;
-            if (this.hasGameProgress() && !confirm('יש התקדמות בלוח הנוכחי. להחליף רמת קושי ולאבד אותה?')) {
+            if (this.hasGameProgress() && !confirm(tr('confirm.difficulty'))) {
                 e.target.value = this.currentDifficulty;
                 return;
             }
@@ -336,6 +340,8 @@ class SudokuApp {
             document.body.classList.toggle('classic-pencil-flow', !val);
             this.renderBoard();
         });
+
+        window.addEventListener('sudoku-language-change', () => this.refreshLocalizedUI());
     }
 
     bindSettingCheckbox(elementId, settingKey, callback = null) {
@@ -516,7 +522,7 @@ class SudokuApp {
                 }
             });
             if (this.activeColor) {
-                this.showToast('מצב צביעה פעיל - לחץ על תאים לצביעתם');
+                this.showToast(tr('toast.paintMode'));
             }
         }
     }
@@ -582,7 +588,13 @@ class SudokuApp {
         } else {
             const gen = SudokuEngine.generate(difficulty === 'extreme' ? 'expert' : difficulty);
             puzzleString = gen.puzzle;
-            this.currentPuzzleMeta = { id: 'גנרטור', rating: 'אוטומטי', note: '' };
+            this.currentPuzzleMeta = {
+                id: '',
+                rating: '',
+                note: '',
+                idKey: 'meta.generator',
+                ratingKey: 'meta.automatic'
+            };
         }
 
         this.initialBoard = SudokuEngine.stringToGrid(puzzleString);
@@ -606,11 +618,7 @@ class SudokuApp {
         this.resetTimer();
         this.startTimer();
 
-        this.puzzleIdDisplay.textContent = `${this.currentPuzzleMeta.id}`;
-        this.puzzleRatingDisplay.textContent = `${this.currentPuzzleMeta.rating}`;
-        if (this.puzzleNoteDisplay) {
-            this.puzzleNoteDisplay.textContent = this.currentPuzzleMeta.note || '';
-        }
+        this.updatePuzzleMetaDisplay();
 
         this.renderBoard();
         this.updateRemainingCounts();
@@ -621,19 +629,34 @@ class SudokuApp {
         if (this.cascadeBannerEl) this.cascadeBannerEl.classList.add('hidden');
         this.checkCascadeAvailability();
 
-        this.showToast(`לוח חדש נטען: ${this.getDifficultyHebrew(difficulty)} (דירוג ${this.currentPuzzleMeta.rating})`);
+        this.showToast(tr('toast.newBoard', {
+            difficulty: this.getDifficultyLabel(difficulty),
+            rating: this.currentPuzzleMeta.ratingKey ? tr(this.currentPuzzleMeta.ratingKey) : this.currentPuzzleMeta.rating
+        }));
     }
 
-    getDifficultyHebrew(diff) {
-        const map = {
-            easy: 'קל',
-            medium: 'בינוני',
-            hard: 'קשה',
-            expert: 'מומחה',
-            master: 'מאסטר / שטני',
-            extreme: 'סיוט עולמי'
-        };
-        return map[diff] || diff;
+    getDifficultyLabel(diff) {
+        const key = `difficulty.${diff}`;
+        const translated = tr(key);
+        return translated === key ? diff : translated;
+    }
+
+    updatePuzzleMetaDisplay() {
+        const meta = this.currentPuzzleMeta || {};
+        this.puzzleIdDisplay.textContent = meta.idKey ? tr(meta.idKey) : `${meta.id ?? ''}`;
+        this.puzzleRatingDisplay.textContent = meta.ratingKey ? tr(meta.ratingKey) : `${meta.rating ?? '-'}`;
+        if (this.puzzleNoteDisplay) {
+            this.puzzleNoteDisplay.textContent = meta.note || '';
+        }
+    }
+
+    refreshLocalizedUI() {
+        this.updatePuzzleMetaDisplay();
+        if (this.currentDeductiveHint && this.hintStage > 0) {
+            this.renderCurrentHintStage();
+        }
+        const victoryDifficulty = document.getElementById('victory-difficulty');
+        if (victoryDifficulty) victoryDifficulty.textContent = this.getDifficultyLabel(this.currentDifficulty);
     }
 
     selectCell(r, c) {
@@ -682,7 +705,7 @@ class SudokuApp {
         const { row, col } = this.selectedCell;
 
         if (this.initialBoard[row][col] !== 0) {
-            this.showToast('זהו מספר מקורי של החידה ולא ניתן לשנותו');
+            this.showToast(tr('toast.givenImmutable'));
             return;
         }
 
@@ -773,7 +796,7 @@ class SudokuApp {
                 if (this.solutionBoard && newVal === this.solutionBoard[row][col]) {
                     if (this.mistakesCount > 0) {
                         this.mistakesCount--;
-                        this.showToast('טעות תוקנה במסגרת חלון החסד (2.5 שניות)');
+                        this.showToast(tr('toast.mistakeCorrected'));
                     }
                 }
             }
@@ -867,7 +890,7 @@ class SudokuApp {
                     setTimeout(() => cellEl.classList.remove('shake'), 400);
                 }
                 if (isSolutionMismatch) {
-                    this.showToast('❌ מספר שגוי שאינו תואם את פתרון החידה!');
+                    this.showToast(tr('toast.wrongNumber'));
                 }
             } else {
                 this.audio.playInput();
@@ -961,7 +984,7 @@ class SudokuApp {
         const { row, col } = this.selectedCell;
 
         if (this.initialBoard[row][col] !== 0) {
-            this.showToast('זהו מספר מקורי ולא ניתן למחיקה');
+            this.showToast(tr('toast.givenCannotErase'));
             return;
         }
 
@@ -976,7 +999,7 @@ class SudokuApp {
             if (Date.now() - this.lastMistakeTimestamp <= 2500) {
                 if (this.mistakesCount > 0) {
                     this.mistakesCount--;
-                    this.showToast('טעות בוטלה במסגרת חלון החסד (2.5 שניות)');
+                    this.showToast(tr('toast.mistakeUndone'));
                 }
             }
             this.lastMistakeCell = null;
@@ -991,7 +1014,7 @@ class SudokuApp {
         if (prevVal !== 0) {
             this.currentBoard[row][col] = 0;
             oldSnapshot = this.cloneSnapshot(this.restorePrunedCandidatesForCell(row, col));
-            this.showToast('שוחזרו מועמדי עיפרון בסביבה');
+            this.showToast(tr('toast.candidatesRestored'));
         }
 
         this.pushAction({
@@ -1022,7 +1045,7 @@ class SudokuApp {
     refreshNeighborhoodCandidates() {
         if (this.isExecutingCascade || this.isPaused) return;
         if (!this.selectedCell) {
-            this.showToast('בחר תא כדי לרענן את מועמדי הסביבה שלו');
+            this.showToast(tr('toast.selectRefreshCell'));
             return;
         }
 
@@ -1068,7 +1091,7 @@ class SudokuApp {
         this.audio.playPencil();
         this.updateVisualHighlights();
         this.saveGameState();
-        this.showToast(`רועננו מועמדים חוקיים עבור ${count} תאים בסביבה`);
+        this.showToast(tr('toast.refreshed', { count }));
     }
 
     /**
@@ -1112,7 +1135,7 @@ class SudokuApp {
         this.audio.playPencil();
         this.updateVisualHighlights();
         this.saveGameState();
-        this.showToast(`✨ מולאו מועמדים חוקיים עבור ${updatedCount} תאים ריקים!`);
+        this.showToast(tr('toast.autofilled', { count: updatedCount }));
     }
 
     clearAllPencilMarks() {
@@ -1139,7 +1162,7 @@ class SudokuApp {
         }
 
         if (!hadAny) {
-            this.showToast('אין רישומי עיפרון למחיקה');
+            this.showToast(tr('toast.noPencils'));
             return;
         }
 
@@ -1151,12 +1174,51 @@ class SudokuApp {
         this.audio.playErase();
         this.updateVisualHighlights();
         this.saveGameState();
-        this.showToast('כל רישומי העיפרון נוקו');
+        this.showToast(tr('toast.pencilsCleared'));
     }
 
     // =========================================================================
     // PROGRESSIVE DEDUCTIVE HINT SYSTEM (3 STAGES)
     // =========================================================================
+
+    getLocalizedHintPart(hint, part, fallback) {
+        const key = hint[`${part}Key`];
+        if (!key) return fallback;
+        const params = { ...(hint[`${part}Params`] || {}) };
+        if (params.unitType && params.unitIndex) {
+            params.unit = tr(`unit.${params.unitType}`, { index: params.unitIndex });
+        }
+        return tr(key, params);
+    }
+
+    getLocalizedHintName(hint) {
+        return this.getLocalizedHintPart(hint, 'name', hint.nameHebrew || hint.technique || '');
+    }
+
+    renderCurrentHintStage() {
+        const hint = this.currentDeductiveHint;
+        if (!hint || this.hintStage <= 0) return;
+        const name = this.getLocalizedHintName(hint);
+
+        if (this.hintStage === 1) {
+            this.hintStageBadgeEl.textContent = tr('hint.stage1Badge');
+            this.hintStageBadgeEl.style.background = '#eab308';
+            const direction = this.getLocalizedHintPart(hint, 'stage1', hint.stage1Direction || '');
+            this.hintTextEl.textContent = `💡 ${name}: ${direction}`;
+            this.btnHintNext.textContent = tr('hint.stage2Action');
+        } else if (this.hintStage === 2) {
+            this.hintStageBadgeEl.textContent = tr('hint.stage2Badge');
+            this.hintStageBadgeEl.style.background = '#38bdf8';
+            this.hintTextEl.textContent = `🔍 ${name}: ${tr('hint.stage2Scan')}`;
+            this.btnHintNext.textContent = tr('hint.stage3Action');
+        } else {
+            this.hintStageBadgeEl.textContent = tr('hint.stage3Badge');
+            this.hintStageBadgeEl.style.background = '#22c55e';
+            const explanation = this.getLocalizedHintPart(hint, 'stage3', hint.stage3Explanation || '');
+            this.hintTextEl.textContent = `✅ ${explanation}`;
+            this.btnHintNext.textContent = tr('hint.close');
+        }
+    }
 
     triggerDeductiveHint() {
         if (this.isExecutingCascade || this.isPaused) return;
@@ -1182,7 +1244,7 @@ class SudokuApp {
                 }
             }
             if (mistakeFound) {
-                this.showToast('יש טעות בלוח - תקן אותה לפני קבלת רמז נוסף');
+                this.showToast(tr('toast.fixMistake'));
                 this.updateVisualHighlights();
                 return;
             }
@@ -1193,7 +1255,7 @@ class SudokuApp {
         const hint = SudokuEngine.getDeductiveHint(this.currentBoard, cands);
 
         if (!hint) {
-            this.showToast('לא זוהה רמז בסיסי (נדרשת שרשרת מתקדמת). לחץ "חשוף תא" לחשיפה מהפתרון.');
+            this.showToast(tr('toast.noBasicHint'));
             return;
         }
 
@@ -1203,10 +1265,7 @@ class SudokuApp {
 
         // Stage 1: Direction
         this.hintBannerEl.classList.remove('hidden');
-        this.hintStageBadgeEl.textContent = 'שלב 1: כיוון';
-        this.hintStageBadgeEl.style.background = '#eab308';
-        this.hintTextEl.textContent = `💡 ${hint.nameHebrew}: ${hint.stage1Direction}`;
-        this.btnHintNext.textContent = 'שלב 2: הדגש אזור 👈';
+        this.renderCurrentHintStage();
 
         this.audio.playInput();
         this.updateVisualHighlights();
@@ -1218,10 +1277,7 @@ class SudokuApp {
         if (this.hintStage === 1) {
             // Stage 2: Highlight
             this.hintStage = 2;
-            this.hintStageBadgeEl.textContent = 'שלב 2: הדגשה';
-            this.hintStageBadgeEl.style.background = '#38bdf8';
-            this.hintTextEl.textContent = `🔍 ${this.currentDeductiveHint.nameHebrew}: סרוק את התאים המסומנים בצהוב והיחידה המודגשת.`;
-            this.btnHintNext.textContent = 'שלב 3: בצע והסבר 👈';
+            this.renderCurrentHintStage();
 
             this.audio.playPencil();
             this.updateVisualHighlights();
@@ -1287,10 +1343,7 @@ class SudokuApp {
                 this.saveGameState();
             }
 
-            this.hintStageBadgeEl.textContent = 'שלב 3: פתרון מלא';
-            this.hintStageBadgeEl.style.background = '#22c55e';
-            this.hintTextEl.textContent = `✅ ${hint.stage3Explanation}`;
-            this.btnHintNext.textContent = 'סגור רמז';
+            this.renderCurrentHintStage();
 
             this.audio.playInput();
             this.updateVisualHighlights();
@@ -1319,20 +1372,24 @@ class SudokuApp {
             this.solutionBoard = SudokuEngine.solve(this.initialBoard);
         }
         if (!this.solutionBoard) {
-            this.showToast('לא ניתן לייצר פתרון ללוח זה');
+            this.showToast(tr('toast.noSolution'));
             return;
         }
 
         const reveal = SudokuEngine.getRevealHint(this.currentBoard, this.solutionBoard, this.selectedCell);
         if (!reveal) {
-            this.showToast('כל התאים כבר מלאים!');
+            this.showToast(tr('toast.allFilled'));
             return;
         }
 
         this.revealedCount++;
         this.selectCell(reveal.row, reveal.col);
         this.setCellValue(reveal.row, reveal.col, reveal.value);
-        this.showToast(`👁️ נחשף תא (${reveal.row + 1}, ${reveal.col + 1}): ${reveal.value}`);
+        this.showToast(tr('toast.revealed', {
+            row: reveal.row + 1,
+            col: reveal.col + 1,
+            value: reveal.value
+        }));
     }
 
     solveBoard() {
@@ -1342,11 +1399,11 @@ class SudokuApp {
         }
 
         if (!this.solutionBoard) {
-            this.showToast('לא נמצא פתרון חוקי ללוח זה');
+            this.showToast(tr('toast.noValidSolution'));
             return;
         }
 
-        if (!confirm('האם לחשוף את הפתרון המלא של הלוח?')) return;
+        if (!confirm(tr('confirm.solve'))) return;
 
         const previousBoard = this.currentBoard.map(r => [...r]);
         const prevCenter = this.centerMarks.map(r => r.map(set => new Set(set)));
@@ -1368,7 +1425,7 @@ class SudokuApp {
         this.updateVisualHighlights();
         this.saveGameState();
         this.stopTimer();
-        this.showToast('הלוח נפתר במלואו');
+        this.showToast(tr('toast.solved'));
     }
 
     pushAction(action) {
@@ -1380,7 +1437,7 @@ class SudokuApp {
     undo() {
         if (this.isExecutingCascade) return;
         if (this.historyIndex < 0) {
-            this.showToast('אין פעולות לביטול');
+            this.showToast(tr('toast.noUndo'));
             return;
         }
 
@@ -1393,7 +1450,7 @@ class SudokuApp {
                 if (this.lastMistakeCell.row === action.row && this.lastMistakeCell.col === action.col) {
                     if (Date.now() - this.lastMistakeTimestamp <= 2500 && this.mistakesCount > 0) {
                         this.mistakesCount--;
-                        this.showToast('טעות בוטלה במסגרת חלון החסד (2.5 שניות)');
+                        this.showToast(tr('toast.mistakeUndone'));
                     }
                 }
                 this.lastMistakeCell = null;
@@ -1466,7 +1523,7 @@ class SudokuApp {
                 this.cornerMarks[cell.row][cell.col] = new Set(cell.prevCorner);
                 this.renderCellContent(cell.row, cell.col);
             });
-            this.showToast('שוחזרו מועמדים שנמחקו ברמז');
+            this.showToast(tr('toast.hintCandidatesRestored'));
         } else if (action.type === 'autofill_pencil') {
             action.previousPencils.forEach(item => {
                 this.centerMarks[item.row][item.col] = new Set(item.previous);
@@ -1497,7 +1554,7 @@ class SudokuApp {
     redo() {
         if (this.isExecutingCascade) return;
         if (this.historyIndex >= this.history.length - 1) {
-            this.showToast('אין פעולות לשחזור');
+            this.showToast(tr('toast.noRedo'));
             return;
         }
 
@@ -1576,7 +1633,7 @@ class SudokuApp {
                 this.cornerMarks[cell.row][cell.col] = new Set(cell.nextCorner);
                 this.renderCellContent(cell.row, cell.col);
             });
-            this.showToast('בוצעה שוב מחיקת מועמדים מהרמז');
+            this.showToast(tr('toast.hintRedone'));
         } else if (action.type === 'autofill_pencil') {
             action.afterPencils.forEach(item => {
                 this.centerMarks[item.row][item.col] = new Set(item.next);
@@ -2000,34 +2057,34 @@ class SudokuApp {
 
     showVictoryModal() {
         document.getElementById('victory-time').textContent = this.formatTime(this.timerSeconds);
-        document.getElementById('victory-difficulty').textContent = this.getDifficultyHebrew(this.currentDifficulty);
+        document.getElementById('victory-difficulty').textContent = this.getDifficultyLabel(this.currentDifficulty);
         document.getElementById('victory-mistakes').textContent = `${this.mistakesCount}`;
         document.getElementById('victory-hints').textContent = `${this.hintsCount + this.revealedCount}`;
         this.openModal('modal-victory');
     }
 
     shareResult() {
-        const diffName = this.getDifficultyHebrew(this.currentDifficulty);
-        const rating = this.currentPuzzleMeta.rating;
+        const diffName = this.getDifficultyLabel(this.currentDifficulty);
+        const rating = this.currentPuzzleMeta.ratingKey ? tr(this.currentPuzzleMeta.ratingKey) : this.currentPuzzleMeta.rating;
         const timeStr = this.formatTime(this.timerSeconds);
         const totalHints = this.hintsCount + this.revealedCount;
 
-        const shareText = 
-`🧩 סודוקו פרו - הושלם בהצלחה!
-רמה: ${diffName} (דירוג ${rating})
-⏱️ זמן פתרון: ${timeStr}
-❌ טעויות: ${this.mistakesCount} | 💡 רמזים: ${totalHints}
-🟩🟩🟩🟩🟩🟩🟩🟩🟩
-שחקו ב-Sudoku Pro`;
+        const shareText = tr('share.text', {
+            difficulty: diffName,
+            rating,
+            time: timeStr,
+            mistakes: this.mistakesCount,
+            hints: totalHints
+        });
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareText).then(() => {
-                this.showToast('📋 תוצאת המשחק הועתקה ללוח בהצלחה!');
+                this.showToast(tr('toast.shareCopied'));
             }).catch(() => {
-                this.showToast('לא ניתן להעתיק ללוח אוטומטית');
+                this.showToast(tr('toast.shareFailed'));
             });
         } else {
-            prompt('העתק את התוצאה:', shareText);
+            prompt(tr('share.prompt'), shareText);
         }
     }
 
@@ -2084,20 +2141,20 @@ class SudokuApp {
 
         const cleaned = input.replace(/[\s\r\n]/g, '').replace(/\./g, '0');
         if (cleaned.length !== 81) {
-            alert('הקלט חייב להכיל בדיוק 81 תווים (ספרות 1-9, ו-0 או נקודה לתא ריק)');
+            alert(tr('custom.invalidLength'));
             return;
         }
 
         const grid = SudokuEngine.stringToGrid(cleaned);
         const conflicts = SudokuEngine.findConflicts(grid);
         if (conflicts.size > 0) {
-            alert('הלוח שהזנת מכיל מספרים כפולים וסותרים');
+            alert(tr('custom.conflicts'));
             return;
         }
 
         const solved = SudokuEngine.solve(grid);
         if (!solved) {
-            alert('לוח זה אינו פתיר!');
+            alert(tr('custom.unsolvable'));
             return;
         }
 
@@ -2121,9 +2178,14 @@ class SudokuApp {
         this.resetTimer();
         this.startTimer();
 
-        this.puzzleIdDisplay.textContent = 'מותאם אישית';
-        this.puzzleRatingDisplay.textContent = 'אישי';
-        if (this.puzzleNoteDisplay) this.puzzleNoteDisplay.textContent = '';
+        this.currentPuzzleMeta = {
+            id: '',
+            rating: '',
+            note: '',
+            idKey: 'meta.custom',
+            ratingKey: 'meta.personal'
+        };
+        this.updatePuzzleMetaDisplay();
 
         this.renderBoard();
         this.updateRemainingCounts();
@@ -2134,7 +2196,7 @@ class SudokuApp {
         if (this.cascadeBannerEl) this.cascadeBannerEl.classList.add('hidden');
         this.checkCascadeAvailability();
 
-        this.showToast('הסודוקו המותאם נטען בהצלחה!');
+        this.showToast(tr('toast.customLoaded'));
     }
 
     showToast(message) {
@@ -2226,9 +2288,7 @@ class SudokuApp {
             this.mistakesCount = data.mistakesCount || 0;
             this.isCustomGame = !!data.isCustomGame;
 
-            this.puzzleIdDisplay.textContent = `${this.currentPuzzleMeta.id}`;
-            this.puzzleRatingDisplay.textContent = `${this.currentPuzzleMeta.rating}`;
-            if (this.puzzleNoteDisplay) this.puzzleNoteDisplay.textContent = this.currentPuzzleMeta.note || '';
+            this.updatePuzzleMetaDisplay();
 
             this.renderBoard();
             this.updateRemainingCounts();

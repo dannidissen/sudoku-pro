@@ -119,7 +119,7 @@ html, body {
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
-    direction: rtl;
+    direction: inherit;
     user-select: none;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -169,6 +169,35 @@ html, body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.language-control {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 3px 6px;
+    color: var(--text-secondary);
+}
+
+.language-select {
+    min-width: 68px;
+    max-width: 92px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.language-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .control-tag {
@@ -1380,7 +1409,7 @@ input:checked + .slider:before {
 }
 
 /* Touch manipulation optimization for mobile */
-button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-btn, .size-btn {
+button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-btn, .size-btn, .language-select {
     touch-action: manipulation;
 }
 
@@ -1418,13 +1447,27 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         display: none !important;
     }
 
+    .header-actions {
+        gap: 4px;
+    }
+
+    .language-control {
+        padding: 2px 4px;
+    }
+
+    .language-select {
+        min-width: 56px;
+        max-width: 62px;
+        font-size: 0.68rem;
+    }
+
     #btn-custom-puzzle span,
     #btn-credits span {
         display: none !important;
     }
 
     .icon-btn {
-        padding: 5px 8px;
+        padding: 5px 6px;
     }
 
     .workspace-wrapper {
@@ -1494,5 +1537,29 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         order: 2;
         gap: 10px;
         box-sizing: border-box;
+    }
+}
+
+@media (max-width: 380px) {
+    .logo-section h1 {
+        font-size: 0.95rem;
+    }
+
+    .header-actions {
+        gap: 2px;
+    }
+
+    .icon-btn {
+        padding: 5px 4px;
+    }
+
+    .language-control {
+        padding: 2px 2px;
+    }
+
+    .language-select {
+        min-width: 50px;
+        max-width: 54px;
+        font-size: 0.64rem;
     }
 }

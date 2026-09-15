@@ -1,0 +1,367 @@
+// Sudoku Pro localization layer: Hebrew, English and Yiddish.
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'sudoku_pro_language_v1';
+    const RTL_LANGUAGES = new Set(['he', 'yi']);
+
+    const translations = {
+        he: {
+            'app.title': 'סודוקו פרו - גרסת מומחים עם Snyder Notation ורמזים מדורגים',
+            'app.name': 'סודוקו פרו',
+            'app.subtitle': 'Snyder Notation • רמזים דדוקטיביים • צביעת תאים • אפס גלילה',
+            'language.label': 'שפה',
+            'pencilSize.title': 'גודל כתב רישומי העיפרון',
+            'pencilSize.label': 'עיפרון:',
+            'pencilSize.normal': 'רגיל',
+            'pencilSize.large': 'גדול',
+            'pencilSize.xlarge': 'ענק',
+            'header.custom': 'לוח אישי',
+            'header.customTitle': 'טען סודוקו משלך',
+            'header.credits': 'מאגר',
+            'header.creditsTitle': 'אודות ומקור החידות',
+            'header.settingsTitle': 'הגדרות',
+            'header.themeTitle': 'החלף מצב לילה/יום',
+            'hint.initialBadge': 'שלב 1',
+            'hint.placeholder': 'כאן יופיע הסבר הרמז',
+            'hint.next': 'המשך לשלב הבא 👈',
+            'hint.dismissTitle': 'סגור רמז',
+            'pause.title': 'המשחק מושהה',
+            'pause.description': 'הלוח מוסתר כדי לעצור את מדידת הזמן',
+            'pause.resume': 'המשך לשחק',
+            'cascade.text': 'כל המשבצות הנותרות ברורות!',
+            'cascade.action': 'השלם אוטומטית וסיים 🚀',
+            'cascade.actionTitle': 'השלם אוטומטית את כל התאים הנותרים וסיים',
+            'cascade.dismissTitle': 'סגור באנר והמשך לפתור לבד',
+            'input.title': 'בחירת מצב הזנה',
+            'input.normal': '✍️ רגיל',
+            'input.corner': '📐 פינתי (Snyder)',
+            'input.cornerTitle': 'סימון פינתי לספרות מוגבלות בבלוק (Snyder)',
+            'input.center': '🎯 מרכזי',
+            'input.centerTitle': 'סימון מרכזי לכל המועמדים האפשריים',
+            'colors.title': 'צביעת תאים למעקב אחר שרשראות (Chains)',
+            'colors.green': 'ירוק',
+            'colors.blue': 'כחול',
+            'colors.orange': 'כתום',
+            'colors.purple': 'סגול',
+            'colors.clear': 'נקה צבע תא',
+            'keyboard.label': '💡 מקשים:',
+            'keyboard.numbers': 'מספרים',
+            'keyboard.switchMode': 'החלף מצב כתיבה',
+            'keyboard.corner': 'סימון פינתי',
+            'keyboard.center': 'סימון מרכזי',
+            'keyboard.arrows': 'חיצים',
+            'keyboard.navigation': 'ניווט',
+            'keyboard.erase': 'מחיקה',
+            'keyboard.undo': 'ביטול',
+            'keyboard.hint': 'רמז לוגי',
+            'difficulty.label': 'דרגת קושי:',
+            'difficulty.easyOption': '🟢 קל (דירוג ~1.2)',
+            'difficulty.mediumOption': '🟡 בינוני (דירוג ~2.3)',
+            'difficulty.hardOption': '🟠 קשה (דירוג ~3.5)',
+            'difficulty.expertOption': '🔴 מומחה (דירוג 5.0 - 6.8)',
+            'difficulty.masterOption': '🟣 מאסטר / שטני (דירוג 7.0 - 9.1+)',
+            'difficulty.extremeOption': '☠️ סיוט עולמי (Top1465 / אקסטרים 10-11)',
+            'difficulty.easy': 'קל',
+            'difficulty.medium': 'בינוני',
+            'difficulty.hard': 'קשה',
+            'difficulty.expert': 'מומחה',
+            'difficulty.master': 'מאסטר / שטני',
+            'difficulty.extreme': 'סיוט עולמי',
+            'game.new': 'הגרל לוח חדש',
+            'meta.puzzle': 'לוח:',
+            'meta.rating': 'דירוג:',
+            'meta.generator': 'גנרטור',
+            'meta.automatic': 'אוטומטי',
+            'meta.custom': 'מותאם אישית',
+            'meta.personal': 'אישי',
+            'timer.pause': 'השהה',
+            'timer.pauseTitle': 'השהה משחק',
+            'assist.title': '💡 עזרי פתרון ורמזים:',
+            'assist.hintTitle': 'רמז לוגי (Hint)',
+            'assist.hintSubtitle': '3 שלבים: כיוון 👈 הדגשה 👈 פתרון',
+            'assist.hintHelp': 'רמז דדוקטיבי מדורג ב-3 שלבים: כיוון, הדגשה ופתרון מלא',
+            'assist.revealTitle': 'חשוף תא (Reveal)',
+            'assist.revealSubtitle': 'חשיפה ישירה מהפתרון',
+            'assist.revealHelp': 'חושף ישירות את המספר הנכון לתא המסומן מתוך הפתרון המלא',
+            'tools.title': '✏️ כלי מועמדים ובטיחות:',
+            'tools.autofill': 'מילוי מועמדים',
+            'tools.autofillTitle': 'חשב ומלא אוטומטית את כל המועמדים החוקיים לכל התאים הריקים',
+            'tools.refresh': 'רענן סביבה',
+            'tools.refreshTitle': 'מחשב מחדש מועמדים חוקיים לשורה, לטור ולבלוק של התא הנבחר',
+            'tools.clear': 'נקה מועמדים',
+            'tools.clearTitle': 'מחק את כל רישומי העיפרון בלוח',
+            'tools.erase': 'מחק תא',
+            'tools.eraseTitle': 'מחק תא מסומן (Backspace)',
+            'tools.undo': 'בטל',
+            'tools.undoTitle': 'בטל פעולה (Ctrl+Z)',
+            'tools.redo': 'שוב',
+            'tools.redoTitle': 'בצע שוב (Ctrl+Y)',
+            'tools.solve': 'פתור הכל',
+            'tools.solveTitle': 'פתור את הלוח במלואו',
+            'settings.title': 'הגדרות ממשק ותצוגה',
+            'settings.snyderTitle': 'אפשר סימון פינתי (Snyder Notation)',
+            'settings.snyderDesc': 'מוסיף מצב סימון פינתי למועמדים מוגבלים בבלוק (מאפשר מעבר משולש במקש רווח). כבוי כברירת מחדל',
+            'settings.soundTitle': 'צלילי משחק עדינים (Audio FX)',
+            'settings.soundDesc': 'משמיע קליקים סינתטיים עדינים בהזנה וצליל ניצחון',
+            'settings.sameTitle': 'הדגש מספרים זהים',
+            'settings.sameDesc': 'מדגיש את כל המופעים של המספר הנבחר (כולל ברישומי העיפרון)',
+            'settings.areaTitle': 'הדגש שורה, טור ובלוק של התא המסומן',
+            'settings.areaDesc': 'מציג רקע רך סביב אזור התא הנבחר',
+            'settings.linesTitle': 'הצללת שורות, טורים וקוביות של הספרה (Cross-hatching)',
+            'settings.linesDesc': 'מסמן את כל השורות, הטורים והבלוקים שבהם הספרה כבר קיימת כדי לזהות מיד היכן חסר',
+            'settings.pruneTitle': 'הסרת מועמדים אוטומטית (עם שחזור בטוח במחיקה)',
+            'settings.pruneDesc': 'בעת הצבת מספר סופי, מסיר אותו מהסביבה. אם תמחק את המספר - המועמדים ישוחזרו אוטומטית!',
+            'settings.conflictsTitle': 'התראת שגיאות בזמן אמת ורטט',
+            'settings.conflictsDesc': 'מסמן באדום ומרטיט את התא אם הוזן מספר סותר באותה שורה, טור או בלוק',
+            'settings.solutionTitle': 'התראת שגיאות מול הפתרון בזמן אמת',
+            'settings.solutionDesc': 'מתריע ומסמן כשגיאה מיידית אם הוזן מספר שאינו תואם את פתרון החידה',
+            'settings.blockTitle': 'חסימת ספרות מתנגשות במקלדת (Smart Numpad)',
+            'settings.blockDesc': 'מעמעם וחוסם ספרות שכבר קיימות באותה שורה, טור או בלוק למניעת הקשות שגויות',
+            'settings.gridTitle': 'סידור מועמדים חכם (רשת 3×3)',
+            'settings.gridDesc': 'מציג כל ספרת עיפרון במיקום קבוע בלוח 3×3 (כמו מקלדת נומרית) לסריקה ויזואלית מיידית',
+            'settings.save': 'שמור וסגור',
+            'custom.title': 'הזנת סודוקו מותאם אישית',
+            'custom.instructions': 'הדבק מחרוזת של 81 תווים (ספרות 1-9, ו-0 או נקודה עבור תא ריק):',
+            'custom.load': 'טען ושחק',
+            'common.cancel': 'ביטול',
+            'credits.title': 'מאגרי החידות והקרדיטים',
+            'credits.intro': '🎮 <b>סודוקו פרו - גרסה מקצועית למתקדמים:</b><br>כולל מנוע רמזים דדוקטיבי (Hidden Single, Pointing, Pairs, X-Wing), שיטת Snyder Notation, צביעת תאים, אפס גלילה, וחידות ברמת אקסטרים.',
+            'credits.bank1Title': '📚 מאגר 1: Sudoku Exchange Puzzle Bank',
+            'credits.bank1Body': 'נוצר ע״י Grant McLean בעזרת QQWing ודורג על ידי Sudoku Explainer. משמש לרמות קל, בינוני, קשה, מומחה ומאסטר (דירוגים 1.0 עד 9.1+). ברישיון <b>נחלת הכלל (Public Domain / CC0)</b>.',
+            'credits.bank2Title': '☠️ מאגר 2: Top1465 Benchmark והיסטוריית האקסטרים',
+            'credits.bank2Body': 'מאגר ה-1,465 החידות הקשות ביותר שנאספו בהיסטוריה (מאת Guenter Stertenbrink), יחד עם יצירות המופת של ד״ר Arto Inkala (כגון <b>AI Escargot</b> ו-<b>Platinum Blonde</b>, בדירוג 11/10) ו-<b>Easter Monster</b>.',
+            'credits.close': 'הבנתי, סגור',
+            'victory.title': 'ניצחון אדיר! פתרת את הלוח!',
+            'victory.subtitle': 'פתרון מושלם ללא שום שגיאה שנותרה.',
+            'victory.time': 'זמן פתרון',
+            'victory.difficulty': 'רמת קושי',
+            'victory.mistakes': 'טעויות שנעשו',
+            'victory.hints': 'רמזים שנלקחו',
+            'victory.share': '📋 שתף תוצאה',
+            'victory.newGame': 'משחק חדש 🎉',
+            'confirm.newGame': 'יש התקדמות בלוח הנוכחי. להתחיל לוח חדש ולאבד אותה?',
+            'confirm.difficulty': 'יש התקדמות בלוח הנוכחי. להחליף רמת קושי ולאבד אותה?',
+            'confirm.solve': 'האם לחשוף את הפתרון המלא של הלוח?',
+            'toast.paintMode': 'מצב צביעה פעיל - לחץ על תאים לצביעתם',
+            'toast.newBoard': 'לוח חדש נטען: {difficulty} (דירוג {rating})',
+            'toast.givenImmutable': 'זהו מספר מקורי של החידה ולא ניתן לשנותו',
+            'toast.mistakeCorrected': 'טעות תוקנה במסגרת חלון החסד (2.5 שניות)',
+            'toast.wrongNumber': '❌ מספר שגוי שאינו תואם את פתרון החידה!',
+            'toast.givenCannotErase': 'זהו מספר מקורי ולא ניתן למחיקה',
+            'toast.mistakeUndone': 'טעות בוטלה במסגרת חלון החסד (2.5 שניות)',
+            'toast.candidatesRestored': 'שוחזרו מועמדי עיפרון בסביבה',
+            'toast.selectRefreshCell': 'בחר תא כדי לרענן את מועמדי הסביבה שלו',
+            'toast.refreshed': 'רועננו מועמדים חוקיים עבור {count} תאים בסביבה',
+            'toast.autofilled': '✨ מולאו מועמדים חוקיים עבור {count} תאים ריקים!',
+            'toast.noPencils': 'אין רישומי עיפרון למחיקה',
+            'toast.pencilsCleared': 'כל רישומי העיפרון נוקו',
+            'toast.fixMistake': 'יש טעות בלוח - תקן אותה לפני קבלת רמז נוסף',
+            'toast.noBasicHint': 'לא זוהה רמז בסיסי (נדרשת שרשרת מתקדמת). לחץ "חשוף תא" לחשיפה מהפתרון.',
+            'toast.noSolution': 'לא ניתן לייצר פתרון ללוח זה',
+            'toast.allFilled': 'כל התאים כבר מלאים!',
+            'toast.revealed': '👁️ נחשף תא ({row}, {col}): {value}',
+            'toast.noValidSolution': 'לא נמצא פתרון חוקי ללוח זה',
+            'toast.solved': 'הלוח נפתר במלואו',
+            'toast.noUndo': 'אין פעולות לביטול',
+            'toast.hintCandidatesRestored': 'שוחזרו מועמדים שנמחקו ברמז',
+            'toast.noRedo': 'אין פעולות לשחזור',
+            'toast.hintRedone': 'בוצעה שוב מחיקת מועמדים מהרמז',
+            'toast.shareCopied': '📋 תוצאת המשחק הועתקה ללוח בהצלחה!',
+            'toast.shareFailed': 'לא ניתן להעתיק ללוח אוטומטית',
+            'toast.customLoaded': 'הסודוקו המותאם נטען בהצלחה!',
+            'custom.invalidLength': 'הקלט חייב להכיל בדיוק 81 תווים (ספרות 1-9, ו-0 או נקודה לתא ריק)',
+            'custom.conflicts': 'הלוח שהזנת מכיל מספרים כפולים וסותרים',
+            'custom.unsolvable': 'לוח זה אינו פתיר!',
+            'share.prompt': 'העתק את התוצאה:',
+            'share.text': '🧩 סודוקו פרו - הושלם בהצלחה!\nרמה: {difficulty} (דירוג {rating})\n⏱️ זמן פתרון: {time}\n❌ טעויות: {mistakes} | 💡 רמזים: {hints}\n🟩🟩🟩🟩🟩🟩🟩🟩🟩\nשחקו ב-Sudoku Pro',
+            'hint.stage1Badge': 'שלב 1: כיוון',
+            'hint.stage2Badge': 'שלב 2: הדגשה',
+            'hint.stage3Badge': 'שלב 3: פתרון מלא',
+            'hint.stage2Action': 'שלב 2: הדגש אזור 👈',
+            'hint.stage3Action': 'שלב 3: בצע והסבר 👈',
+            'hint.close': 'סגור רמז',
+            'hint.stage2Scan': 'סרוק את התאים המסומנים בצהוב והיחידה המודגשת.',
+            'hint.nakedSingle.name': 'ספרה גלויה יחידה (Naked Single)',
+            'hint.nakedSingle.direction': 'חפש תא עם מועמד יחיד בבלוק {box} (שורה {row}, טור {col})',
+            'hint.nakedSingle.explanation': 'התא בשורה {row}, טור {col} רואה את כל שאר הספרות (1-9) באותה שורה, טור או בלוק. לכן הספרה היחידה האפשרית עבורו היא {value}.',
+            'hint.hiddenSingle.name': 'ספרה נסתרת יחידה (Hidden Single)',
+            'hint.hiddenSingle.boxDirection': 'חפש Hidden Single עבור הספרה {digit} בבלוק {box}',
+            'hint.hiddenSingle.boxExplanation': 'בבלוק {box}, הספרה {digit} אינה יכולה להתאים לאף תא אחר. לפיכך {digit} חייבת להיות בתא בשורה {row}, טור {col}.',
+            'hint.hiddenSingle.rowDirection': 'חפש Hidden Single עבור הספרה {digit} בשורה {row}',
+            'hint.hiddenSingle.rowExplanation': 'בשורה {row}, התא היחיד שיכול להכיל את הספרה {digit} הוא טור {col}. לכן {digit} משובצת כאן.',
+            'hint.hiddenSingle.colDirection': 'חפש Hidden Single עבור הספרה {digit} בטור {col}',
+            'hint.hiddenSingle.colExplanation': 'בטור {col}, התא היחיד שיכול להכיל את הספרה {digit} הוא שורה {row}. לכן {digit} חייבת להופיע בתא זה.',
+            'hint.pointing.name': 'זוג/שלשה מכוונת (Pointing)',
+            'hint.pointing.rowDirection': 'חפש Pointing של הספרה {digit} בבלוק {box} (המשפיע על שורה {row})',
+            'hint.pointing.rowExplanation': 'בבלוק {box}, כל המועמדים לספרה {digit} נמצאים בשורה {row} בלבד. ניתן למחוק את {digit} משאר התאים בשורה שמחוץ לבלוק ({count} מחיקות).',
+            'hint.pointing.colDirection': 'חפש Pointing של הספרה {digit} בבלוק {box} (המשפיע על טור {col})',
+            'hint.pointing.colExplanation': 'בבלוק {box}, כל המועמדים לספרה {digit} נמצאים בטור {col} בלבד. ניתן למחוק את {digit} משאר התאים בטור שמחוץ לבלוק ({count} מחיקות).',
+            'hint.nakedPair.name': 'זוג גלוי (Naked Pair)',
+            'hint.nakedPair.direction': 'חפש Naked Pair (זוג גלוי) ב{unit}',
+            'hint.nakedPair.explanation': 'התאים ({row1}, {col1}) ו-({row2}, {col2}) ב{unit} מכילים רק את הספרות {digit1} ו-{digit2}. ניתן למחוק אותן משאר התאים ביחידה ({count} מחיקות).',
+            'hint.xWing.name': 'כנף X (X-Wing)',
+            'hint.xWing.rowsDirection': 'חפש מבנה X-Wing עבור הספרה {digit} בשורות {row1} ו-{row2}',
+            'hint.xWing.rowsExplanation': 'הספרה {digit} מופיעה בשורות {row1} ו-{row2} רק בטורים {col1} ו-{col2}. ניתן למחוק אותה משאר התאים בטורים אלו ({count} מחיקות).',
+            'hint.xWing.colsDirection': 'חפש מבנה X-Wing עבור הספרה {digit} בטורים {col1} ו-{col2}',
+            'hint.xWing.colsExplanation': 'הספרה {digit} מופיעה בטורים {col1} ו-{col2} רק בשורות {row1} ו-{row2}. ניתן למחוק אותה משאר התאים בשורות אלו ({count} מחיקות).',
+            'unit.row': 'שורה {index}',
+            'unit.col': 'טור {index}',
+            'unit.box': 'בלוק {index}'
+        },
+        en: {
+            'app.title': 'Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints',
+            'app.name': 'Sudoku Pro',
+            'app.subtitle': 'Snyder Notation • Deductive hints • Cell coloring • Zero scrolling',
+            'language.label': 'Language',
+            'pencilSize.title': 'Pencil-mark text size', 'pencilSize.label': 'Pencil:', 'pencilSize.normal': 'Normal', 'pencilSize.large': 'Large', 'pencilSize.xlarge': 'Huge',
+            'header.custom': 'Custom', 'header.customTitle': 'Load your own Sudoku', 'header.credits': 'Library', 'header.creditsTitle': 'About and puzzle sources', 'header.settingsTitle': 'Settings', 'header.themeTitle': 'Switch light/dark theme',
+            'hint.initialBadge': 'Stage 1', 'hint.placeholder': 'The hint explanation will appear here', 'hint.next': 'Continue to the next stage 👉', 'hint.dismissTitle': 'Close hint',
+            'pause.title': 'Game paused', 'pause.description': 'The board is hidden while the timer is paused', 'pause.resume': 'Resume game',
+            'cascade.text': 'Every remaining cell is forced!', 'cascade.action': 'Auto-complete and finish 🚀', 'cascade.actionTitle': 'Fill all remaining cells automatically and finish', 'cascade.dismissTitle': 'Dismiss and continue solving',
+            'input.title': 'Input mode', 'input.normal': '✍️ Normal', 'input.corner': '📐 Corner (Snyder)', 'input.cornerTitle': 'Corner marks for digits restricted within a box (Snyder)', 'input.center': '🎯 Center', 'input.centerTitle': 'Centered marks for all possible candidates',
+            'colors.title': 'Cell colors for tracking chains', 'colors.green': 'Green', 'colors.blue': 'Blue', 'colors.orange': 'Orange', 'colors.purple': 'Purple', 'colors.clear': 'Clear cell color',
+            'keyboard.label': '💡 Keys:', 'keyboard.numbers': 'numbers', 'keyboard.switchMode': 'switch input mode', 'keyboard.corner': 'corner mark', 'keyboard.center': 'center mark', 'keyboard.arrows': 'Arrows', 'keyboard.navigation': 'navigate', 'keyboard.erase': 'erase', 'keyboard.undo': 'undo', 'keyboard.hint': 'logical hint',
+            'difficulty.label': 'Difficulty:', 'difficulty.easyOption': '🟢 Easy (rating ~1.2)', 'difficulty.mediumOption': '🟡 Medium (rating ~2.3)', 'difficulty.hardOption': '🟠 Hard (rating ~3.5)', 'difficulty.expertOption': '🔴 Expert (rating 5.0 - 6.8)', 'difficulty.masterOption': '🟣 Master / Diabolical (rating 7.0 - 9.1+)', 'difficulty.extremeOption': '☠️ World Nightmare (Top1465 / Extreme 10-11)',
+            'difficulty.easy': 'Easy', 'difficulty.medium': 'Medium', 'difficulty.hard': 'Hard', 'difficulty.expert': 'Expert', 'difficulty.master': 'Master / Diabolical', 'difficulty.extreme': 'World Nightmare',
+            'game.new': 'New random board', 'meta.puzzle': 'Puzzle:', 'meta.rating': 'Rating:', 'meta.generator': 'Generator', 'meta.automatic': 'Automatic', 'meta.custom': 'Custom', 'meta.personal': 'Personal',
+            'timer.pause': 'Pause', 'timer.pauseTitle': 'Pause game',
+            'assist.title': '💡 Solving aids and hints:', 'assist.hintTitle': 'Logical hint', 'assist.hintSubtitle': '3 stages: direction 👉 highlight 👉 solution', 'assist.hintHelp': 'A three-stage deductive hint: direction, highlight and full solution', 'assist.revealTitle': 'Reveal cell', 'assist.revealSubtitle': 'Direct reveal from the solution', 'assist.revealHelp': 'Reveal the correct digit for the selected cell from the full solution',
+            'tools.title': '✏️ Candidates and safety tools:', 'tools.autofill': 'Fill candidates', 'tools.autofillTitle': 'Calculate and fill all legal candidates in every empty cell', 'tools.refresh': 'Refresh area', 'tools.refreshTitle': 'Recalculate legal candidates in the selected row, column and box', 'tools.clear': 'Clear candidates', 'tools.clearTitle': 'Remove all pencil marks from the board', 'tools.erase': 'Erase cell', 'tools.eraseTitle': 'Erase the selected cell (Backspace)', 'tools.undo': 'Undo', 'tools.undoTitle': 'Undo action (Ctrl+Z)', 'tools.redo': 'Redo', 'tools.redoTitle': 'Redo action (Ctrl+Y)', 'tools.solve': 'Solve all', 'tools.solveTitle': 'Reveal the complete solution',
+            'settings.title': 'Interface and display settings', 'settings.snyderTitle': 'Enable corner marks (Snyder Notation)', 'settings.snyderDesc': 'Adds a corner-mark mode for candidates restricted within a box. Disabled by default.', 'settings.soundTitle': 'Gentle game sounds', 'settings.soundDesc': 'Plays subtle input clicks and a victory sound', 'settings.sameTitle': 'Highlight matching digits', 'settings.sameDesc': 'Highlights every occurrence of the selected digit, including pencil marks', 'settings.areaTitle': 'Highlight selected row, column and box', 'settings.areaDesc': 'Shows a soft background around the selected cell', 'settings.linesTitle': 'Digit cross-hatching', 'settings.linesDesc': 'Marks rows, columns and boxes where the digit already appears', 'settings.pruneTitle': 'Remove candidates automatically', 'settings.pruneDesc': 'Removes a placed digit from nearby marks and safely restores them when erased', 'settings.conflictsTitle': 'Real-time conflict warnings', 'settings.conflictsDesc': 'Marks and shakes a cell when its digit conflicts in the same row, column or box', 'settings.solutionTitle': 'Check mistakes against the solution', 'settings.solutionDesc': 'Warn immediately when a digit differs from the puzzle solution', 'settings.blockTitle': 'Block conflicting numpad digits', 'settings.blockDesc': 'Dims and disables digits already present in the selected row, column or box', 'settings.gridTitle': 'Smart 3×3 candidate layout', 'settings.gridDesc': 'Keeps each pencil digit in a fixed 3×3 position for quick visual scanning', 'settings.save': 'Save and close',
+            'custom.title': 'Load a custom Sudoku', 'custom.instructions': 'Paste 81 characters (digits 1-9, with 0 or a dot for an empty cell):', 'custom.load': 'Load and play', 'common.cancel': 'Cancel',
+            'credits.title': 'Puzzle libraries and credits', 'credits.intro': '🎮 <b>Sudoku Pro - a professional edition for advanced solvers:</b><br>Includes deductive hints (Hidden Single, Pointing, Pairs and X-Wing), Snyder Notation, cell coloring, zero scrolling and extreme puzzles.', 'credits.bank1Title': '📚 Library 1: Sudoku Exchange Puzzle Bank', 'credits.bank1Body': 'Created by Grant McLean with QQWing and rated by Sudoku Explainer. Used for Easy through Master levels (ratings 1.0 to 9.1+). Licensed as <b>Public Domain / CC0</b>.', 'credits.bank2Title': '☠️ Library 2: Top1465 Benchmark and extreme history', 'credits.bank2Body': 'A collection of 1,465 exceptionally hard puzzles by Guenter Stertenbrink, together with Dr. Arto Inkala classics such as <b>AI Escargot</b>, <b>Platinum Blonde</b> and <b>Easter Monster</b>.', 'credits.close': 'Got it, close',
+            'victory.title': 'Amazing! You solved the puzzle!', 'victory.subtitle': 'A complete, valid solution with no remaining errors.', 'victory.time': 'Solve time', 'victory.difficulty': 'Difficulty', 'victory.mistakes': 'Mistakes', 'victory.hints': 'Hints used', 'victory.share': '📋 Share result', 'victory.newGame': 'New game 🎉',
+            'confirm.newGame': 'This puzzle has progress. Start a new one and discard it?', 'confirm.difficulty': 'This puzzle has progress. Change difficulty and discard it?', 'confirm.solve': 'Reveal the complete solution?',
+            'toast.paintMode': 'Paint mode is active — select cells to color them', 'toast.newBoard': 'New board loaded: {difficulty} (rating {rating})', 'toast.givenImmutable': 'This is a given digit and cannot be changed', 'toast.mistakeCorrected': 'Mistake corrected within the 2.5-second grace period', 'toast.wrongNumber': '❌ This digit does not match the solution!', 'toast.givenCannotErase': 'A given digit cannot be erased', 'toast.mistakeUndone': 'Mistake undone within the 2.5-second grace period', 'toast.candidatesRestored': 'Nearby pencil candidates were restored', 'toast.selectRefreshCell': 'Select a cell before refreshing nearby candidates', 'toast.refreshed': 'Refreshed legal candidates for {count} nearby cells', 'toast.autofilled': '✨ Filled legal candidates in {count} empty cells!', 'toast.noPencils': 'There are no pencil marks to clear', 'toast.pencilsCleared': 'All pencil marks were cleared', 'toast.fixMistake': 'Correct the mistake on the board before requesting another hint', 'toast.noBasicHint': 'No basic hint was found; an advanced chain is required. Use “Reveal cell” if needed.', 'toast.noSolution': 'A solution could not be generated for this board', 'toast.allFilled': 'Every cell is already filled!', 'toast.revealed': '👁️ Revealed cell ({row}, {col}): {value}', 'toast.noValidSolution': 'No valid solution was found', 'toast.solved': 'The complete board was revealed', 'toast.noUndo': 'There is nothing to undo', 'toast.hintCandidatesRestored': 'Candidates removed by the hint were restored', 'toast.noRedo': 'There is nothing to redo', 'toast.hintRedone': 'The hint candidate elimination was applied again', 'toast.shareCopied': '📋 The result was copied to the clipboard!', 'toast.shareFailed': 'The result could not be copied automatically', 'toast.customLoaded': 'The custom Sudoku was loaded!',
+            'custom.invalidLength': 'Enter exactly 81 characters: digits 1-9, with 0 or a dot for an empty cell', 'custom.conflicts': 'The supplied board contains conflicting duplicate digits', 'custom.unsolvable': 'This board has no solution!',
+            'share.prompt': 'Copy the result:', 'share.text': '🧩 Sudoku Pro — completed!\nLevel: {difficulty} (rating {rating})\n⏱️ Time: {time}\n❌ Mistakes: {mistakes} | 💡 Hints: {hints}\n🟩🟩🟩🟩🟩🟩🟩🟩🟩\nPlay Sudoku Pro',
+            'hint.stage1Badge': 'Stage 1: direction', 'hint.stage2Badge': 'Stage 2: highlight', 'hint.stage3Badge': 'Stage 3: full solution', 'hint.stage2Action': 'Stage 2: highlight area 👉', 'hint.stage3Action': 'Stage 3: apply and explain 👉', 'hint.close': 'Close hint', 'hint.stage2Scan': 'Scan the yellow cells and the highlighted unit.',
+            'hint.nakedSingle.name': 'Naked Single', 'hint.nakedSingle.direction': 'Find a cell with one candidate in box {box} (row {row}, column {col})', 'hint.nakedSingle.explanation': 'The cell at row {row}, column {col} sees every other digit in its row, column or box. Its only possible digit is {value}.',
+            'hint.hiddenSingle.name': 'Hidden Single', 'hint.hiddenSingle.boxDirection': 'Find a Hidden Single for {digit} in box {box}', 'hint.hiddenSingle.boxExplanation': 'In box {box}, {digit} cannot fit in any other cell, so it must go at row {row}, column {col}.', 'hint.hiddenSingle.rowDirection': 'Find a Hidden Single for {digit} in row {row}', 'hint.hiddenSingle.rowExplanation': 'In row {row}, only column {col} can contain {digit}, so it must be placed here.', 'hint.hiddenSingle.colDirection': 'Find a Hidden Single for {digit} in column {col}', 'hint.hiddenSingle.colExplanation': 'In column {col}, only row {row} can contain {digit}, so it must go here.',
+            'hint.pointing.name': 'Pointing Pair/Triple', 'hint.pointing.rowDirection': 'Find pointing candidates for {digit} in box {box}, affecting row {row}', 'hint.pointing.rowExplanation': 'In box {box}, every candidate for {digit} lies in row {row}. Remove {digit} from the rest of that row outside the box ({count} eliminations).', 'hint.pointing.colDirection': 'Find pointing candidates for {digit} in box {box}, affecting column {col}', 'hint.pointing.colExplanation': 'In box {box}, every candidate for {digit} lies in column {col}. Remove {digit} from the rest of that column outside the box ({count} eliminations).',
+            'hint.nakedPair.name': 'Naked Pair', 'hint.nakedPair.direction': 'Find a Naked Pair in {unit}', 'hint.nakedPair.explanation': 'Cells ({row1}, {col1}) and ({row2}, {col2}) in {unit} contain only {digit1} and {digit2}. Remove those digits from the other cells in the unit ({count} eliminations).',
+            'hint.xWing.name': 'X-Wing', 'hint.xWing.rowsDirection': 'Find an X-Wing for {digit} in rows {row1} and {row2}', 'hint.xWing.rowsExplanation': 'In rows {row1} and {row2}, {digit} appears only in columns {col1} and {col2}. Remove it from the other cells in those columns ({count} eliminations).', 'hint.xWing.colsDirection': 'Find an X-Wing for {digit} in columns {col1} and {col2}', 'hint.xWing.colsExplanation': 'In columns {col1} and {col2}, {digit} appears only in rows {row1} and {row2}. Remove it from the other cells in those rows ({count} eliminations).',
+            'unit.row': 'row {index}', 'unit.col': 'column {index}', 'unit.box': 'box {index}'
+        },
+        yi: {
+            'app.title': 'סודאָקו פּראָ — עקספּערט־אויסגאַבע מיט סנײַדער־נאָטאַציע און שטופֿיקע הילפֿן',
+            'app.name': 'סודאָקו פּראָ',
+            'app.subtitle': 'סנײַדער־נאָטאַציע • דעדוקטיווע הילפֿן • צעל־קאָלירן • אָן סקראָלן',
+            'language.label': 'שפּראַך',
+            'pencilSize.title': 'גרייס פֿון בלײַער־צייכנס', 'pencilSize.label': 'בלײַער:', 'pencilSize.normal': 'נאָרמאַל', 'pencilSize.large': 'גרויס', 'pencilSize.xlarge': 'ריזיק',
+            'header.custom': 'אייגענע', 'header.customTitle': 'לאָד אַן אייגענע סודאָקו', 'header.credits': 'זאַמלונג', 'header.creditsTitle': 'וועגן די רעטענישן און זייערע קוואַלן', 'header.settingsTitle': 'איינשטעלונגען', 'header.themeTitle': 'בײַט טאָג־/נאַכט־מאָדוס',
+            'hint.initialBadge': 'שטופֿע 1', 'hint.placeholder': 'דאָ וועט דער הסבר פֿון דער הילף דערשײַנען', 'hint.next': 'ווײַטער צו דער קומענדיקער שטופֿע 👈', 'hint.dismissTitle': 'פֿאַרמאַך די הילף',
+            'pause.title': 'די שפּיל איז פּאַוזירט', 'pause.description': 'דער ברעט איז באַהאַלטן בשעת דער זייגער שטייט', 'pause.resume': 'שפּיל ווײַטער',
+            'cascade.text': 'אַלע איבעריקע צעלן זענען קלאָר!', 'cascade.action': 'דערגאַנצן אויטאָמאַטיש 🚀', 'cascade.actionTitle': 'פֿיל אויס אַלע איבעריקע צעלן און ענדיק', 'cascade.dismissTitle': 'פֿאַרמאַך און לייז ווײַטער אַליין',
+            'input.title': 'אַרײַנשרײַב־מאָדוס', 'input.normal': '✍️ נאָרמאַל', 'input.corner': '📐 ווינקל (Snyder)', 'input.cornerTitle': 'ווינקל־צייכנס פֿאַר ציפֿערן באַגרענעצט אין אַ קעסטל', 'input.center': '🎯 צענטער', 'input.centerTitle': 'צענטער־צייכנס פֿאַר אַלע מעגלעכע קאַנדידאַטן',
+            'colors.title': 'קאָלירן צעלן כּדי נאָכצופֿאָלגן קייטן', 'colors.green': 'גרין', 'colors.blue': 'בלוי', 'colors.orange': 'מאַראַנץ', 'colors.purple': 'לילאַ', 'colors.clear': 'מעק אויס דעם צעל־קאָליר',
+            'keyboard.label': '💡 קנעפּלעך:', 'keyboard.numbers': 'ציפֿערן', 'keyboard.switchMode': 'בײַט שרײַב־מאָדוס', 'keyboard.corner': 'ווינקל־צייכן', 'keyboard.center': 'צענטער־צייכן', 'keyboard.arrows': 'פֿײַלן', 'keyboard.navigation': 'נאַוויגאַציע', 'keyboard.erase': 'מעקן', 'keyboard.undo': 'צוריק', 'keyboard.hint': 'לאָגישע הילף',
+            'difficulty.label': 'שוועריקייט:', 'difficulty.easyOption': '🟢 גרינג (ראַנג ~1.2)', 'difficulty.mediumOption': '🟡 מיטל (ראַנג ~2.3)', 'difficulty.hardOption': '🟠 שווער (ראַנג ~3.5)', 'difficulty.expertOption': '🔴 עקספּערט (ראַנג 5.0 - 6.8)', 'difficulty.masterOption': '🟣 מײַסטער / טײַווליש (ראַנג 7.0 - 9.1+)', 'difficulty.extremeOption': '☠️ וועלט־קאשמאר (Top1465 / עקסטרעם 10-11)',
+            'difficulty.easy': 'גרינג', 'difficulty.medium': 'מיטל', 'difficulty.hard': 'שווער', 'difficulty.expert': 'עקספּערט', 'difficulty.master': 'מײַסטער / טײַווליש', 'difficulty.extreme': 'וועלט־קאשמאר',
+            'game.new': 'נײַער צופֿעליקער ברעט', 'meta.puzzle': 'רעטעניש:', 'meta.rating': 'ראַנג:', 'meta.generator': 'גענעראַטאָר', 'meta.automatic': 'אויטאָמאַטיש', 'meta.custom': 'אייגענע', 'meta.personal': 'פּערזענלעך',
+            'timer.pause': 'פּאַוזע', 'timer.pauseTitle': 'פּאַוזיר די שפּיל',
+            'assist.title': '💡 לייז־געצייג און הילפֿן:', 'assist.hintTitle': 'לאָגישע הילף', 'assist.hintSubtitle': '3 שטופֿעס: ריכטונג 👈 הויכפּונקט 👈 לייזונג', 'assist.hintHelp': 'אַ דעדוקטיווע הילף אין דרײַ שטופֿעס', 'assist.revealTitle': 'אַנטפּלעק אַ צעל', 'assist.revealSubtitle': 'דירעקט פֿון דער לייזונג', 'assist.revealHelp': 'ווײַז די ריכטיקע ציפֿער אינעם אויסגעקליבענעם צעל',
+            'tools.title': '✏️ קאַנדידאַטן און זיכערקייט:', 'tools.autofill': 'פֿיל קאַנדידאַטן', 'tools.autofillTitle': 'רעכן און פֿיל אַלע לעגאַלע קאַנדידאַטן', 'tools.refresh': 'דערפֿריש געגנט', 'tools.refreshTitle': 'רעכן ווידער קאַנדידאַטן אין דער ריי, זייַל און קעסטל', 'tools.clear': 'מעק קאַנדידאַטן', 'tools.clearTitle': 'מעק אויס אַלע בלײַער־צייכנס', 'tools.erase': 'מעק צעל', 'tools.eraseTitle': 'מעק דעם אויסגעקליבענעם צעל', 'tools.undo': 'צוריק', 'tools.undoTitle': 'מאַך צוריק (Ctrl+Z)', 'tools.redo': 'ווידער', 'tools.redoTitle': 'מאַך ווידער (Ctrl+Y)', 'tools.solve': 'לייז אַלץ', 'tools.solveTitle': 'אַנטפּלעק די גאַנצע לייזונג',
+            'settings.title': 'איינשטעלונגען פֿאַר אויסזען און צובינד', 'settings.snyderTitle': 'דערלויב ווינקל־צייכנס (Snyder)', 'settings.snyderDesc': 'לייגט צו ווינקל־צייכנס פֿאַר קאַנדידאַטן אין אַ קעסטל. אויסגעלאָשן בײַם אָנהייב.', 'settings.soundTitle': 'שטילע שפּיל־קלאַנגען', 'settings.soundDesc': 'שפּילט לײַכטע קליקן און אַ נצחון־קלאַנג', 'settings.sameTitle': 'הייב hervor גלײַכע ציפֿערן', 'settings.sameDesc': 'הייבט hervor אַלע ערטער פֿון דער אויסגעקליבענער ציפֿער', 'settings.areaTitle': 'הייב hervor ריי, זייַל און קעסטל', 'settings.areaDesc': 'ווײַזט אַ לײַכטן הינטערגרונט אַרום דעם צעל', 'settings.linesTitle': 'קרייץ־שאַטירונג פֿון דער ציפֿער', 'settings.linesDesc': 'צייכנט רייען, זייַלן און קעסטלעך וווּ די ציפֿער איז שוין דאָ', 'settings.pruneTitle': 'נעם אויטאָמאַטיש אַוועק קאַנדידאַטן', 'settings.pruneDesc': 'נעמט אַוועק די געזעצטע ציפֿער פֿון דער געגנט און שטעלט זי זיכער צוריק בײַם מעקן', 'settings.conflictsTitle': 'גלײַכצײַטיקע טעות־וואַרענונגען', 'settings.conflictsDesc': 'צייכנט און שאָקלט אַ צעל ווען עס איז אַ סתּירה', 'settings.solutionTitle': 'קאָנטראָליר טעותן קעגן דער לייזונג', 'settings.solutionDesc': 'וואָרנט גלײַך ווען אַ ציפֿער שטימט נישט מיט דער לייזונג', 'settings.blockTitle': 'בלאָקיר סותרדיקע ציפֿערן', 'settings.blockDesc': 'פֿאַרבלאַסט און בלאָקירט ציפֿערן וואָס זענען שוין אין דער געגנט', 'settings.gridTitle': 'קלוגע 3×3 קאַנדידאַט־אָרדענונג', 'settings.gridDesc': 'האַלט יעדע בלײַער־ציפֿער אויף אַ פֿעסטן אָרט', 'settings.save': 'היט און פֿאַרמאַך',
+            'custom.title': 'לאָד אַן אייגענע סודאָקו', 'custom.instructions': 'קלעב אַרײַן 81 צייכנס (1-9, און 0 אָדער אַ פּונקט פֿאַר אַ ליידיקן צעל):', 'custom.load': 'לאָד און שפּיל', 'common.cancel': 'אַנולירן',
+            'credits.title': 'רעטעניש־זאַמלונגען און קרעדיטן', 'credits.intro': '🎮 <b>סודאָקו פּראָ — אַ פּראָפֿעסיאָנעלע אויסגאַבע פֿאַר פֿאָרטגעשריטענע:</b><br>מיט דעדוקטיווע הילפֿן, סנײַדער־נאָטאַציע, צעל־קאָלירן און עקסטרעמע רעטענישן.', 'credits.bank1Title': '📚 זאַמלונג 1: Sudoku Exchange Puzzle Bank', 'credits.bank1Body': 'באַשאַפֿן פֿון Grant McLean מיט QQWing און אָפּגעשאַצט פֿון Sudoku Explainer. פֿאַר גרינג ביז מײַסטער. <b>Public Domain / CC0</b>.', 'credits.bank2Title': '☠️ זאַמלונג 2: Top1465 און עקסטרעמע געשיכטע', 'credits.bank2Body': 'אַ זאַמלונג פֿון 1,465 זייער שווערע רעטענישן פֿון Guenter Stertenbrink, צוזאַמען מיט קלאַסישע רעטענישן פֿון ד״ר Arto Inkala.', 'credits.close': 'פֿאַרשטאַנען, פֿאַרמאַך',
+            'victory.title': 'געוואַלדיק! דו האָסט געלייזט די רעטעניש!', 'victory.subtitle': 'אַ פֿולע גילטיקע לייזונג אָן איבעריקע טעותן.', 'victory.time': 'לייז־צײַט', 'victory.difficulty': 'שוועריקייט', 'victory.mistakes': 'טעותן', 'victory.hints': 'גענוצטע הילפֿן', 'victory.share': '📋 טייל דעם רעזולטאַט', 'victory.newGame': 'נײַע שפּיל 🎉',
+            'confirm.newGame': 'עס איז דאָ פּראָגרעס. אָנהייבן אַ נײַע רעטעניש און עס פֿאַרלירן?', 'confirm.difficulty': 'עס איז דאָ פּראָגרעס. בײַטן שוועריקייט און עס פֿאַרלירן?', 'confirm.solve': 'אַנטפּלעקן די גאַנצע לייזונג?',
+            'toast.paintMode': 'קאָליר־מאָדוס איז אַקטיוו — קליק אויף צעלן', 'toast.newBoard': 'נײַער ברעט: {difficulty} (ראַנג {rating})', 'toast.givenImmutable': 'דאָס איז אַן אָריגינעלע ציפֿער און מע קען זי נישט בײַטן', 'toast.mistakeCorrected': 'דער טעות איז פֿאַרריכט געוואָרן אין 2.5 סעקונדעס', 'toast.wrongNumber': '❌ די ציפֿער שטימט נישט מיט דער לייזונג!', 'toast.givenCannotErase': 'אַן אָריגינעלע ציפֿער קען מען נישט אויסמעקן', 'toast.mistakeUndone': 'דער טעות איז צוריקגענומען געוואָרן אין 2.5 סעקונדעס', 'toast.candidatesRestored': 'די קאַנדידאַטן אין דער געגנט זענען צוריקגעשטעלט', 'toast.selectRefreshCell': 'קלייב אויס אַ צעל פֿאַרן דערפֿרישן', 'toast.refreshed': 'דערפֿרישט קאַנדידאַטן פֿאַר {count} צעלן', 'toast.autofilled': '✨ געפֿילט קאַנדידאַטן אין {count} ליידיקע צעלן!', 'toast.noPencils': 'עס זענען נישטאָ קיין בלײַער־צייכנס', 'toast.pencilsCleared': 'אַלע בלײַער־צייכנס זענען אויסגעמעקט', 'toast.fixMistake': 'פֿאַרריכט דעם טעות איידער נאָך אַ הילף', 'toast.noBasicHint': 'קיין פּשוטע הילף איז נישט געפֿונען געוואָרן; עס דאַרף זיך אַן אַוואַנסירטע קייט.', 'toast.noSolution': 'מע קען נישט שאַפֿן אַ לייזונג פֿאַר דעם ברעט', 'toast.allFilled': 'אַלע צעלן זענען שוין געפֿילט!', 'toast.revealed': '👁️ אַנטפּלעקט צעל ({row}, {col}): {value}', 'toast.noValidSolution': 'קיין גילטיקע לייזונג איז נישט געפֿונען געוואָרן', 'toast.solved': 'דער גאַנצער ברעט איז אַנטפּלעקט', 'toast.noUndo': 'עס איז גאָרנישט צוריקצומאַכן', 'toast.hintCandidatesRestored': 'די פֿון דער הילף אַוועקגענומענע קאַנדידאַטן זענען צוריק', 'toast.noRedo': 'עס איז גאָרנישט ווידערצומאַכן', 'toast.hintRedone': 'די הילף־אָפּמעקונג איז ווידער דורכגעפֿירט', 'toast.shareCopied': '📋 דער רעזולטאַט איז קאָפּירט געוואָרן!', 'toast.shareFailed': 'מע קען נישט אויטאָמאַטיש קאָפּירן', 'toast.customLoaded': 'די אייגענע סודאָקו איז געלאָדן!',
+            'custom.invalidLength': 'שרײַב פּינקטלעך 81 צייכנס: 1-9, און 0 אָדער אַ פּונקט פֿאַר אַ ליידיקן צעל', 'custom.conflicts': 'דער ברעט האָט סותרדיקע טאָפּלטע ציפֿערן', 'custom.unsolvable': 'דער ברעט האָט נישט קיין לייזונג!',
+            'share.prompt': 'קאָפּיר דעם רעזולטאַט:', 'share.text': '🧩 סודאָקו פּראָ — פֿאַרענדיקט!\nשוועריקייט: {difficulty} (ראַנג {rating})\n⏱️ צײַט: {time}\n❌ טעותן: {mistakes} | 💡 הילפֿן: {hints}\n🟩🟩🟩🟩🟩🟩🟩🟩🟩\nשפּיל סודאָקו פּראָ',
+            'hint.stage1Badge': 'שטופֿע 1: ריכטונג', 'hint.stage2Badge': 'שטופֿע 2: הויכפּונקט', 'hint.stage3Badge': 'שטופֿע 3: גאַנצע לייזונג', 'hint.stage2Action': 'שטופֿע 2: הייב hervor געגנט 👈', 'hint.stage3Action': 'שטופֿע 3: טו און דערקלער 👈', 'hint.close': 'פֿאַרמאַך הילף', 'hint.stage2Scan': 'באַטראַכט די געלע צעלן און די געהויבענע איינהייט.',
+            'hint.nakedSingle.name': 'איינציקער אָפֿענער קאַנדידאַט (Naked Single)', 'hint.nakedSingle.direction': 'זוך אַ צעל מיט איין קאַנדידאַט אין קעסטל {box} (ריי {row}, זייַל {col})', 'hint.nakedSingle.explanation': 'דער צעל אין ריי {row}, זייַל {col} זעט אַלע אַנדערע ציפֿערן. דער איינציקער מעגלעכער קאַנדידאַט איז {value}.',
+            'hint.hiddenSingle.name': 'באַהאַלטענער איינציקער (Hidden Single)', 'hint.hiddenSingle.boxDirection': 'זוך אַ Hidden Single פֿאַר {digit} אין קעסטל {box}', 'hint.hiddenSingle.boxExplanation': 'אין קעסטל {box} קען {digit} נישט זײַן אין קיין אַנדער צעל; זי מוז זײַן אין ריי {row}, זייַל {col}.', 'hint.hiddenSingle.rowDirection': 'זוך אַ Hidden Single פֿאַר {digit} אין ריי {row}', 'hint.hiddenSingle.rowExplanation': 'אין ריי {row} קען נאָר זייַל {col} האָבן {digit}.', 'hint.hiddenSingle.colDirection': 'זוך אַ Hidden Single פֿאַר {digit} אין זייַל {col}', 'hint.hiddenSingle.colExplanation': 'אין זייַל {col} קען נאָר ריי {row} האָבן {digit}.',
+            'hint.pointing.name': 'ווײַזנדיקער פּאָר/דרײַער (Pointing)', 'hint.pointing.rowDirection': 'זוך Pointing פֿאַר {digit} אין קעסטל {box}, אויף ריי {row}', 'hint.pointing.rowExplanation': 'אין קעסטל {box} ליגן אַלע קאַנדידאַטן פֿאַר {digit} אין ריי {row}. מע קען זי אויסמעקן פֿון די אַנדערע צעלן ({count} מעקונגען).', 'hint.pointing.colDirection': 'זוך Pointing פֿאַר {digit} אין קעסטל {box}, אויף זייַל {col}', 'hint.pointing.colExplanation': 'אין קעסטל {box} ליגן אַלע קאַנדידאַטן פֿאַר {digit} אין זייַל {col}. מע קען זי אויסמעקן פֿון די אַנדערע צעלן ({count} מעקונגען).',
+            'hint.nakedPair.name': 'אָפֿענער פּאָר (Naked Pair)', 'hint.nakedPair.direction': 'זוך אַ Naked Pair אין {unit}', 'hint.nakedPair.explanation': 'די צעלן ({row1}, {col1}) און ({row2}, {col2}) אין {unit} האָבן נאָר {digit1} און {digit2}. מע קען זיי אויסמעקן פֿון די אַנדערע צעלן ({count} מעקונגען).',
+            'hint.xWing.name': 'X-Wing', 'hint.xWing.rowsDirection': 'זוך אַן X-Wing פֿאַר {digit} אין רייען {row1} און {row2}', 'hint.xWing.rowsExplanation': '{digit} דערשײַנט אין די רייען נאָר אין זייַלן {col1} און {col2}; מע קען זי אויסמעקן פֿון די אַנדערע צעלן ({count} מעקונגען).', 'hint.xWing.colsDirection': 'זוך אַן X-Wing פֿאַר {digit} אין זייַלן {col1} און {col2}', 'hint.xWing.colsExplanation': '{digit} דערשײַנט אין די זייַלן נאָר אין רייען {row1} און {row2}; מע קען זי אויסמעקן פֿון די אַנדערע צעלן ({count} מעקונגען).',
+            'unit.row': 'ריי {index}', 'unit.col': 'זייַל {index}', 'unit.box': 'קעסטל {index}'
+        }
+    };
+
+    let currentLanguage = 'he';
+
+    function normalizeLanguage(language) {
+        return Object.prototype.hasOwnProperty.call(translations, language) ? language : 'he';
+    }
+
+    function interpolate(template, params = {}) {
+        return String(template).replace(/\{(\w+)\}/g, (match, key) => (
+            Object.prototype.hasOwnProperty.call(params, key) ? String(params[key]) : match
+        ));
+    }
+
+    function t(key, params = {}) {
+        const table = translations[currentLanguage] || translations.he;
+        const template = table[key] ?? translations.he[key] ?? key;
+        return interpolate(template, params);
+    }
+
+    function apply(root = document) {
+        root.querySelectorAll('[data-i18n]').forEach(element => {
+            element.textContent = t(element.dataset.i18n);
+        });
+        root.querySelectorAll('[data-i18n-html]').forEach(element => {
+            element.innerHTML = t(element.dataset.i18nHtml);
+        });
+        root.querySelectorAll('[data-i18n-title]').forEach(element => {
+            element.title = t(element.dataset.i18nTitle);
+        });
+        document.title = t('app.title');
+    }
+
+    function setLanguage(language, options = {}) {
+        const nextLanguage = normalizeLanguage(language);
+        const changed = nextLanguage !== currentLanguage;
+        currentLanguage = nextLanguage;
+        document.documentElement.lang = currentLanguage;
+        document.documentElement.dir = RTL_LANGUAGES.has(currentLanguage) ? 'rtl' : 'ltr';
+
+        if (options.persist !== false) {
+            try {
+                localStorage.setItem(STORAGE_KEY, currentLanguage);
+            } catch (_) {
+                // The game remains usable when localStorage is unavailable.
+            }
+        }
+
+        apply();
+        const selector = document.getElementById('language-select');
+        if (selector) selector.value = currentLanguage;
+
+        if (changed || options.forceEvent) {
+            window.dispatchEvent(new CustomEvent('sudoku-language-change', {
+                detail: { language: currentLanguage, direction: document.documentElement.dir }
+            }));
+        }
+    }
+
+    function getSavedLanguage() {
+        try {
+            return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || 'he');
+        } catch (_) {
+            return 'he';
+        }
+    }
+
+    function init() {
+        const selector = document.getElementById('language-select');
+        if (selector) {
+            selector.addEventListener('change', event => setLanguage(event.target.value));
+        }
+        setLanguage(getSavedLanguage(), { persist: false, forceEvent: true });
+    }
+
+    window.SudokuI18n = {
+        apply,
+        get language() { return currentLanguage; },
+        isRTL() { return RTL_LANGUAGES.has(currentLanguage); },
+        setLanguage,
+        t,
+        translations
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
