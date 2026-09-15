@@ -135,7 +135,8 @@ class SudokuApp {
             validateAgainstSolution: true,
             smartPencilGrid: true,
             theme: 'dark',
-            pencilSize: 'normal'
+            pencilSize: 'normal',
+            activeAlgorithm: 'mrv'
         };
 
         this.init();
@@ -289,6 +290,37 @@ class SudokuApp {
         document.getElementById('btn-settings').addEventListener('click', () => this.openModal('modal-settings'));
         document.getElementById('btn-credits').addEventListener('click', () => this.openModal('modal-credits'));
         document.getElementById('btn-custom-puzzle').addEventListener('click', () => this.openModal('modal-custom'));
+        
+        const btnAlgoLab = document.getElementById('btn-algo-lab');
+        if (btnAlgoLab) {
+            btnAlgoLab.addEventListener('click', () => this.openModal('modal-algo'));
+        }
+
+        // Algo Radio selections
+        document.querySelectorAll('input[name="selected-algo"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.settings.activeAlgorithm = e.target.value;
+                this.saveSettings();
+                document.querySelectorAll('.algo-card').forEach(card => {
+                    const cardRadio = card.querySelector('input[type="radio"]');
+                    if (cardRadio) {
+                        card.classList.toggle('active', cardRadio.checked);
+                    }
+                });
+            });
+        });
+
+        // Run Selected Algo / Benchmark buttons
+        const btnRunSolve = document.getElementById('btn-run-algo-solve');
+        if (btnRunSolve) {
+            btnRunSolve.addEventListener('click', () => this.runSelectedAlgorithmSolve());
+        }
+
+        const btnRunCompare = document.getElementById('btn-run-algo-compare');
+        if (btnRunCompare) {
+            btnRunCompare.addEventListener('click', () => this.runAlgorithmBenchmark());
+        }
+
         document.getElementById('btn-victory-new-game').addEventListener('click', () => {
             this.closeModal('modal-victory');
             this.startNewGame(this.currentDifficulty);
@@ -2169,6 +2201,14 @@ class SudokuApp {
                     const el = document.getElementById(id);
                     if (el) el.checked = !!this.settings[key];
                 });
+            } else if (modalId === 'modal-algo') {
+                const activeAlgo = this.settings.activeAlgorithm || 'mrv';
+                const radio = document.getElementById(`algo-${activeAlgo}`);
+                if (radio) radio.checked = true;
+                document.querySelectorAll('.algo-card').forEach(card => {
+                    const cardRadio = card.querySelector('input[type="radio"]');
+                    if (cardRadio) card.classList.toggle('active', cardRadio.checked);
+                });
             }
             modal.classList.add('open');
         }
@@ -2177,6 +2217,120 @@ class SudokuApp {
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) modal.classList.remove('open');
+    }
+
+    runSelectedAlgorithmSolve() {
+        if (this.isExecutingCascade || this.isPaused) return;
+
+        const algo = this.settings.activeAlgorithm || 'mrv';
+        const targetBoard = this.currentBoard.some(r => r.some(v => v !== 0))
+            ? this.currentBoard
+            : this.initialBoard;
+
+        let result = null;
+        let algoName = '';
+
+        if (algo === 'mrv') {
+            algoName = 'Bitwise MRV';
+            result = SudokuEngine.solveBitwiseMRV(targetBoard);
+        } else if (algo === 'seq') {
+            algoName = 'Sequential Backtracking';
+            result = SudokuEngine.solveBitwiseSequential(targetBoard);
+        } else if (algo === 'deductive') {
+            algoName = 'Deductive Logic';
+            result = SudokuEngine.solveDeductive(targetBoard);
+        }
+
+        if (!result || !result.solvedBoard) {
+            this.showToast(result?.error || 'לא נמצא פתרון חוקי ללוח זה');
+            return;
+        }
+
+        const previousBoard = this.currentBoard.map(r => [...r]);
+        const prevCenter = this.centerMarks.map(r => r.map(set => new Set(set)));
+        const prevCorner = this.cornerMarks.map(r => r.map(set => new Set(set)));
+
+        this.currentBoard = result.solvedBoard.map(r => [...r]);
+        this.centerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
+        this.cornerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
+
+        this.pushAction({
+            type: 'full_solve',
+            previousBoard,
+            prevCenter,
+            prevCorner
+        });
+
+        this.renderBoard();
+        this.updateRemainingCounts();
+        this.updateVisualHighlights();
+        this.saveGameState();
+        this.stopTimer();
+        this.closeModal('modal-algo');
+
+        const timeStr = result.timeUs < 1000 ? `${result.timeUs.toFixed(1)} µs` : `${(result.timeUs / 1000).toFixed(2)} ms`;
+        const nodesStr = result.nodesExplored !== undefined ? ` • ${result.nodesExplored.toLocaleString()} צמתים` : (result.stepsCount !== undefined ? ` • ${result.stepsCount} צעדי לוגיקה` : '');
+        this.showToast(`⚡ נפתר בהצלחה באמצעות ${algoName} (${timeStr}${nodesStr})`);
+    }
+
+    runAlgorithmBenchmark() {
+        const targetBoard = this.initialBoard.some(r => r.some(v => v !== 0))
+            ? this.initialBoard
+            : this.currentBoard;
+
+        const resultsEl = document.getElementById('algo-benchmark-results');
+        if (!resultsEl) return;
+
+        const cmp = SudokuEngine.compareAlgorithms(targetBoard);
+        const mrvTime = cmp.mrv.timeUs < 1000 ? `${cmp.mrv.timeUs.toFixed(1)} µs` : `${(cmp.mrv.timeUs / 1000).toFixed(2)} ms`;
+        const seqTime = cmp.seq.timeUs < 1000 ? `${cmp.seq.timeUs.toFixed(1)} µs` : `${(cmp.seq.timeUs / 1000).toFixed(2)} ms`;
+
+        let statusText = '✅ פתרון יחיד ותקני (VALID & UNIQUE)';
+        let statusBadgeClass = 'badge-fast';
+        if (cmp.mrv.solutionsCount === 0) {
+            statusText = '❌ לוח ללא פתרון (UNSOLVABLE)';
+            statusBadgeClass = 'badge-standard';
+        } else if (cmp.mrv.solutionsCount >= 2) {
+            statusText = '⚠️ פתרונות מרובים (MULTIPLE)';
+            statusBadgeClass = 'badge-standard';
+        }
+
+        resultsEl.innerHTML = `
+            <div class="algo-results-header">
+                <span>תוצאות בנצ'מרק על הלוח הנוכחי:</span>
+                <span class="algo-badge ${statusBadgeClass}">${statusText}</span>
+            </div>
+            <table class="algo-table">
+                <thead>
+                    <tr>
+                        <th>מדד</th>
+                        <th>Bitwise MRV (מומלץ)</th>
+                        <th>Sequential (סדרתי)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>צמתים שנסרקו:</td>
+                        <td><b>${cmp.mrv.nodesExplored.toLocaleString()}</b></td>
+                        <td>${cmp.seq.nodesExplored.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td>זמן חישוב:</td>
+                        <td><b>${mrvTime}</b></td>
+                        <td>${seqTime}</td>
+                    </tr>
+                    <tr>
+                        <td>פתרונות שזוהו:</td>
+                        <td>${cmp.mrv.solutionsCount}</td>
+                        <td>${cmp.seq.solutionsCount}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="algo-highlight-stat">
+                🚀 מנוע ה-MRV גזם ${cmp.nodesSaved.toLocaleString()} צמתים (${cmp.nodesSavedPct.toFixed(1)}% פחות עבודה) והיה מהיר פי ${cmp.speedup.toFixed(1)}!
+            </div>
+        `;
+        resultsEl.classList.remove('hidden');
     }
 
     saveGameState() {

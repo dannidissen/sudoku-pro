@@ -1105,6 +1105,348 @@ class SudokuEngine {
         }
         return this.findConflicts(board).size === 0;
     }
+
+    // -------------------------------------------------------------
+    // High-Performance Bitwise Algorithms (Pure JS Mirror of C Engine)
+    // -------------------------------------------------------------
+
+    static _getPopcountTable() {
+        if (!this._popcountTable) {
+            const table = new Uint8Array(512);
+            for (let i = 0; i < 512; i++) {
+                let c = 0;
+                for (let b = 0; b < 9; b++) {
+                    if ((i >> b) & 1) c++;
+                }
+                table[i] = c;
+            }
+            this._popcountTable = table;
+        }
+        return this._popcountTable;
+    }
+
+    /**
+     * Solve board using Bitwise MRV Backtracking (Engine 1)
+     * @param {number[][]} board 9x9 grid
+     * @param {number} maxSolutions default 2 (stops early at 2 to prove uniqueness)
+     * @returns {{ success: boolean, solutionsCount: number, nodesExplored: number, timeUs: number, solvedBoard: number[][]|null, error?: string }}
+     */
+    static solveBitwiseMRV(board, maxSolutions = 2) {
+        const t0 = performance.now();
+        const POPCOUNT_9 = this._getPopcountTable();
+
+        const cells = new Int8Array(81);
+        const rowMask = new Uint16Array(9);
+        const colMask = new Uint16Array(9);
+        const boxMask = new Uint16Array(9);
+        const emptyCells = [];
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const val = board[r][c];
+                const idx = r * 9 + c;
+                const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+
+                if (val === 0) {
+                    cells[idx] = 0;
+                    emptyCells.push(idx);
+                } else if (val >= 1 && val <= 9) {
+                    const bit = 1 << (val - 1);
+                    if ((rowMask[r] & bit) || (colMask[c] & bit) || (boxMask[b] & bit)) {
+                        const t1 = performance.now();
+                        return {
+                            success: false,
+                            solutionsCount: 0,
+                            nodesExplored: 0,
+                            timeUs: (t1 - t0) * 1000,
+                            solvedBoard: null,
+                            error: `סתירה ראשונית בלוח: ספרה כפולה '${val}' בשורה ${r + 1} או טור ${c + 1}`
+                        };
+                    }
+                    cells[idx] = val;
+                    rowMask[r] |= bit;
+                    colMask[c] |= bit;
+                    boxMask[b] |= bit;
+                }
+            }
+        }
+
+        let nodesExplored = 0;
+        let solutionsCount = 0;
+        let firstSolution = null;
+
+        function getCandidates(idx) {
+            const r = Math.floor(idx / 9);
+            const c = idx % 9;
+            const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+            return (~(rowMask[r] | colMask[c] | boxMask[b])) & 0x1FF;
+        }
+
+        function ctz(mask) {
+            return 31 - Math.clz32(mask & -mask);
+        }
+
+        function solveMRV(numEmpty) {
+            nodesExplored++;
+            if (numEmpty === 0) {
+                solutionsCount++;
+                if (solutionsCount === 1) {
+                    firstSolution = new Int8Array(cells);
+                }
+                return;
+            }
+
+            let bestIndex = -1;
+            let minCands = 10;
+            let bestMask = 0;
+
+            for (let i = 0; i < numEmpty; i++) {
+                const cell = emptyCells[i];
+                const mask = getCandidates(cell);
+                const cands = POPCOUNT_9[mask];
+
+                if (cands === 0) return; // Immediate dead-end prune
+                if (cands < minCands) {
+                    minCands = cands;
+                    bestIndex = i;
+                    bestMask = mask;
+                    if (cands === 1) break; // Naked single immediate pick
+                }
+            }
+
+            const chosenCell = emptyCells[bestIndex];
+            const r = Math.floor(chosenCell / 9);
+            const c = chosenCell % 9;
+            const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+
+            emptyCells[bestIndex] = emptyCells[numEmpty - 1];
+
+            let mask = bestMask;
+            while (mask > 0) {
+                const bit = ctz(mask);
+                const digit = bit + 1;
+                const digitBit = 1 << bit;
+                mask &= (mask - 1); // BLSR
+
+                cells[chosenCell] = digit;
+                rowMask[r] |= digitBit;
+                colMask[c] |= digitBit;
+                boxMask[b] |= digitBit;
+
+                solveMRV(numEmpty - 1);
+
+                rowMask[r] &= ~digitBit;
+                colMask[c] &= ~digitBit;
+                boxMask[b] &= ~digitBit;
+                cells[chosenCell] = 0;
+
+                if (solutionsCount >= maxSolutions) break;
+            }
+
+            emptyCells[bestIndex] = chosenCell;
+        }
+
+        solveMRV(emptyCells.length);
+        const t1 = performance.now();
+
+        let solvedGrid = null;
+        if (firstSolution) {
+            solvedGrid = [];
+            for (let r = 0; r < 9; r++) {
+                solvedGrid.push(Array.from(firstSolution.slice(r * 9, r * 9 + 9)));
+            }
+        }
+
+        return {
+            success: solutionsCount > 0,
+            solutionsCount,
+            nodesExplored,
+            timeUs: (t1 - t0) * 1000,
+            solvedBoard: solvedGrid
+        };
+    }
+
+    /**
+     * Solve board using Sequential Backtracking (Engine 2)
+     * @param {number[][]} board 9x9 grid
+     * @param {number} maxSolutions default 2
+     * @returns {{ success: boolean, solutionsCount: number, nodesExplored: number, timeUs: number, solvedBoard: number[][]|null, error?: string }}
+     */
+    static solveBitwiseSequential(board, maxSolutions = 2) {
+        const t0 = performance.now();
+
+        const cells = new Int8Array(81);
+        const rowMask = new Uint16Array(9);
+        const colMask = new Uint16Array(9);
+        const boxMask = new Uint16Array(9);
+        const emptyCells = [];
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const val = board[r][c];
+                const idx = r * 9 + c;
+                const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+
+                if (val === 0) {
+                    cells[idx] = 0;
+                    emptyCells.push(idx);
+                } else if (val >= 1 && val <= 9) {
+                    const bit = 1 << (val - 1);
+                    if ((rowMask[r] & bit) || (colMask[c] & bit) || (boxMask[b] & bit)) {
+                        const t1 = performance.now();
+                        return {
+                            success: false,
+                            solutionsCount: 0,
+                            nodesExplored: 0,
+                            timeUs: (t1 - t0) * 1000,
+                            solvedBoard: null,
+                            error: `סתירה ראשונית בלוח: ספרה כפולה '${val}'`
+                        };
+                    }
+                    cells[idx] = val;
+                    rowMask[r] |= bit;
+                    colMask[c] |= bit;
+                    boxMask[b] |= bit;
+                }
+            }
+        }
+
+        let nodesExplored = 0;
+        let solutionsCount = 0;
+        let firstSolution = null;
+
+        function getCandidates(idx) {
+            const r = Math.floor(idx / 9);
+            const c = idx % 9;
+            const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+            return (~(rowMask[r] | colMask[c] | boxMask[b])) & 0x1FF;
+        }
+
+        function ctz(mask) {
+            return 31 - Math.clz32(mask & -mask);
+        }
+
+        function solveSeq(currIdx) {
+            nodesExplored++;
+            if (currIdx === emptyCells.length) {
+                solutionsCount++;
+                if (solutionsCount === 1) {
+                    firstSolution = new Int8Array(cells);
+                }
+                return;
+            }
+
+            const cell = emptyCells[currIdx];
+            const r = Math.floor(cell / 9);
+            const c = cell % 9;
+            const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+
+            let mask = getCandidates(cell);
+            if (mask === 0) return;
+
+            while (mask > 0) {
+                const bit = ctz(mask);
+                const digit = bit + 1;
+                const digitBit = 1 << bit;
+                mask &= (mask - 1);
+
+                cells[cell] = digit;
+                rowMask[r] |= digitBit;
+                colMask[c] |= digitBit;
+                boxMask[b] |= digitBit;
+
+                solveSeq(currIdx + 1);
+
+                rowMask[r] &= ~digitBit;
+                colMask[c] &= ~digitBit;
+                boxMask[b] &= ~digitBit;
+                cells[cell] = 0;
+
+                if (solutionsCount >= maxSolutions) break;
+            }
+        }
+
+        solveSeq(0);
+        const t1 = performance.now();
+
+        let solvedGrid = null;
+        if (firstSolution) {
+            solvedGrid = [];
+            for (let r = 0; r < 9; r++) {
+                solvedGrid.push(Array.from(firstSolution.slice(r * 9, r * 9 + 9)));
+            }
+        }
+
+        return {
+            success: solutionsCount > 0,
+            solutionsCount,
+            nodesExplored,
+            timeUs: (t1 - t0) * 1000,
+            solvedBoard: solvedGrid
+        };
+    }
+
+    /**
+     * Solve board using Deductive Logic steps (Engine 3)
+     * @param {number[][]} board
+     * @returns {{ success: boolean, stepsCount: number, timeUs: number, solvedBoard: number[][]|null, techniquesUsed: Object.<string, number> }}
+     */
+    static solveDeductive(board) {
+        const t0 = performance.now();
+        const copy = board.map(r => [...r]);
+        let stepsCount = 0;
+        const techniquesUsed = {};
+
+        for (let iter = 0; iter < 81; iter++) {
+            if (this.isBoardCompleteAndValid(copy)) break;
+            const candidatesMap = this.getAllCandidates(copy);
+            const hint = this.getDeductiveHint(copy, candidatesMap);
+            if (!hint) break;
+
+            stepsCount++;
+            techniquesUsed[hint.technique] = (techniquesUsed[hint.technique] || 0) + 1;
+
+            if (hint.action && hint.action.type === 'set_value') {
+                copy[hint.action.row][hint.action.col] = hint.action.value;
+            } else {
+                break;
+            }
+        }
+
+        const t1 = performance.now();
+        const isComplete = this.isBoardCompleteAndValid(copy);
+        const solved = isComplete ? copy : (this.solve(board) || null);
+        return {
+            success: !!solved,
+            isPureDeductive: isComplete,
+            stepsCount,
+            timeUs: (t1 - t0) * 1000,
+            solvedBoard: solved,
+            techniquesUsed
+        };
+    }
+
+    /**
+     * Run side-by-side benchmark of Bitwise MRV vs Sequential
+     * @param {number[][]} board
+     * @returns {{ mrv: Object, seq: Object, speedup: number, nodesSaved: number, nodesSavedPct: number }}
+     */
+    static compareAlgorithms(board) {
+        const mrv = this.solveBitwiseMRV(board, 2);
+        const seq = this.solveBitwiseSequential(board, 2);
+
+        const nodesSaved = seq.nodesExplored - mrv.nodesExplored;
+        const nodesSavedPct = seq.nodesExplored > 0 ? (nodesSaved / seq.nodesExplored) * 100 : 0;
+        const speedup = mrv.timeUs > 0 ? seq.timeUs / mrv.timeUs : 1;
+
+        return {
+            mrv,
+            seq,
+            speedup,
+            nodesSaved,
+            nodesSavedPct
+        };
+    }
 }
 
 if (typeof module !== 'undefined' && module.exports) {

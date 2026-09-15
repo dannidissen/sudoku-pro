@@ -1496,3 +1496,176 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         box-sizing: border-box;
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/* Algorithm Lab Modal & Benchmark Styles                                    */
+/* ------------------------------------------------------------------------- */
+.algo-modal-card {
+    max-width: 540px;
+    gap: 14px;
+    max-height: 90dvh;
+    overflow-y: auto;
+}
+
+.algo-modal-intro {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
+.algo-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.algo-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-tertiary);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.algo-card:hover {
+    border-color: var(--accent);
+    background: rgba(2, 132, 199, 0.08);
+}
+
+.algo-card.active, .algo-card:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(2, 132, 199, 0.12);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.algo-radio-col {
+    padding-top: 2px;
+}
+
+.algo-radio-col input[type="radio"] {
+    cursor: pointer;
+    accent-color: var(--accent);
+    width: 17px;
+    height: 17px;
+}
+
+.algo-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.algo-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.algo-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.algo-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+}
+
+.badge-fast {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-standard {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-logic {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.algo-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.algo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.algo-results {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    font-size: 0.85rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.algo-results.hidden {
+    display: none;
+}
+
+.algo-results-header {
+    font-weight: 800;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 6px;
+}
+
+.algo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 0.82rem;
+}
+
+.algo-table th, .algo-table td {
+    padding: 6px 8px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.algo-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.algo-table td:last-child, .algo-table th:last-child {
+    text-align: left;
+}
+
+.algo-highlight-stat {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #34d399;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
