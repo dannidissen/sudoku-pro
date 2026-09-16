@@ -174,6 +174,8 @@
                 <kbd>Ctrl+Z</kbd> <span data-i18n="keyboard.undo">undo</span>
                 <span>•</span>
                 <kbd>H</kbd> <span data-i18n="keyboard.hint">logical hint</span>
+                <span>•</span>
+                <kbd>V</kbd> <span data-i18n="keyboard.check">check progress</span>
             </div>
         </section>
 
@@ -239,6 +241,13 @@
                             <span class="btn-subtitle" data-i18n="assist.hintSubtitle">3 stages: direction 👉 highlight 👉 solution</span>
                         </div>
                     </button>
+                    <button id="btn-check-progress" class="action-btn check-btn" data-i18n-title="assist.checkHelp" title="Check whether numbers entered so far match the final solution without revealing answers">
+                        <span style="font-size: 1.2rem;">🔍</span>
+                        <div class="btn-text-col">
+                            <span class="btn-title" data-i18n="assist.checkTitle">Check progress</span>
+                            <span class="btn-subtitle" data-i18n="assist.checkSubtitle">Check if entries so far match the solution</span>
+                        </div>
+                    </button>
                     <button id="btn-reveal-cell" class="action-btn reveal-btn" data-i18n-title="assist.revealHelp" title="Reveal the correct digit for the selected cell from the full solution">
                         <span style="font-size: 1.2rem;">👁️</span>
                         <div class="btn-text-col">
@@ -302,138 +311,180 @@
                 <h2 id="modal-settings-title" data-i18n="settings.title">Interface and display settings</h2>
                 <button class="modal-close" data-close="modal-settings" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
-            <div class="settings-list">
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.snyderTitle">Enable corner marks (Snyder Notation)</span>
-                        <span class="setting-desc" data-i18n="settings.snyderDesc">Adds a corner-mark mode for candidates restricted within a box. Disabled by default.</span>
+            <div class="settings-tabs" role="tablist" aria-label="Settings categories">
+                <button type="button" class="settings-tab active" data-tab="all" role="tab" aria-selected="true" data-i18n="settings.tabAll">All</button>
+                <button type="button" class="settings-tab" data-tab="display" role="tab" aria-selected="false" data-i18n="settings.tabDisplay">Display</button>
+                <button type="button" class="settings-tab" data-tab="assists" role="tab" aria-selected="false" data-i18n="settings.tabAssists">Assistance</button>
+                <button type="button" class="settings-tab" data-tab="pencils" role="tab" aria-selected="false" data-i18n="settings.tabPencils">Pencils</button>
+                <button type="button" class="settings-tab" data-tab="sound" role="tab" aria-selected="false" data-i18n="settings.tabSound">Sound</button>
+            </div>
+            <div class="settings-list" data-active-tab="all">
+                <!-- Section 1: Display & Highlights -->
+                <section class="settings-section" data-section="display">
+                    <div class="settings-section-header">
+                        <span class="settings-section-title" data-i18n="settings.sectionDisplay">🎨 Display & Highlights</span>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-enable-snyder">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.sameTitle">Highlight matching digits</span>
+                            <span class="setting-desc" data-i18n="settings.sameDesc">Highlights every occurrence of the selected digit, including pencil marks</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-highlight-same" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.soundTitle">Gentle game sounds</span>
-                        <span class="setting-desc" data-i18n="settings.soundDesc">Plays subtle input clicks and a victory sound</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.stickyHighlightTitle">Keep digit highlight on empty cells</span>
+                            <span class="setting-desc" data-i18n="settings.stickyHighlightDesc">When moving from a filled cell to an empty cell, keep highlighting that digit and matching pencil marks</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-preserve-digit-highlight" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-sound-enabled" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.sameTitle">Highlight matching digits</span>
-                        <span class="setting-desc" data-i18n="settings.sameDesc">Highlights every occurrence of the selected digit, including pencil marks</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.areaTitle">Highlight selected row, column and box</span>
+                            <span class="setting-desc" data-i18n="settings.areaDesc">Shows a soft background around the selected cell</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-highlight-area" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-highlight-same" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.stickyHighlightTitle">Keep digit highlight on empty cells</span>
-                        <span class="setting-desc" data-i18n="settings.stickyHighlightDesc">When moving from a filled cell to an empty cell, keep highlighting that digit and matching pencil marks</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.linesTitle">Digit cross-hatching</span>
+                            <span class="setting-desc" data-i18n="settings.linesDesc">Marks rows, columns and boxes where the digit already appears</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-highlight-digit-lines" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-preserve-digit-highlight" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.areaTitle">Highlight selected row, column and box</span>
-                        <span class="setting-desc" data-i18n="settings.areaDesc">Shows a soft background around the selected cell</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.revealedTitle">Highlight revealed cells</span>
+                            <span class="setting-desc" data-i18n="settings.revealedDesc">Display cells filled with the "Reveal cell" hint in a distinct purple color</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-highlight-revealed" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-highlight-area" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                </section>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.linesTitle">Digit cross-hatching</span>
-                        <span class="setting-desc" data-i18n="settings.linesDesc">Marks rows, columns and boxes where the digit already appears</span>
+                <!-- Section 2: Assistance & Conflicts -->
+                <section class="settings-section" data-section="assists">
+                    <div class="settings-section-header">
+                        <span class="settings-section-title" data-i18n="settings.sectionAssists">🛡️ Assistance & Conflicts</span>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-highlight-digit-lines" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.conflictsTitle">Real-time conflict warnings</span>
+                            <span class="setting-desc" data-i18n="settings.conflictsDesc">Marks and shakes a cell when its digit conflicts in the same row, column or box</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-highlight-conflicts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.pruneTitle">Remove candidates automatically</span>
-                        <span class="setting-desc" data-i18n="settings.pruneDesc">Removes a placed digit from nearby marks and safely restores them when erased</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.solutionTitle">Check mistakes against the solution</span>
+                            <span class="setting-desc" data-i18n="settings.solutionDesc">Warn immediately when a digit differs from the puzzle solution</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-validate-solution" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-auto-remove-pencil" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.conflictsTitle">Real-time conflict warnings</span>
-                        <span class="setting-desc" data-i18n="settings.conflictsDesc">Marks and shakes a cell when its digit conflicts in the same row, column or box</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.blockTitle">Block conflicting numpad digits</span>
+                            <span class="setting-desc" data-i18n="settings.blockDesc">Dims and disables digits already present in the selected row, column or box</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-block-conflicts" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-highlight-conflicts" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.solutionTitle">Check mistakes against the solution</span>
-                        <span class="setting-desc" data-i18n="settings.solutionDesc">Warn immediately when a digit differs from the puzzle solution</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.pencilBlockTitle">Block conflicting pencil marks</span>
+                            <span class="setting-desc" data-i18n="settings.pencilBlockDesc">Refuses a pencil mark whose digit already appears in the same row, column or box. Existing marks can still be erased.</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-block-conflicting-pencil" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-validate-solution" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                </section>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.blockTitle">Block conflicting numpad digits</span>
-                        <span class="setting-desc" data-i18n="settings.blockDesc">Dims and disables digits already present in the selected row, column or box</span>
+                <!-- Section 3: Pencil Marks & Candidates -->
+                <section class="settings-section" data-section="pencils">
+                    <div class="settings-section-header">
+                        <span class="settings-section-title" data-i18n="settings.sectionPencils">✏️ Pencil Marks & Candidates</span>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-block-conflicts" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.snyderTitle">Enable corner marks (Snyder Notation)</span>
+                            <span class="setting-desc" data-i18n="settings.snyderDesc">Adds a corner-mark mode for candidates restricted within a box. Disabled by default.</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-enable-snyder">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.pencilBlockTitle">Block conflicting pencil marks</span>
-                        <span class="setting-desc" data-i18n="settings.pencilBlockDesc">Refuses a pencil mark whose digit already appears in the same row, column or box. Existing marks can still be erased.</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.pruneTitle">Remove candidates automatically</span>
+                            <span class="setting-desc" data-i18n="settings.pruneDesc">Removes a placed digit from nearby marks and safely restores them when erased</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-auto-remove-pencil" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-block-conflicting-pencil" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.gridTitle">Smart 3×3 candidate layout</span>
-                        <span class="setting-desc" data-i18n="settings.gridDesc">Keeps each pencil digit in a fixed 3×3 position for quick visual scanning</span>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.gridTitle">Smart 3×3 candidate layout</span>
+                            <span class="setting-desc" data-i18n="settings.gridDesc">Keeps each pencil digit in a fixed 3×3 position for quick visual scanning</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-smart-pencil-grid" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="set-smart-pencil-grid" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                </section>
+
+                <!-- Section 4: Sound & Feedback -->
+                <section class="settings-section" data-section="sound">
+                    <div class="settings-section-header">
+                        <span class="settings-section-title" data-i18n="settings.sectionSound">🔊 Sound & Audio</span>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-title" data-i18n="settings.soundTitle">Gentle game sounds</span>
+                            <span class="setting-desc" data-i18n="settings.soundDesc">Plays subtle input clicks and a victory sound</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-sound-enabled" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
             </div>
             <button class="action-btn primary full-width" data-close="modal-settings" style="margin-top: 10px;" data-i18n="settings.save">Save and close</button>
         </div>
