@@ -264,6 +264,7 @@ class SudokuApp {
     }
 
     setupEvents() {
+        this.training = new SudokuTrainingUI(this);
         // New Game Button
         document.getElementById('btn-new-game').addEventListener('click', () => {
             if (this.hasGameProgress() && !confirm(tr('confirm.newGame'))) {
@@ -2664,7 +2665,7 @@ class SudokuApp {
     startTimer() {
         this.stopTimer();
         this.timerInterval = setInterval(() => {
-            if (!this.isPaused) {
+            if (!this.isPaused && !document.getElementById('modal-training')?.classList.contains('open')) {
                 this.timerSeconds++;
                 this.updateTimerDisplay();
                 this.saveTimerCheckpoint();
