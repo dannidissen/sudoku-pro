@@ -61,7 +61,7 @@ Keyboard shortcuts:
 
 ### Candidate safety
 
-When a final digit is placed, matching candidates are pruned from neighboring cells. The game records those changes and restores them safely if the digit is erased or replaced. A **Refresh Area** action can also recalculate candidates in the selected row, column, and box.
+When a final digit is placed, matching candidates are pruned from neighboring cells. The game records those changes, persists the safety snapshots across reloads, and restores the candidates if the digit is erased or replaced. A **Refresh Area** action can also recalculate candidates in the selected row, column, and box.
 
 The optional **Keep digit highlight on empty cells** setting controls whether navigation from a filled cell to an empty or pencil-mark-only cell preserves the previous digit highlight.
 
@@ -69,11 +69,11 @@ The **Block conflicting pencil marks** setting (on by default) refuses a corner 
 
 ### Custom puzzles
 
-The **Custom** dialog has a 9×9 editor with its own keypad and keyboard input, plus a two-way synced 81-character text field, a sample puzzle, and clipboard paste. **Check validity & uniqueness** reports conflicts (highlighted in the grid), unsolvable boards, too few clues, multiple solutions, or a unique solution. Boards without a unique solution can still be loaded after a confirmation.
+The **Custom** dialog has a responsive 9×9 editor with its own keypad and keyboard input, plus a two-way synced 81-character text field, a sample puzzle, and clipboard paste. **Check validity & uniqueness** reports conflicts (highlighted in the grid), unsolvable boards, too few clues, multiple solutions, or a unique solution. Boards without a unique solution can still be loaded after a confirmation; exact-solution validation, Reveal, and deterministic cascade solving are then disabled so the game never treats an arbitrary solution as the only correct one.
 
 ### Timer and statistics
 
-The timer pauses automatically when the page is hidden — switching tabs, minimizing the window, or locking the phone — so it only measures time spent on the puzzle.
+The timer is checkpointed every second so a reload cannot roll it back. It pauses automatically when the page is hidden — switching tabs, minimizing the window, or locking the phone — so it only measures time spent on the puzzle.
 
 The **Statistics** dialog shows puzzles solved, the current and best daily streak, and the solved count, best time, and average time per difficulty level. Best times only count puzzles solved without deductive hints or revealed cells, and the victory screen announces a new best. Statistics are stored locally and can be reset from the dialog.
 
@@ -93,7 +93,7 @@ When the operating system requests reduced motion, animations and transitions ar
 
 ### Accessibility
 
-The board is a single keyboard Tab stop: focus lands on the selected cell and follows the arrow keys. Every cell has a screen-reader name with its row, column, and content (given digit, entered digit, pencil marks, or empty), and changes to the focused cell are announced through a polite live region, as are toasts and hint text. Keypad buttons announce how many of each digit remain.
+The board is a single keyboard Tab stop: focus lands on the selected cell and follows the arrow keys. The custom-puzzle grid supports the same arrow-key navigation. Every cell has a screen-reader name with its row, column, and content (given digit, entered digit, pencil marks, or empty), and changes to the focused cell are announced through a polite live region, as are toasts and hint text. Keypad buttons announce how many of each digit remain. Dialogs expose modal semantics, trap keyboard focus while open, and return focus to the control that opened them.
 
 ### Offline app
 

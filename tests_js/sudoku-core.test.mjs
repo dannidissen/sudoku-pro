@@ -299,4 +299,138 @@ test('validateCustomBoard accurately handles all validation states', () => {
     assert.ok(multiCheck.solutionsCount > 1);
 });
 
+test('player progress includes pencil marks, colors, and proven eliminations', () => {
+    const SudokuApp = require('../app.js');
+    const emptyBoard = () => Array.from({ length: 9 }, () => Array(9).fill(0));
+    const emptyMarks = () => Array.from({ length: 9 }, () => (
+        Array.from({ length: 9 }, () => new Set())
+    ));
+    const fakeApp = {
+        initialBoard: emptyBoard(),
+        currentBoard: emptyBoard(),
+        centerMarks: emptyMarks(),
+        cornerMarks: emptyMarks(),
+        cellColors: Array.from({ length: 9 }, () => Array(9).fill(null)),
+        provenEliminations: new Set()
+    };
+
+    assert.equal(SudokuApp.prototype.hasGameProgress.call(fakeApp), false);
+    fakeApp.centerMarks[0][0].add(4);
+    assert.equal(SudokuApp.prototype.hasGameProgress.call(fakeApp), true);
+    fakeApp.centerMarks[0][0].clear();
+    fakeApp.cellColors[4][4] = 'blue';
+    assert.equal(SudokuApp.prototype.hasGameProgress.call(fakeApp), true);
+    fakeApp.cellColors[4][4] = null;
+    fakeApp.provenEliminations.add('1,1,7');
+    assert.equal(SudokuApp.prototype.hasGameProgress.call(fakeApp), true);
+});
+
+test('pruned candidate snapshots survive JSON persistence', () => {
+    const SudokuApp = require('../app.js');
+    const fakeApp = {
+        prunedSnapshots: {
+            '0,0': {
+                cellCenter: new Set([1, 7]),
+                cellCorner: new Set([3]),
+                affectedCenter: [{ row: 0, col: 1, value: 7 }],
+                affectedCorner: [{ row: 1, col: 0, value: 7 }]
+            }
+        }
+    };
+
+    const serialized = SudokuApp.prototype.serializePrunedSnapshots.call(fakeApp);
+    const parsed = JSON.parse(JSON.stringify(serialized));
+    const restored = SudokuApp.prototype.deserializePrunedSnapshots.call(fakeApp, parsed);
+    assert.deepEqual([...restored['0,0'].cellCenter], [1, 7]);
+    assert.deepEqual([...restored['0,0'].cellCorner], [3]);
+    assert.deepEqual(restored['0,0'].affectedCenter, [{ row: 0, col: 1, value: 7 }]);
+    assert.deepEqual(restored['0,0'].affectedCorner, [{ row: 1, col: 0, value: 7 }]);
+});
+
+test('timer checkpoint prevents reload rollback for the same puzzle', () => {
+    const SudokuApp = require('../app.js');
+    const values = new Map();
+    globalThis.localStorage = {
+        getItem(key) { return values.get(key) ?? null; },
+        setItem(key, value) { values.set(key, value); }
+    };
+    const board = parseBoard(globalThis.SUDOKU_PUZZLES.easy[0].puzzle);
+    const fakeApp = { initialBoard: board, timerSeconds: 41 };
+
+    SudokuApp.prototype.saveTimerCheckpoint.call(fakeApp);
+    fakeApp.timerSeconds = 12;
+    SudokuApp.prototype.restoreTimerCheckpoint.call(fakeApp);
+    assert.equal(fakeApp.timerSeconds, 41);
+
+    fakeApp.initialBoard = parseBoard(globalThis.SUDOKU_PUZZLES.easy[1].puzzle);
+    fakeApp.timerSeconds = 5;
+    SudokuApp.prototype.restoreTimerCheckpoint.call(fakeApp);
+    assert.equal(fakeApp.timerSeconds, 5);
+});
+
+test('modal markup is hidden by default and exposes dialog semantics', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    assert.equal([...html.matchAll(/class="modal-backdrop" hidden aria-hidden="true"/g)].length, 6);
+    assert.equal([...html.matchAll(/role="dialog" aria-modal="true"/g)].length, 6);
+
+    const serviceWorker = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+    assert.match(serviceWorker, /await cache\.put\(/);
+});
+
+test('modal focus trap handles initial dialog focus in both directions', () => {
+    const SudokuApp = require('../app.js');
+    const focused = [];
+    const visible = () => ({
+        hidden: false,
+        getAttribute() { return null; },
+        getClientRects() { return [{}]; },
+        focus() { focused.push(this); }
+    });
+    const first = visible();
+    const last = visible();
+    const dialog = visible();
+    const modal = {
+        querySelectorAll() { return [first, last]; },
+        querySelector() { return dialog; },
+        contains(element) { return element === dialog || element === first || element === last; }
+    };
+    globalThis.document.activeElement = dialog;
+    const event = { shiftKey: true, preventDefaultCalled: false, preventDefault() { this.preventDefaultCalled = true; } };
+
+    SudokuApp.prototype.trapModalFocus.call({}, modal, event);
+    assert.equal(event.preventDefaultCalled, true);
+    assert.equal(focused.at(-1), last);
+});
+
+test('non-unique custom games do not reveal an arbitrary solution', () => {
+    const SudokuApp = require('../app.js');
+    const messages = [];
+    const fakeApp = {
+        isExecutingCascade: false,
+        isPaused: false,
+        solutionIsUnique: false,
+        showToast(message) { messages.push(message); }
+    };
+
+    SudokuApp.prototype.revealCell.call(fakeApp);
+    assert.deepEqual(messages, [globalThis.tr('toast.revealNeedsUnique')]);
+});
+
+test('non-unique custom games never offer deterministic cascade completion', () => {
+    const SudokuApp = require('../app.js');
+    const addedClasses = [];
+    const fakeApp = {
+        cascadeBannerEl: { classList: { add(value) { addedClasses.push(value); } } },
+        isPaused: false,
+        isExecutingCascade: false,
+        cascadeDismissedForCurrentPuzzle: false,
+        solutionIsUnique: false,
+        pendingCascadeSteps: [{ action: 'stale' }]
+    };
+
+    SudokuApp.prototype.checkCascadeAvailability.call(fakeApp);
+    assert.equal(fakeApp.pendingCascadeSteps, null);
+    assert.deepEqual(addedClasses, ['hidden']);
+});
+
 
