@@ -131,6 +131,7 @@ class SudokuApp {
             enableSnyder: false,
             soundEnabled: true,
             highlightSame: true,
+            preserveDigitHighlightOnEmpty: true,
             highlightArea: true,
             highlightDigitLines: true,
             autoRemovePencil: true,
@@ -360,6 +361,12 @@ class SudokuApp {
             this.audio.enabled = val;
         });
         this.bindSettingCheckbox('set-highlight-same', 'highlightSame');
+        this.bindSettingCheckbox('set-preserve-digit-highlight', 'preserveDigitHighlightOnEmpty', (enabled) => {
+            if (!enabled && this.selectedCell
+                && this.currentBoard[this.selectedCell.row][this.selectedCell.col] === 0) {
+                this.selectedNumber = 0;
+            }
+        });
         this.bindSettingCheckbox('set-highlight-area', 'highlightArea');
         this.bindSettingCheckbox('set-highlight-digit-lines', 'highlightDigitLines');
         this.bindSettingCheckbox('set-auto-remove-pencil', 'autoRemovePencil');
@@ -710,6 +717,8 @@ class SudokuApp {
         const val = this.currentBoard[r][c];
         if (val !== 0) {
             this.selectedNumber = val;
+        } else if (!this.settings.preserveDigitHighlightOnEmpty) {
+            this.selectedNumber = 0;
         }
         this.updateVisualHighlights();
     }
@@ -2256,6 +2265,7 @@ class SudokuApp {
                     'set-enable-snyder': 'enableSnyder',
                     'set-sound-enabled': 'soundEnabled',
                     'set-highlight-same': 'highlightSame',
+                    'set-preserve-digit-highlight': 'preserveDigitHighlightOnEmpty',
                     'set-highlight-area': 'highlightArea',
                     'set-highlight-digit-lines': 'highlightDigitLines',
                     'set-auto-remove-pencil': 'autoRemovePencil',

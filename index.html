@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
     <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
-    <link rel="stylesheet" href="style.css?v=20260916e">
+    <link rel="stylesheet" href="style.css?v=20260916f">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -315,6 +315,17 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
+                        <span class="setting-title" data-i18n="settings.stickyHighlightTitle">Keep digit highlight on empty cells</span>
+                        <span class="setting-desc" data-i18n="settings.stickyHighlightDesc">When moving from a filled cell to an empty cell, keep highlighting that digit and matching pencil marks</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-preserve-digit-highlight" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
                         <span class="setting-title" data-i18n="settings.areaTitle">Highlight selected row, column and box</span>
                         <span class="setting-desc" data-i18n="settings.areaDesc">Shows a soft background around the selected cell</span>
                     </div>
@@ -543,9 +554,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916e"></script>
-    <script src="puzzles.js?v=20260916e"></script>
-    <script src="solver.js?v=20260916e"></script>
-    <script src="app.js?v=20260916e"></script>
+    <script src="i18n.js?v=20260916f"></script>
+    <script src="puzzles.js?v=20260916f"></script>
+    <script src="solver.js?v=20260916f"></script>
+    <script src="app.js?v=20260916f"></script>
 </body>
 </html>

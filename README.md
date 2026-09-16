@@ -52,6 +52,8 @@ Keyboard shortcuts:
 
 When a final digit is placed, matching candidates are pruned from neighboring cells. The game records those changes and restores them safely if the digit is erased or replaced. A **Refresh Area** action can also recalculate candidates in the selected row, column, and box.
 
+The optional **Keep digit highlight on empty cells** setting controls whether navigation from a filled cell to an empty or pencil-mark-only cell preserves the previous digit highlight.
+
 ### Cell coloring
 
 Four pastel colors help track chains, alternating inferences, and other advanced deductions. Colors work in both themes and participate in undo/redo history.
