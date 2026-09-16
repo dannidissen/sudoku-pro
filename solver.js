@@ -71,14 +71,20 @@ class SudokuEngine {
     /**
      * Calculate candidate pencil marks for ALL empty cells on the board
      * @param {number[][]} board 9x9 array
+     * @param {Set<string>|null} eliminated optional 'r,c,d' keys already ruled out by earlier
+     *        deductions. Without it, elimination hints would be found again on the next call
+     *        because the board alone never records them.
      * @returns {Object.<string, number[]>} map of 'r,c' -> candidates array
      */
-    static getAllCandidates(board) {
+    static getAllCandidates(board, eliminated = null) {
         const result = {};
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 if (board[r][c] === 0) {
-                    result[`${r},${c}`] = this.getCandidates(board, r, c);
+                    const cands = this.getCandidates(board, r, c);
+                    result[`${r},${c}`] = eliminated && eliminated.size > 0
+                        ? cands.filter(d => !eliminated.has(`${r},${c},${d}`))
+                        : cands;
                 }
             }
         }
@@ -304,6 +310,49 @@ class SudokuEngine {
     // =========================================================================
     // DEDUCTIVE HINT ENGINE (3-STAGE HUMAN LOGIC)
     // =========================================================================
+
+    /**
+     * All 27 units in a fixed order: rows 0-8, columns 9-17, boxes 18-26.
+     * @returns {Array<{type: string, index: number, nameFallback: string, cells: Array<{r: number, c: number}>}>}
+     */
+    static getUnits() {
+        if (!this._units) {
+            const units = [];
+            for (let r = 0; r < 9; r++) {
+                units.push({ type: 'row', index: r, nameFallback: `row ${r + 1}`, cells: Array.from({ length: 9 }, (_, c) => ({ r, c })) });
+            }
+            for (let c = 0; c < 9; c++) {
+                units.push({ type: 'col', index: c, nameFallback: `column ${c + 1}`, cells: Array.from({ length: 9 }, (_, r) => ({ r, c })) });
+            }
+            for (let b = 0; b < 9; b++) {
+                const bR = Math.floor(b / 3) * 3;
+                const bC = (b % 3) * 3;
+                const cells = [];
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        cells.push({ r: bR + r, c: bC + c });
+                    }
+                }
+                units.push({ type: 'box', index: b, nameFallback: `box ${b + 1}`, cells });
+            }
+            this._units = units;
+        }
+        return this._units;
+    }
+
+    static boxIndex(r, c) {
+        return Math.floor(r / 3) * 3 + Math.floor(c / 3);
+    }
+
+    /** True when two different cells share a row, column or box. */
+    static cellsSee(a, b) {
+        if (a.r === b.r && a.c === b.c) return false;
+        return a.r === b.r || a.c === b.c || this.boxIndex(a.r, a.c) === this.boxIndex(b.r, b.c);
+    }
+
+    static hasCandidate(board, candidatesMap, r, c, d) {
+        return board[r][c] === 0 && (candidatesMap[`${r},${c}`] || []).includes(d);
+    }
 
     /**
      * 1. Naked Single: A cell has exactly 1 legal candidate.
@@ -598,45 +647,7 @@ class SudokuEngine {
      * Those 2 digits can be eliminated from all other cells in that unit.
      */
     static findNakedPair(board, candidatesMap) {
-        const units = [];
-
-        // Rows
-        for (let r = 0; r < 9; r++) {
-            units.push({
-                type: 'row',
-                index: r,
-                nameFallback: `row ${r + 1}`,
-                cells: Array.from({ length: 9 }, (_, c) => ({ r, c }))
-            });
-        }
-        // Columns
-        for (let c = 0; c < 9; c++) {
-            units.push({
-                type: 'col',
-                index: c,
-                nameFallback: `column ${c + 1}`,
-                cells: Array.from({ length: 9 }, (_, r) => ({ r, c }))
-            });
-        }
-        // Blocks
-        for (let b = 0; b < 9; b++) {
-            const bR = Math.floor(b / 3) * 3;
-            const bC = (b % 3) * 3;
-            const cells = [];
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 3; c++) {
-                    cells.push({ r: bR + r, c: bC + c });
-                }
-            }
-            units.push({
-                type: 'box',
-                index: b,
-                nameFallback: `box ${b + 1}`,
-                cells
-            });
-        }
-
-        for (const unit of units) {
+        for (const unit of this.getUnits()) {
             const pairs = [];
             for (const { r, c } of unit.cells) {
                 if (board[r][c] === 0) {
@@ -868,6 +879,334 @@ class SudokuEngine {
     }
 
     /**
+     * 6. Claiming (Box/Line Reduction): every candidate for d in a row or column lies inside one box.
+     * d can therefore be eliminated from the rest of that box.
+     */
+    static findClaiming(board, candidatesMap) {
+        const units = this.getUnits();
+        for (const unit of units) {
+            if (unit.type === 'box') continue;
+            const isRow = unit.type === 'row';
+
+            for (let d = 1; d <= 9; d++) {
+                const lineCells = unit.cells.filter(({ r, c }) => this.hasCandidate(board, candidatesMap, r, c, d));
+                if (lineCells.length < 2) continue;
+                const box = this.boxIndex(lineCells[0].r, lineCells[0].c);
+                if (!lineCells.every(({ r, c }) => this.boxIndex(r, c) === box)) continue;
+
+                const eliminations = [];
+                for (const { r, c } of units[18 + box].cells) {
+                    const inLine = isRow ? r === unit.index : c === unit.index;
+                    if (!inLine && this.hasCandidate(board, candidatesMap, r, c, d)) {
+                        eliminations.push({ row: r, col: c, digit: d });
+                    }
+                }
+                if (eliminations.length === 0) continue;
+
+                const lineParams = isRow ? { row: unit.index + 1 } : { col: unit.index + 1 };
+                return {
+                    technique: 'Claiming',
+                    nameKey: 'hint.claiming.name',
+                    nameFallback: 'Claiming (Box/Line Reduction)',
+                    stage1Key: isRow ? 'hint.claiming.rowDirection' : 'hint.claiming.colDirection',
+                    stage1Params: { digit: d, ...lineParams },
+                    stage1Direction: `Find where every candidate for ${d} in ${unit.nameFallback} is confined to one box`,
+                    stage2Highlight: {
+                        cells: lineCells.map(({ r, c }) => ({ row: r, col: c, role: 'primary' })),
+                        units: [{ type: unit.type, index: unit.index }, { type: 'box', index: box }],
+                        digits: [d]
+                    },
+                    stage3Key: isRow ? 'hint.claiming.rowExplanation' : 'hint.claiming.colExplanation',
+                    stage3Params: { digit: d, box: box + 1, count: eliminations.length, ...lineParams },
+                    stage3Explanation: `In ${unit.nameFallback}, ${d} can only go inside box ${box + 1}. Remove ${d} from the rest of that box (${eliminations.length} eliminations).`,
+                    action: { type: 'eliminate_candidates', eliminations }
+                };
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 7. Hidden Pair: two digits are each confined to the same two cells of a unit.
+     * Every other candidate can be eliminated from those two cells.
+     */
+    static findHiddenPair(board, candidatesMap) {
+        for (const unit of this.getUnits()) {
+            const positions = [];
+            for (let d = 1; d <= 9; d++) {
+                positions[d] = unit.cells.filter(({ r, c }) => this.hasCandidate(board, candidatesMap, r, c, d));
+            }
+
+            for (let d1 = 1; d1 <= 8; d1++) {
+                if (positions[d1].length !== 2) continue;
+                const [a, b] = positions[d1];
+                for (let d2 = d1 + 1; d2 <= 9; d2++) {
+                    const other = positions[d2];
+                    if (other.length !== 2 || other[0] !== a || other[1] !== b) continue;
+
+                    const eliminations = [];
+                    for (const cell of [a, b]) {
+                        for (const digit of candidatesMap[`${cell.r},${cell.c}`]) {
+                            if (digit !== d1 && digit !== d2) {
+                                eliminations.push({ row: cell.r, col: cell.c, digit });
+                            }
+                        }
+                    }
+                    if (eliminations.length === 0) continue;
+
+                    return {
+                        technique: 'Hidden Pair',
+                        nameKey: 'hint.hiddenPair.name',
+                        nameFallback: 'Hidden Pair',
+                        stage1Key: 'hint.hiddenPair.direction',
+                        stage1Params: { unitType: unit.type, unitIndex: unit.index + 1 },
+                        stage1Direction: `Find two digits that share the same two cells in ${unit.nameFallback}`,
+                        stage2Highlight: {
+                            cells: [
+                                { row: a.r, col: a.c, role: 'primary' },
+                                { row: b.r, col: b.c, role: 'primary' }
+                            ],
+                            units: [{ type: unit.type, index: unit.index }],
+                            digits: [d1, d2]
+                        },
+                        stage3Key: 'hint.hiddenPair.explanation',
+                        stage3Params: {
+                            unitType: unit.type,
+                            unitIndex: unit.index + 1,
+                            digit1: d1,
+                            digit2: d2,
+                            row1: a.r + 1,
+                            col1: a.c + 1,
+                            row2: b.r + 1,
+                            col2: b.c + 1,
+                            count: eliminations.length
+                        },
+                        stage3Explanation: `In ${unit.nameFallback}, ${d1} and ${d2} can only go in cells (${a.r + 1}, ${a.c + 1}) and (${b.r + 1}, ${b.c + 1}). Remove every other candidate from those two cells (${eliminations.length} eliminations).`,
+                        action: { type: 'eliminate_candidates', eliminations }
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 8. Naked Triple: three cells in a unit hold only three digits between them.
+     * Those digits can be eliminated from every other cell in the unit.
+     */
+    static findNakedTriple(board, candidatesMap) {
+        for (const unit of this.getUnits()) {
+            const pool = [];
+            for (const { r, c } of unit.cells) {
+                if (board[r][c] !== 0) continue;
+                const cands = candidatesMap[`${r},${c}`] || [];
+                if (cands.length >= 2 && cands.length <= 3) pool.push({ r, c, cands });
+            }
+
+            for (let i = 0; i < pool.length; i++) {
+                for (let j = i + 1; j < pool.length; j++) {
+                    for (let k = j + 1; k < pool.length; k++) {
+                        const triple = [pool[i], pool[j], pool[k]];
+                        const digits = [...new Set(triple.flatMap(cell => cell.cands))].sort((x, y) => x - y);
+                        if (digits.length !== 3) continue;
+
+                        const eliminations = [];
+                        for (const { r, c } of unit.cells) {
+                            if (board[r][c] !== 0 || triple.some(cell => cell.r === r && cell.c === c)) continue;
+                            for (const digit of digits) {
+                                if ((candidatesMap[`${r},${c}`] || []).includes(digit)) {
+                                    eliminations.push({ row: r, col: c, digit });
+                                }
+                            }
+                        }
+                        if (eliminations.length === 0) continue;
+
+                        const digitList = digits.join(', ');
+                        const cellList = triple.map(cell => `(${cell.r + 1}, ${cell.c + 1})`).join(', ');
+                        return {
+                            technique: 'Naked Triple',
+                            nameKey: 'hint.nakedTriple.name',
+                            nameFallback: 'Naked Triple',
+                            stage1Key: 'hint.nakedTriple.direction',
+                            stage1Params: { unitType: unit.type, unitIndex: unit.index + 1 },
+                            stage1Direction: `Find three cells in ${unit.nameFallback} that share only three digits`,
+                            stage2Highlight: {
+                                cells: triple.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                                units: [{ type: unit.type, index: unit.index }],
+                                digits
+                            },
+                            stage3Key: 'hint.nakedTriple.explanation',
+                            stage3Params: {
+                                unitType: unit.type,
+                                unitIndex: unit.index + 1,
+                                cells: cellList,
+                                digits: digitList,
+                                count: eliminations.length
+                            },
+                            stage3Explanation: `Cells ${cellList} in ${unit.nameFallback} contain only the digits ${digitList}. Remove those digits from the other cells in the unit (${eliminations.length} eliminations).`,
+                            action: { type: 'eliminate_candidates', eliminations }
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 9. Swordfish: in three rows a digit is confined to the same three columns (or vice versa).
+     * The digit can be eliminated from those columns in every other row.
+     */
+    static findSwordfish(board, candidatesMap) {
+        for (const byRows of [true, false]) {
+            for (let d = 1; d <= 9; d++) {
+                const lines = [];
+                for (let i = 0; i < 9; i++) {
+                    const positions = [];
+                    for (let j = 0; j < 9; j++) {
+                        const r = byRows ? i : j;
+                        const c = byRows ? j : i;
+                        if (this.hasCandidate(board, candidatesMap, r, c, d)) positions.push(j);
+                    }
+                    if (positions.length >= 2 && positions.length <= 3) {
+                        lines.push({ index: i, positions });
+                    }
+                }
+
+                for (let a = 0; a < lines.length; a++) {
+                    for (let b = a + 1; b < lines.length; b++) {
+                        for (let e = b + 1; e < lines.length; e++) {
+                            const base = [lines[a], lines[b], lines[e]];
+                            const cover = [...new Set(base.flatMap(line => line.positions))].sort((x, y) => x - y);
+                            if (cover.length !== 3) continue;
+
+                            const baseIndexes = base.map(line => line.index);
+                            const eliminations = [];
+                            for (const j of cover) {
+                                for (let i = 0; i < 9; i++) {
+                                    if (baseIndexes.includes(i)) continue;
+                                    const r = byRows ? i : j;
+                                    const c = byRows ? j : i;
+                                    if (this.hasCandidate(board, candidatesMap, r, c, d)) {
+                                        eliminations.push({ row: r, col: c, digit: d });
+                                    }
+                                }
+                            }
+                            if (eliminations.length === 0) continue;
+
+                            const baseList = baseIndexes.map(i => i + 1).join(', ');
+                            const coverList = cover.map(j => j + 1).join(', ');
+                            const rows = byRows ? baseList : coverList;
+                            const cols = byRows ? coverList : baseList;
+                            const baseType = byRows ? 'row' : 'col';
+                            const coverType = byRows ? 'col' : 'row';
+                            return {
+                                technique: 'Swordfish',
+                                nameKey: 'hint.swordfish.name',
+                                nameFallback: 'Swordfish',
+                                stage1Key: byRows ? 'hint.swordfish.rowsDirection' : 'hint.swordfish.colsDirection',
+                                stage1Params: byRows ? { digit: d, rows } : { digit: d, cols },
+                                stage1Direction: byRows
+                                    ? `Find a Swordfish for ${d} in rows ${rows}`
+                                    : `Find a Swordfish for ${d} in columns ${cols}`,
+                                stage2Highlight: {
+                                    cells: base.flatMap(line => line.positions.map(j => ({
+                                        row: byRows ? line.index : j,
+                                        col: byRows ? j : line.index,
+                                        role: 'primary'
+                                    }))),
+                                    units: [
+                                        ...baseIndexes.map(index => ({ type: baseType, index })),
+                                        ...cover.map(index => ({ type: coverType, index }))
+                                    ],
+                                    digits: [d]
+                                },
+                                stage3Key: byRows ? 'hint.swordfish.rowsExplanation' : 'hint.swordfish.colsExplanation',
+                                stage3Params: { digit: d, rows, cols, count: eliminations.length },
+                                stage3Explanation: byRows
+                                    ? `In rows ${rows}, ${d} appears only in columns ${cols}. Remove it from the other cells in those columns (${eliminations.length} eliminations).`
+                                    : `In columns ${cols}, ${d} appears only in rows ${rows}. Remove it from the other cells in those rows (${eliminations.length} eliminations).`,
+                                action: { type: 'eliminate_candidates', eliminations }
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 10. XY-Wing: a pivot {x,y} sees two pincers {x,z} and {y,z}. Whichever digit the pivot takes,
+     * one pincer becomes z, so z can be eliminated from every cell that sees both pincers.
+     */
+    static findXYWing(board, candidatesMap) {
+        const bivalue = [];
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cands = board[r][c] === 0 ? (candidatesMap[`${r},${c}`] || []) : [];
+                if (cands.length === 2) bivalue.push({ r, c, cands });
+            }
+        }
+
+        for (const pivot of bivalue) {
+            const [x, y] = pivot.cands;
+            const pincers = bivalue.filter(cell => this.cellsSee(cell, pivot));
+
+            for (const pincerX of pincers) {
+                if (!pincerX.cands.includes(x) || pincerX.cands.includes(y)) continue;
+                const z = pincerX.cands[0] === x ? pincerX.cands[1] : pincerX.cands[0];
+
+                for (const pincerY of pincers) {
+                    if (pincerY === pincerX || !pincerY.cands.includes(y) || !pincerY.cands.includes(z)) continue;
+
+                    const eliminations = [];
+                    for (let r = 0; r < 9; r++) {
+                        for (let c = 0; c < 9; c++) {
+                            const cell = { r, c };
+                            if (this.hasCandidate(board, candidatesMap, r, c, z)
+                                && this.cellsSee(cell, pincerX) && this.cellsSee(cell, pincerY)) {
+                                eliminations.push({ row: r, col: c, digit: z });
+                            }
+                        }
+                    }
+                    if (eliminations.length === 0) continue;
+
+                    return {
+                        technique: 'XY-Wing',
+                        nameKey: 'hint.xyWing.name',
+                        nameFallback: 'XY-Wing',
+                        stage1Key: 'hint.xyWing.direction',
+                        stage1Params: { row: pivot.r + 1, col: pivot.c + 1 },
+                        stage1Direction: `Find an XY-Wing that pivots on the cell at row ${pivot.r + 1}, column ${pivot.c + 1}`,
+                        stage2Highlight: {
+                            cells: [pivot, pincerX, pincerY].map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                            units: [],
+                            digits: [x, y, z]
+                        },
+                        stage3Key: 'hint.xyWing.explanation',
+                        stage3Params: {
+                            row: pivot.r + 1,
+                            col: pivot.c + 1,
+                            x,
+                            y,
+                            z,
+                            row1: pincerX.r + 1,
+                            col1: pincerX.c + 1,
+                            row2: pincerY.r + 1,
+                            col2: pincerY.c + 1,
+                            count: eliminations.length
+                        },
+                        stage3Explanation: `The pivot (${pivot.r + 1}, ${pivot.c + 1}) is ${x} or ${y}. If it is ${x}, cell (${pincerX.r + 1}, ${pincerX.c + 1}) becomes ${z}; if it is ${y}, cell (${pincerY.r + 1}, ${pincerY.c + 1}) becomes ${z}. Remove ${z} from every cell that sees both (${eliminations.length} eliminations).`,
+                        action: { type: 'eliminate_candidates', eliminations }
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Master Deductive Hint Method
      * Runs human deductive strategies in increasing order of difficulty.
      * @param {number[][]} board
@@ -875,26 +1214,22 @@ class SudokuEngine {
      * @returns {Object|null}
      */
     static getDeductiveHint(board, candidatesMap) {
-        // 1. Naked Single
-        const nakedSingle = this.findNakedSingle(board, candidatesMap);
-        if (nakedSingle) return nakedSingle;
-
-        // 2. Hidden Single
-        const hiddenSingle = this.findHiddenSingle(board, candidatesMap);
-        if (hiddenSingle) return hiddenSingle;
-
-        // 3. Pointing Pairs/Triples
-        const pointing = this.findPointing(board, candidatesMap);
-        if (pointing) return pointing;
-
-        // 4. Naked Pairs
-        const nakedPair = this.findNakedPair(board, candidatesMap);
-        if (nakedPair) return nakedPair;
-
-        // 5. X-Wing
-        const xWing = this.findXWing(board, candidatesMap);
-        if (xWing) return xWing;
-
+        const finders = [
+            this.findNakedSingle,
+            this.findHiddenSingle,
+            this.findPointing,
+            this.findClaiming,
+            this.findNakedPair,
+            this.findHiddenPair,
+            this.findNakedTriple,
+            this.findXWing,
+            this.findSwordfish,
+            this.findXYWing
+        ];
+        for (const finder of finders) {
+            const hint = finder.call(this, board, candidatesMap);
+            if (hint) return hint;
+        }
         return null;
     }
 
@@ -1444,25 +1779,32 @@ class SudokuEngine {
     /**
      * Solve board using Deductive Logic steps (Engine 3)
      * @param {number[][]} board
+     * @param {{ onStep?: function(Object): void }} options onStep receives every applied hint
      * @returns {{ success: boolean, stepsCount: number, timeUs: number, solvedBoard: number[][]|null, techniquesUsed: Object.<string, number> }}
      */
-    static solveDeductive(board) {
+    static solveDeductive(board, options = {}) {
         const t0 = performance.now();
         const copy = board.map(r => [...r]);
+        const eliminated = new Set();
         let stepsCount = 0;
         const techniquesUsed = {};
 
-        for (let iter = 0; iter < 81; iter++) {
+        // Every step places a digit or removes at least one of the 729 candidates,
+        // so 81 + 729 iterations is enough for any board.
+        for (let iter = 0; iter < 810; iter++) {
             if (this.isBoardCompleteAndValid(copy)) break;
-            const candidatesMap = this.getAllCandidates(copy);
+            const candidatesMap = this.getAllCandidates(copy, eliminated);
             const hint = this.getDeductiveHint(copy, candidatesMap);
-            if (!hint) break;
+            if (!hint || !hint.action) break;
 
             stepsCount++;
             techniquesUsed[hint.technique] = (techniquesUsed[hint.technique] || 0) + 1;
+            if (options.onStep) options.onStep(hint);
 
-            if (hint.action && hint.action.type === 'set_value') {
+            if (hint.action.type === 'set_value') {
                 copy[hint.action.row][hint.action.col] = hint.action.value;
+            } else if (hint.action.type === 'eliminate_candidates') {
+                hint.action.eliminations.forEach(({ row, col, digit }) => eliminated.add(`${row},${col},${digit}`));
             } else {
                 break;
             }

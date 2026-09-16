@@ -95,6 +95,13 @@ class SudokuApp {
         this.hintsCount = 0;
         this.revealedCount = 0;
         this.mistakesCount = 0;
+        // 'r,c,d' candidates ruled out by applied elimination hints. The engine only sees the
+        // board, so without this it would offer the same elimination again on the next hint.
+        this.provenEliminations = new Set();
+
+        // Statistics: set once the current puzzle's win has been counted
+        this.gameResultRecorded = false;
+        this.lastVictoryNewBest = false;
 
         // History for undo/redo
         this.history = [];
@@ -250,6 +257,15 @@ class SudokuApp {
         this.pauseBtn.addEventListener('click', () => this.togglePause());
         document.getElementById('btn-resume').addEventListener('click', () => this.togglePause(false));
 
+        // Pause when the page is hidden (another tab, minimized window, locked phone) so the
+        // timer only measures time spent looking at the puzzle. The timer interval exists only
+        // while a game is in progress, so finished or solved boards are left alone.
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.timerInterval && !this.isPaused && !this.isExecutingCascade) {
+                this.togglePause(true);
+            }
+        });
+
         // Deductive Hints & Reveal Cell (Separated!)
         document.getElementById('btn-deductive-hint').addEventListener('click', () => this.triggerDeductiveHint());
         this.btnHintNext.addEventListener('click', () => this.stepDeductiveHint());
@@ -298,6 +314,8 @@ class SudokuApp {
         // Modals
         document.getElementById('btn-settings').addEventListener('click', () => this.openModal('modal-settings'));
         document.getElementById('btn-credits').addEventListener('click', () => this.openModal('modal-credits'));
+        document.getElementById('btn-stats').addEventListener('click', () => this.openModal('modal-stats'));
+        document.getElementById('btn-reset-stats').addEventListener('click', () => this.resetStats());
         document.getElementById('btn-custom-puzzle').addEventListener('click', () => this.openModal('modal-custom'));
         
         const btnAlgoLab = document.getElementById('btn-algo-lab');
@@ -662,6 +680,8 @@ class SudokuApp {
         this.hintsCount = 0;
         this.revealedCount = 0;
         this.mistakesCount = 0;
+        this.provenEliminations = new Set();
+        this.gameResultRecorded = false;
         this.dismissDeductiveHint();
 
         this.resetTimer();
@@ -710,6 +730,10 @@ class SudokuApp {
         }
         const victoryDifficulty = document.getElementById('victory-difficulty');
         if (victoryDifficulty) victoryDifficulty.textContent = this.getDifficultyLabel(this.currentDifficulty);
+        this.renderVictoryRecord();
+        if (document.getElementById('modal-stats')?.classList.contains('open')) {
+            this.renderStats();
+        }
     }
 
     selectCell(r, c) {
@@ -1330,7 +1354,7 @@ class SudokuApp {
         }
 
         // Search for deductive hint
-        const cands = SudokuEngine.getAllCandidates(this.currentBoard);
+        const cands = SudokuEngine.getAllCandidates(this.currentBoard, this.provenEliminations);
         const hint = SudokuEngine.getDeductiveHint(this.currentBoard, cands);
 
         if (!hint) {
@@ -1415,9 +1439,13 @@ class SudokuApp {
                     });
                 });
 
+                const eliminationKeys = hint.action.eliminations.map(({ row, col, digit }) => `${row},${col},${digit}`);
+                eliminationKeys.forEach(key => this.provenEliminations.add(key));
+
                 this.pushAction({
                     type: 'hint_elimination',
-                    affectedCells
+                    affectedCells,
+                    eliminationKeys
                 });
                 this.saveGameState();
             }
@@ -1602,6 +1630,7 @@ class SudokuApp {
                 this.cornerMarks[cell.row][cell.col] = new Set(cell.prevCorner);
                 this.renderCellContent(cell.row, cell.col);
             });
+            (action.eliminationKeys || []).forEach(key => this.provenEliminations.delete(key));
             this.showToast(tr('toast.hintCandidatesRestored'));
         } else if (action.type === 'autofill_pencil') {
             action.previousPencils.forEach(item => {
@@ -1712,6 +1741,7 @@ class SudokuApp {
                 this.cornerMarks[cell.row][cell.col] = new Set(cell.nextCorner);
                 this.renderCellContent(cell.row, cell.col);
             });
+            (action.eliminationKeys || []).forEach(key => this.provenEliminations.add(key));
             this.showToast(tr('toast.hintRedone'));
         } else if (action.type === 'autofill_pencil') {
             action.afterPencils.forEach(item => {
@@ -2135,11 +2165,134 @@ class SudokuApp {
     }
 
     showVictoryModal() {
+        // Undo/redo can complete the same board again; only the first win is counted.
+        if (!this.gameResultRecorded) {
+            this.lastVictoryNewBest = this.recordSolvedGame();
+        }
         document.getElementById('victory-time').textContent = this.formatTime(this.timerSeconds);
         document.getElementById('victory-difficulty').textContent = this.getDifficultyLabel(this.currentDifficulty);
         document.getElementById('victory-mistakes').textContent = `${this.mistakesCount}`;
         document.getElementById('victory-hints').textContent = `${this.hintsCount + this.revealedCount}`;
+        this.renderVictoryRecord();
         this.openModal('modal-victory');
+    }
+
+    renderVictoryRecord() {
+        const recordEl = document.getElementById('victory-record');
+        if (!recordEl) return;
+        recordEl.hidden = !this.lastVictoryNewBest;
+        recordEl.textContent = this.lastVictoryNewBest
+            ? tr('victory.newRecord', { difficulty: this.getStatsLevelLabel(this.getStatsLevelKey()) })
+            : '';
+    }
+
+    // =========================================================================
+    // STATISTICS
+    // =========================================================================
+
+    getStatsLevelKey() {
+        return this.isCustomGame ? 'custom' : this.currentDifficulty;
+    }
+
+    getStatsLevelLabel(levelKey) {
+        return levelKey === 'custom' ? tr('meta.custom') : this.getDifficultyLabel(levelKey);
+    }
+
+    // Local calendar day as an integer, so consecutive days differ by exactly 1 across DST changes.
+    getDayNumber(date = new Date()) {
+        return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+    }
+
+    loadStats() {
+        const stats = { levels: {}, totalSolved: 0, lastSolvedDay: null, currentStreak: 0, bestStreak: 0 };
+        try {
+            const raw = localStorage.getItem('sudoku_pro_stats_v1');
+            if (raw) Object.assign(stats, JSON.parse(raw));
+        } catch (e) {
+            console.warn('Could not load statistics', e);
+        }
+        return stats;
+    }
+
+    saveStats(stats) {
+        try {
+            localStorage.setItem('sudoku_pro_stats_v1', JSON.stringify(stats));
+        } catch (e) {
+            console.warn('Could not save statistics', e);
+        }
+    }
+
+    /**
+     * Counts the current win. Best times only accept puzzles solved without deductive hints
+     * or revealed cells, so an assisted solve never replaces a record.
+     * @returns {boolean} true when this solve set a new best time for its level
+     */
+    recordSolvedGame() {
+        this.gameResultRecorded = true;
+        const stats = this.loadStats();
+        const levelKey = this.getStatsLevelKey();
+        const level = stats.levels[levelKey] || { solved: 0, totalSeconds: 0, bestSeconds: null };
+        stats.levels[levelKey] = level;
+
+        level.solved++;
+        level.totalSeconds += this.timerSeconds;
+        const assisted = this.hintsCount + this.revealedCount > 0;
+        const isNewBest = !assisted && (level.bestSeconds === null || this.timerSeconds < level.bestSeconds);
+        if (isNewBest) level.bestSeconds = this.timerSeconds;
+
+        stats.totalSolved++;
+        const today = this.getDayNumber();
+        if (stats.lastSolvedDay !== today) {
+            stats.currentStreak = stats.lastSolvedDay === today - 1 ? stats.currentStreak + 1 : 1;
+            stats.lastSolvedDay = today;
+        }
+        stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak);
+
+        this.saveStats(stats);
+        this.saveGameState();
+        return isNewBest;
+    }
+
+    renderStats() {
+        const stats = this.loadStats();
+        // A streak survives until the end of the day after the last solve.
+        const streakAlive = stats.lastSolvedDay !== null && stats.lastSolvedDay >= this.getDayNumber() - 1;
+        document.getElementById('stats-total').textContent = `${stats.totalSolved}`;
+        document.getElementById('stats-streak').textContent = `${streakAlive ? stats.currentStreak : 0}`;
+        document.getElementById('stats-best-streak').textContent = `${stats.bestStreak}`;
+
+        const levelKeys = ['easy', 'medium', 'hard', 'expert', 'master', 'extreme'];
+        if (stats.levels.custom) levelKeys.push('custom');
+
+        const body = document.getElementById('stats-table-body');
+        body.innerHTML = '';
+        for (const levelKey of levelKeys) {
+            const level = stats.levels[levelKey] || { solved: 0, totalSeconds: 0, bestSeconds: null };
+            const cells = [
+                this.getStatsLevelLabel(levelKey),
+                `${level.solved}`,
+                level.bestSeconds === null ? '—' : this.formatTime(level.bestSeconds),
+                level.solved > 0 ? this.formatTime(Math.round(level.totalSeconds / level.solved)) : '—'
+            ];
+            const row = document.createElement('tr');
+            cells.forEach(text => {
+                const cell = document.createElement('td');
+                cell.textContent = text;
+                row.appendChild(cell);
+            });
+            body.appendChild(row);
+        }
+    }
+
+    resetStats() {
+        if (!confirm(tr('stats.resetConfirm'))) return;
+        try {
+            localStorage.removeItem('sudoku_pro_stats_v1');
+        } catch (e) {
+            console.warn('Could not reset statistics', e);
+        }
+        this.renderStats();
+        this.showToast(tr('toast.statsReset'));
     }
 
     shareResult() {
@@ -2253,6 +2406,9 @@ class SudokuApp {
         this.hintsCount = 0;
         this.revealedCount = 0;
         this.mistakesCount = 0;
+        this.provenEliminations = new Set();
+        this.gameResultRecorded = false;
+        this.dismissDeductiveHint();
 
         this.resetTimer();
         this.startTimer();
@@ -2298,6 +2454,8 @@ class SudokuApp {
                     const el = document.getElementById(id);
                     if (el) el.checked = !!this.settings[key];
                 });
+            } else if (modalId === 'modal-stats') {
+                this.renderStats();
             } else if (modalId === 'modal-algo') {
                 const activeAlgo = this.settings.activeAlgorithm || 'mrv';
                 const radio = document.getElementById(`algo-${activeAlgo}`);
@@ -2462,7 +2620,9 @@ class SudokuApp {
                 hintsCount: this.hintsCount,
                 revealedCount: this.revealedCount,
                 mistakesCount: this.mistakesCount,
-                isCustomGame: this.isCustomGame
+                isCustomGame: this.isCustomGame,
+                provenEliminations: Array.from(this.provenEliminations),
+                gameResultRecorded: this.gameResultRecorded
             };
             localStorage.setItem('sudoku_pro_game_state_v2', JSON.stringify(data));
         } catch (e) {
@@ -2494,6 +2654,9 @@ class SudokuApp {
             this.revealedCount = data.revealedCount || 0;
             this.mistakesCount = data.mistakesCount || 0;
             this.isCustomGame = !!data.isCustomGame;
+            this.provenEliminations = new Set(Array.isArray(data.provenEliminations) ? data.provenEliminations : []);
+            // Saves from before statistics existed have no flag; never count an already finished board.
+            this.gameResultRecorded = data.gameResultRecorded ?? SudokuEngine.isBoardCompleteAndValid(this.currentBoard);
 
             this.updatePuzzleMetaDisplay();
 

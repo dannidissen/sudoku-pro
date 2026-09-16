@@ -22,8 +22,15 @@ The hint engine identifies human-solving techniques instead of revealing a brute
 1. **Naked Single** — a cell has only one legal candidate.
 2. **Hidden Single** — a digit can appear in only one cell of a row, column, or box.
 3. **Pointing Pair/Triple** — candidates in a box align on one row or column and eliminate candidates outside the box.
-4. **Naked Pair** — two cells in one unit contain the same two candidates, eliminating them elsewhere in that unit.
-5. **X-Wing** — a digit is restricted to the same two columns in two rows, or the same two rows in two columns.
+4. **Claiming (Box/Line Reduction)** — every candidate for a digit in a row or column sits inside one box, eliminating it from the rest of that box.
+5. **Naked Pair** — two cells in one unit contain the same two candidates, eliminating them elsewhere in that unit.
+6. **Hidden Pair** — two digits are confined to the same two cells of a unit, so every other candidate in those cells is removed.
+7. **Naked Triple** — three cells in a unit hold only three digits between them, eliminating those digits elsewhere in the unit.
+8. **X-Wing** — a digit is restricted to the same two columns in two rows, or the same two rows in two columns.
+9. **Swordfish** — the three-row (or three-column) extension of X-Wing.
+10. **XY-Wing** — a two-candidate pivot and two pincers force a shared digit out of every cell that sees both pincers.
+
+Eliminations made by an applied hint are remembered for the rest of the puzzle (and undone with the hint), so the next hint builds on them instead of repeating the same step. The Deductive Logic solver uses the same rule and solves every bundled Easy and Medium puzzle and more than half of the Hard ones without guessing.
 
 Hints are presented in three stages:
 
@@ -58,6 +65,12 @@ The optional **Keep digit highlight on empty cells** setting controls whether na
 
 The **Block conflicting pencil marks** setting (on by default) refuses a corner or center mark whose digit already appears in the same row, column, or box, with the same shake-and-sound feedback as a blocked numpad digit. In a pencil mode the keypad dims those digits too. Marks that are already written stay clickable and erasable, so candidates that turn illegal after a later placement can still be cleaned up.
 
+### Timer and statistics
+
+The timer pauses automatically when the page is hidden — switching tabs, minimizing the window, or locking the phone — so it only measures time spent on the puzzle.
+
+The **Statistics** dialog shows puzzles solved, the current and best daily streak, and the solved count, best time, and average time per difficulty level. Best times only count puzzles solved without deductive hints or revealed cells, and the victory screen announces a new best. Statistics are stored locally and can be reset from the dialog.
+
 ### Cell coloring
 
 Four pastel colors help track chains, alternating inferences, and other advanced deductions. Colors work in both themes and participate in undo/redo history.
@@ -69,6 +82,8 @@ The desktop layout keeps the board, keypad, timer, and controls in a compact wor
 ### Audio and feedback
 
 Small synthesized effects are generated with the Web Audio API, so no audio assets are required. Sounds can be disabled in Settings. Conflict animations, victory feedback, and a localized share summary are also included.
+
+When the operating system requests reduced motion, animations and transitions are switched off; the conflict shake becomes a color blink so the feedback is not lost.
 
 ## Languages and directionality
 
@@ -113,6 +128,7 @@ The suite verifies:
 
 - all bundled puzzles are structurally valid, unique, and have exactly one solution;
 - the deductive solver reports success only when its own logic completes the board;
+- every placement and elimination made by the hint engine agrees with the puzzle's unique solution;
 - benchmark calculations remain consistent;
 - every locale has the complete translation-key and placeholder set;
 - RTL/LTR behavior is correct for all supported languages.

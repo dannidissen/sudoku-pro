@@ -1753,3 +1753,71 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         font-size: 0.64rem;
     }
 }
+
+/* ==========================================================================
+   Statistics
+   ========================================================================== */
+.stats-summary {
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+    text-align: center;
+}
+
+.stats-table-wrap {
+    overflow-x: auto;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.stats-table th, .stats-table td {
+    padding: 6px 8px;
+    text-align: start;
+    border-bottom: 1px solid var(--card-border);
+    white-space: nowrap;
+}
+
+.stats-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.stats-table td:not(:first-child) {
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.victory-record {
+    font-weight: 800;
+    color: var(--accent);
+}
+
+/* ==========================================================================
+   Reduced motion: honor the operating system setting. Animations and
+   transitions finish instantly; state changes (colors, visibility) still apply.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* The conflict shake is feedback, not decoration: keep it as a color blink without movement. */
+    .cell.shake {
+        animation: conflictBlink 0.4s ease-in-out !important;
+    }
+
+    @keyframes conflictBlink {
+        0%, 100% { box-shadow: none; }
+        50% { box-shadow: inset 0 0 0 3px var(--cell-conflict-text); }
+    }
+}

@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
     <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
-    <link rel="stylesheet" href="style.css?v=20260916g">
+    <link rel="stylesheet" href="style.css?v=20260916h">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -48,6 +48,9 @@
             <button id="btn-algo-lab" class="icon-btn" data-i18n-title="header.algoLabTitle" title="Algorithm lab and solver engine comparison">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span data-i18n="header.algoLab">Algo Lab</span>
+            </button>
+            <button id="btn-stats" class="icon-btn" data-i18n-title="header.statsTitle" title="Statistics" data-i18n-aria-label="header.statsTitle" aria-label="Statistics">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
             </button>
             <button id="btn-settings" class="icon-btn" data-i18n-title="header.settingsTitle" title="Settings">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -440,7 +443,7 @@
                 <button class="modal-close" data-close="modal-credits" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="credits-body">
-                <p data-i18n-html="credits.intro">🎮 <b>Sudoku Pro - a professional edition for advanced solvers:</b><br>Includes deductive hints (Hidden Single, Pointing, Pairs and X-Wing), Snyder Notation, cell coloring, responsive play and extreme puzzles.</p>
+                <p data-i18n-html="credits.intro">🎮 <b>Sudoku Pro - a professional edition for advanced solvers:</b><br>Includes deductive hints (Hidden Single, Pointing, Claiming, Pairs, Naked Triple, X-Wing, Swordfish and XY-Wing), Snyder Notation, cell coloring, responsive play and extreme puzzles.</p>
                 <div class="credit-box">
                     <h4 data-i18n="credits.bank1Title">📚 Library 1: Sudoku Exchange Puzzle Bank</h4>
                     <p data-i18n-html="credits.bank1Body">Created by Grant McLean with QQWing and rated by Sudoku Explainer. Used for Easy through Master levels (ratings 1.0 to 9.1+). Licensed as <b>Public Domain / CC0</b>.</p>
@@ -460,7 +463,8 @@
             <div class="victory-icon">🏆</div>
             <h2 data-i18n="victory.title">Amazing! You solved the puzzle!</h2>
             <p style="color: var(--text-secondary); font-size: 0.95rem;" data-i18n="victory.subtitle">A complete, valid solution with no remaining errors.</p>
-            
+            <p id="victory-record" class="victory-record" hidden></p>
+
             <div class="victory-stats">
                 <div class="stat-box">
                     <div class="stat-val" id="victory-time">00:00</div>
@@ -484,6 +488,45 @@
                 <button id="btn-share-result" class="action-btn" style="flex: 1; padding: 12px; font-size: 1rem; border-color: var(--accent); color: var(--accent);" data-i18n="victory.share">📋 Share result</button>
                 <button id="btn-victory-new-game" class="action-btn primary" style="flex: 1.5; padding: 12px; font-size: 1rem;" data-i18n="victory.newGame">New game 🎉</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="modal-stats" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 data-i18n="stats.title">Statistics</h2>
+                <button class="modal-close" data-close="modal-stats" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
+            </div>
+            <div class="victory-stats stats-summary">
+                <div class="stat-box">
+                    <div class="stat-val" id="stats-total">0</div>
+                    <div class="stat-label" data-i18n="stats.totalSolved">Puzzles solved</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stats-streak">0</div>
+                    <div class="stat-label" data-i18n="stats.currentStreak">Current streak (days)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stats-best-streak">0</div>
+                    <div class="stat-label" data-i18n="stats.bestStreak">Best streak (days)</div>
+                </div>
+            </div>
+            <div class="stats-table-wrap">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="stats.level">Level</th>
+                            <th data-i18n="stats.solved">Solved</th>
+                            <th data-i18n="stats.bestTime">Best time</th>
+                            <th data-i18n="stats.averageTime">Average time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body"></tbody>
+                </table>
+            </div>
+            <p class="stats-note" data-i18n="stats.note">Best times count only puzzles solved without hints or revealed cells.</p>
+            <button id="btn-reset-stats" class="action-btn full-width" data-i18n="stats.reset">Reset statistics</button>
         </div>
     </div>
 
@@ -565,9 +608,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916g"></script>
-    <script src="puzzles.js?v=20260916g"></script>
-    <script src="solver.js?v=20260916g"></script>
-    <script src="app.js?v=20260916g"></script>
+    <script src="i18n.js?v=20260916h"></script>
+    <script src="puzzles.js?v=20260916h"></script>
+    <script src="solver.js?v=20260916h"></script>
+    <script src="app.js?v=20260916h"></script>
 </body>
 </html>

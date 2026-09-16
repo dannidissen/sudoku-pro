@@ -45,12 +45,53 @@ test('deductive solver succeeds only when its own logic completes the board', ()
     assert.equal(easyResult.stalled, false);
     assert.ok(easyResult.solvedBoard);
 
+    // Hard puzzles need eliminations (Pointing, pairs, wings) before the next single appears,
+    // so this only passes while eliminations carry over from one step to the next.
     const hard = globalThis.SUDOKU_PUZZLES.hard[0];
     const hardResult = SudokuEngine.solveDeductive(parseBoard(hard.puzzle));
-    assert.equal(hardResult.success, false);
-    assert.equal(hardResult.isPureDeductive, false);
-    assert.equal(hardResult.stalled, true);
-    assert.equal(hardResult.solvedBoard, null);
+    assert.equal(hardResult.success, true);
+    assert.ok(Object.keys(hardResult.techniquesUsed).some(name => !name.endsWith('Single')));
+
+    const expert = globalThis.SUDOKU_PUZZLES.expert[0];
+    const expertResult = SudokuEngine.solveDeductive(parseBoard(expert.puzzle));
+    assert.equal(expertResult.success, false);
+    assert.equal(expertResult.isPureDeductive, false);
+    assert.equal(expertResult.stalled, true);
+    assert.equal(expertResult.solvedBoard, null);
+});
+
+test('every deductive hint agrees with the unique solution', () => {
+    const used = new Set();
+    let checkedSteps = 0;
+
+    for (const entries of Object.values(globalThis.SUDOKU_PUZZLES)) {
+        // Every third puzzle keeps the suite fast while still covering all levels.
+        for (let i = 0; i < entries.length; i += 3) {
+            const entry = entries[i];
+            const board = parseBoard(entry.puzzle);
+            const solution = SudokuEngine.solveBitwiseMRV(board, 1).solvedBoard;
+            SudokuEngine.solveDeductive(board, {
+                onStep(hint) {
+                    used.add(hint.technique);
+                    checkedSteps++;
+                    if (hint.action.type === 'set_value') {
+                        const { row, col, value } = hint.action;
+                        assert.equal(value, solution[row][col], `${entry.id}: ${hint.technique} placed a wrong digit`);
+                    } else {
+                        assert.ok(hint.action.eliminations.length > 0, `${entry.id}: ${hint.technique} eliminated nothing`);
+                        for (const { row, col, digit } of hint.action.eliminations) {
+                            assert.notEqual(digit, solution[row][col], `${entry.id}: ${hint.technique} removed the solution digit`);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    assert.ok(checkedSteps > 0);
+    for (const technique of ['Claiming', 'Hidden Pair', 'Naked Triple', 'X-Wing', 'Swordfish', 'XY-Wing']) {
+        assert.ok(used.has(technique), `${technique} was never exercised`);
+    }
 });
 
 test('benchmark comparison uses consistent node and speed calculations', () => {
