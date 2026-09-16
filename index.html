@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260916k">
+    <link rel="stylesheet" href="style.css?v=20260916l">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -666,6 +666,90 @@
                 </label>
             </div>
 
+            <section class="algo-learning" aria-labelledby="algo-guide-title">
+                <h3 id="algo-guide-title" data-i18n="algo.guide.title">How the selected solver works</h3>
+                <div id="algo-guide-content" class="algo-guide-content"></div>
+
+                <div class="algo-complexity" role="note">
+                    <div>
+                        <strong data-i18n="algo.guide.complexity">Complexity</strong>
+                        <span id="algo-guide-complexity"></span>
+                    </div>
+                    <div>
+                        <strong data-i18n="algo.guide.tradeoff">Best use and trade-off</strong>
+                        <span id="algo-guide-tradeoff"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="algo-demo" aria-labelledby="algo-demo-title">
+                <div class="algo-section-heading">
+                    <div>
+                        <h3 id="algo-demo-title" data-i18n="algo.demo.title">Watch the solver</h3>
+                        <p data-i18n="algo.demo.intro">A small, deterministic board shows choices, placements and backtracking without changing your game.</p>
+                    </div>
+                    <span id="algo-demo-counter" class="algo-demo-counter">0 / 0</span>
+                </div>
+                <div class="algo-demo-layout">
+                    <div id="algo-demo-board" class="algo-demo-board" role="grid" data-i18n-aria-label="algo.demo.boardLabel" aria-label="Algorithm demonstration board"></div>
+                    <div class="algo-demo-side">
+                        <div id="algo-demo-status" class="algo-demo-status" role="status" aria-live="polite"></div>
+                        <div class="algo-demo-controls">
+                            <button id="btn-algo-demo-play" class="action-btn primary" type="button" data-i18n="algo.demo.play">▶ Play</button>
+                            <button id="btn-algo-demo-reset" class="action-btn" type="button" data-i18n="algo.demo.reset">↺ Reset</button>
+                        </div>
+                        <label class="algo-speed-control" for="algo-demo-speed">
+                            <span data-i18n="algo.demo.speed">Animation speed</span>
+                            <input id="algo-demo-speed" type="range" min="1" max="4" value="2" step="1">
+                        </label>
+                        <div class="algo-demo-legend" aria-hidden="true">
+                            <span><i class="demo-swatch demo-swatch-choice"></i><span data-i18n="algo.demo.legendChoice">current choice</span></span>
+                            <span><i class="demo-swatch demo-swatch-backtrack"></i><span data-i18n="algo.demo.legendBacktrack">backtrack</span></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="algo-code" aria-labelledby="algo-code-title">
+                <div class="algo-section-heading">
+                    <div>
+                        <h3 id="algo-code-title" data-i18n="algo.code.title">Implementation sketch</h3>
+                        <p data-i18n="algo.code.intro">Compare the browser implementation with the same MRV idea in modern C++.</p>
+                    </div>
+                    <div class="algo-code-tabs" role="tablist" data-i18n-aria-label="algo.code.tabsLabel" aria-label="Code language">
+                        <button id="algo-code-tab-js" class="algo-code-tab active" type="button" role="tab" aria-selected="true" aria-controls="algo-code-js">JavaScript</button>
+                        <button id="algo-code-tab-cpp" class="algo-code-tab" type="button" role="tab" aria-selected="false" aria-controls="algo-code-cpp" tabindex="-1">C++</button>
+                    </div>
+                </div>
+                <pre id="algo-code-js" class="algo-code-block" role="tabpanel" aria-labelledby="algo-code-tab-js"><code>function solveMRV(board) {
+  if (board.isComplete()) return true;
+  const cell = board.emptyCellWithFewestCandidates();
+  for (const digit of cell.candidates) {
+    board.place(cell, digit);
+    if (solveMRV(board)) return true;
+    board.remove(cell); // backtrack
+  }
+  return false;
+}</code></pre>
+                <pre id="algo-code-cpp" class="algo-code-block" role="tabpanel" aria-labelledby="algo-code-tab-cpp" hidden><code>#include &lt;bit&gt;
+#include &lt;cstdint&gt;
+
+bool solve_mrv(Board&amp; board) {
+    if (board.complete()) return true;
+    Cell cell = board.fewest_candidates();
+    uint16_t mask = board.candidates(cell);
+    while (mask) {
+        int digit = std::countr_zero(mask) + 1;
+        board.place(cell, digit);
+        if (solve_mrv(board)) return true;
+        board.remove(cell); // backtrack
+        mask &amp;= mask - 1;
+    }
+    return false;
+}</code></pre>
+                <p class="algo-code-note" data-i18n="algo.code.note">The repository also includes a complete native validator in tools/sudoku_validator.c; the C++ sketch focuses on the recursive idea.</p>
+            </section>
+
             <!-- Action Buttons -->
             <div class="algo-actions">
                 <button id="btn-run-algo-solve" class="action-btn primary full-width">
@@ -687,9 +771,9 @@
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916k"></script>
-    <script src="puzzles.js?v=20260916k"></script>
-    <script src="solver.js?v=20260916k"></script>
-    <script src="app.js?v=20260916k"></script>
+    <script src="i18n.js?v=20260916l"></script>
+    <script src="puzzles.js?v=20260916l"></script>
+    <script src="solver.js?v=20260916l"></script>
+    <script src="app.js?v=20260916l"></script>
 </body>
 </html>

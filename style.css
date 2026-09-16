@@ -1839,7 +1839,7 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
 /* Algorithm Lab Modal & Benchmark Styles                                    */
 /* ------------------------------------------------------------------------- */
 .algo-modal-card {
-    max-width: 540px;
+    max-width: 760px;
     gap: 14px;
     max-height: 90dvh;
     overflow-y: auto;
@@ -1944,6 +1944,291 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
     line-height: 1.4;
 }
 
+.algo-learning,
+.algo-demo,
+.algo-code {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+}
+
+.algo-learning h3,
+.algo-demo h3,
+.algo-code h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.algo-guide-content {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    line-height: 1.55;
+}
+
+.algo-guide-content p {
+    margin: 0 0 7px;
+}
+
+.algo-guide-content ol {
+    margin: 0;
+    padding-inline-start: 22px;
+}
+
+.algo-guide-content li + li {
+    margin-top: 4px;
+}
+
+.algo-complexity {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.algo-complexity > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.algo-complexity strong {
+    color: var(--accent);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.algo-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.algo-section-heading p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.algo-demo-counter {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    font: 700 0.72rem/1.4 monospace;
+    direction: ltr;
+}
+
+.algo-demo-layout {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    margin-top: 12px;
+}
+
+.algo-demo-board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    direction: ltr;
+    border: 2px solid var(--text-muted);
+    border-radius: 5px;
+    background: var(--card-border);
+}
+
+.algo-demo-cell {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    background: var(--bg-secondary);
+    color: var(--accent);
+    border-inline-end: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    font-size: clamp(0.58rem, 2.4vw, 0.9rem);
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    transition: background-color 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+
+.algo-demo-cell:nth-child(3n) {
+    border-inline-end-width: 2px;
+    border-inline-end-color: var(--text-muted);
+}
+
+.algo-demo-cell:nth-child(9n) {
+    border-inline-end: 0;
+}
+
+.algo-demo-cell:nth-child(n + 19):nth-child(-n + 27),
+.algo-demo-cell:nth-child(n + 46):nth-child(-n + 54) {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--text-muted);
+}
+
+.algo-demo-cell:nth-child(n + 73) {
+    border-bottom: 0;
+}
+
+.algo-demo-cell.given {
+    color: var(--text-primary);
+    font-weight: 850;
+}
+
+.algo-demo-cell.demo-choice {
+    z-index: 1;
+    background: rgba(2, 132, 199, 0.26);
+    color: #38bdf8;
+    transform: scale(1.08);
+    box-shadow: inset 0 0 0 2px #38bdf8;
+}
+
+.algo-demo-cell.demo-backtrack {
+    z-index: 1;
+    background: rgba(239, 68, 68, 0.24);
+    color: #f87171;
+    box-shadow: inset 0 0 0 2px #f87171;
+}
+
+.algo-demo-cell.demo-eliminate {
+    z-index: 1;
+    background: rgba(245, 158, 11, 0.24);
+    color: #fbbf24;
+    box-shadow: inset 0 0 0 2px #fbbf24;
+}
+
+.algo-demo-cell.demo-solved {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34d399;
+}
+
+.algo-demo-side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.algo-demo-status {
+    min-height: 4.5em;
+    padding: 10px 11px;
+    border-inline-start: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.algo-demo-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.algo-speed-control {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+}
+
+.algo-speed-control input {
+    width: 100%;
+    accent-color: var(--accent);
+}
+
+.algo-demo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.algo-demo-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.demo-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.demo-swatch-choice { background: #38bdf8; }
+.demo-swatch-backtrack { background: #f87171; }
+
+.algo-code-tabs {
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding: 2px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    direction: ltr;
+}
+
+.algo-code-tab {
+    border: 0;
+    border-radius: calc(var(--radius-sm) - 2px);
+    padding: 5px 9px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.algo-code-tab.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.algo-code-block {
+    margin: 12px 0 0;
+    max-height: 250px;
+    overflow: auto;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: #07111f;
+    color: #d8e6f3;
+    text-align: left;
+    direction: ltr;
+    font: 0.75rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    tab-size: 2;
+}
+
+.algo-code-block[hidden] {
+    display: none;
+}
+
+.algo-code-note {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
 .algo-actions {
     display: flex;
     flex-direction: column;
@@ -2013,6 +2298,27 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
     background: rgba(245, 158, 11, 0.1);
     border-color: rgba(245, 158, 11, 0.3);
     color: #fbbf24;
+}
+
+@media (max-width: 620px) {
+    .algo-modal-card {
+        width: calc(100vw - 20px);
+        padding: 14px;
+    }
+
+    .algo-complexity,
+    .algo-demo-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .algo-demo-board {
+        width: min(100%, 290px);
+        margin-inline: auto;
+    }
+
+    .algo-section-heading {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 380px) {

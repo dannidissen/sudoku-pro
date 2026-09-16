@@ -106,6 +106,39 @@ test('benchmark comparison uses consistent node and speed calculations', () => {
     assert.ok(result.seq.timeUs >= 0);
 });
 
+test('solver trace callbacks replay to the same verified solution used by the animation', () => {
+    const puzzle = '020900000048000031000063020009407003003080200400105600030570000250000180000006050';
+
+    for (const algorithm of ['mrv', 'seq']) {
+        const initial = parseBoard(puzzle);
+        const replay = initial.map(row => [...row]);
+        const trace = [];
+        const result = algorithm === 'mrv'
+            ? SudokuEngine.solveBitwiseMRV(initial, 1, { onStep: step => trace.push(step) })
+            : SudokuEngine.solveBitwiseSequential(initial, 1, { onStep: step => trace.push(step) });
+
+        for (const step of trace) {
+            replay[step.row][step.col] = step.type === 'place' ? step.value : 0;
+        }
+        assert.ok(trace.some(step => step.type === 'place'), `${algorithm}: no placement trace`);
+        assert.ok(trace.some(step => step.type === 'backtrack'), `${algorithm}: no backtracking trace`);
+        assert.deepEqual(replay, result.solvedBoard, `${algorithm}: replay diverged from solution`);
+    }
+
+    const deductiveReplay = parseBoard(puzzle);
+    const deductiveTrace = [];
+    const deductiveResult = SudokuEngine.solveDeductive(parseBoard(puzzle), {
+        onStep(hint) {
+            deductiveTrace.push(hint);
+            if (hint.action.type === 'set_value') {
+                deductiveReplay[hint.action.row][hint.action.col] = hint.action.value;
+            }
+        }
+    });
+    assert.ok(deductiveTrace.some(hint => hint.action.type === 'eliminate_candidates'));
+    assert.deepEqual(deductiveReplay, deductiveResult.solvedBoard);
+});
+
 test('all languages expose the same translation keys and correct direction', () => {
     const listeners = new Map();
     globalThis.document = {

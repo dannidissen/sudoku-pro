@@ -1,7 +1,7 @@
 // Offline support for Sudoku Pro.
 // Network-first: online players always get the latest deploy, and every successful
 // response refreshes the cache that is used when the network is unavailable.
-const CACHE_NAME = 'sudoku-pro-v2';
+const CACHE_NAME = 'sudoku-pro-v3';
 const APP_SHELL = [
     './',
     'index.html',
