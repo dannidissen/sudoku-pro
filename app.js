@@ -687,6 +687,10 @@ class SudokuApp {
         if (this.currentDeductiveHint && this.hintStage > 0) {
             this.renderCurrentHintStage();
         }
+        const benchmarkResults = document.getElementById('algo-benchmark-results');
+        if (benchmarkResults && !benchmarkResults.classList.contains('hidden')) {
+            this.runAlgorithmBenchmark();
+        }
         const victoryDifficulty = document.getElementById('victory-difficulty');
         if (victoryDifficulty) victoryDifficulty.textContent = this.getDifficultyLabel(this.currentDifficulty);
     }
@@ -2293,18 +2297,21 @@ class SudokuApp {
         let algoName = '';
 
         if (algo === 'mrv') {
-            algoName = 'Bitwise MRV';
+            algoName = tr('algo.name.mrv');
             result = SudokuEngine.solveBitwiseMRV(targetBoard);
         } else if (algo === 'seq') {
-            algoName = 'Sequential Backtracking';
+            algoName = tr('algo.name.seq');
             result = SudokuEngine.solveBitwiseSequential(targetBoard);
         } else if (algo === 'deductive') {
-            algoName = 'Deductive Logic';
+            algoName = tr('algo.name.deductive');
             result = SudokuEngine.solveDeductive(targetBoard);
         }
 
         if (!result || !result.solvedBoard) {
-            this.showToast(result?.error || 'לא נמצא פתרון חוקי ללוח זה');
+            const messageKey = algo === 'deductive' && result?.stalled
+                ? 'algo.solve.deductiveStalled'
+                : 'algo.solve.noResult';
+            this.showToast(tr(messageKey));
             return;
         }
 
@@ -2331,8 +2338,10 @@ class SudokuApp {
         this.closeModal('modal-algo');
 
         const timeStr = result.timeUs < 1000 ? `${result.timeUs.toFixed(1)} µs` : `${(result.timeUs / 1000).toFixed(2)} ms`;
-        const nodesStr = result.nodesExplored !== undefined ? ` • ${result.nodesExplored.toLocaleString()} צמתים` : (result.stepsCount !== undefined ? ` • ${result.stepsCount} צעדי לוגיקה` : '');
-        this.showToast(`⚡ נפתר בהצלחה באמצעות ${algoName} (${timeStr}${nodesStr})`);
+        const details = result.nodesExplored !== undefined
+            ? tr('algo.solve.nodes', { count: result.nodesExplored.toLocaleString() })
+            : (result.stepsCount !== undefined ? tr('algo.solve.steps', { count: result.stepsCount.toLocaleString() }) : '');
+        this.showToast(tr('algo.solve.success', { algorithm: algoName, time: timeStr, details }));
     }
 
     runAlgorithmBenchmark() {
@@ -2347,49 +2356,62 @@ class SudokuApp {
         const mrvTime = cmp.mrv.timeUs < 1000 ? `${cmp.mrv.timeUs.toFixed(1)} µs` : `${(cmp.mrv.timeUs / 1000).toFixed(2)} ms`;
         const seqTime = cmp.seq.timeUs < 1000 ? `${cmp.seq.timeUs.toFixed(1)} µs` : `${(cmp.seq.timeUs / 1000).toFixed(2)} ms`;
 
-        let statusText = '✅ פתרון יחיד ותקני (VALID & UNIQUE)';
+        let statusText = tr('algo.status.unique');
         let statusBadgeClass = 'badge-fast';
         if (cmp.mrv.solutionsCount === 0) {
-            statusText = '❌ לוח ללא פתרון (UNSOLVABLE)';
+            statusText = tr('algo.status.unsolvable');
             statusBadgeClass = 'badge-standard';
         } else if (cmp.mrv.solutionsCount >= 2) {
-            statusText = '⚠️ פתרונות מרובים (MULTIPLE)';
+            statusText = tr('algo.status.multiple');
             statusBadgeClass = 'badge-standard';
         }
 
+        const absoluteNodes = Math.abs(cmp.nodesSaved);
+        const absolutePercent = Math.abs(cmp.nodesSavedPct).toFixed(1);
+        const nodesSummary = cmp.nodesSaved >= 0
+            ? tr('algo.benchmark.nodesSaved', { count: absoluteNodes.toLocaleString(), percent: absolutePercent })
+            : tr('algo.benchmark.nodesExtra', { count: absoluteNodes.toLocaleString(), percent: absolutePercent });
+        let speedSummary = tr('algo.benchmark.similar');
+        if (Number.isFinite(cmp.speedup) && cmp.speedup > 1.05) {
+            speedSummary = tr('algo.benchmark.faster', { ratio: cmp.speedup.toFixed(1) });
+        } else if (Number.isFinite(cmp.speedup) && cmp.speedup > 0 && cmp.speedup < 0.95) {
+            speedSummary = tr('algo.benchmark.slower', { ratio: (1 / cmp.speedup).toFixed(1) });
+        }
+        const highlightClass = cmp.speedup < 0.95 ? ' is-slower' : '';
+
         resultsEl.innerHTML = `
             <div class="algo-results-header">
-                <span>תוצאות בנצ'מרק על הלוח הנוכחי:</span>
+                <span>${tr('algo.benchmark.title')}</span>
                 <span class="algo-badge ${statusBadgeClass}">${statusText}</span>
             </div>
             <table class="algo-table">
                 <thead>
                     <tr>
-                        <th>מדד</th>
-                        <th>Bitwise MRV (מומלץ)</th>
-                        <th>Sequential (סדרתי)</th>
+                        <th>${tr('algo.table.metric')}</th>
+                        <th>${tr('algo.table.mrv')}</th>
+                        <th>${tr('algo.table.sequential')}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>צמתים שנסרקו:</td>
+                        <td>${tr('algo.table.nodes')}</td>
                         <td><b>${cmp.mrv.nodesExplored.toLocaleString()}</b></td>
                         <td>${cmp.seq.nodesExplored.toLocaleString()}</td>
                     </tr>
                     <tr>
-                        <td>זמן חישוב:</td>
+                        <td>${tr('algo.table.time')}</td>
                         <td><b>${mrvTime}</b></td>
                         <td>${seqTime}</td>
                     </tr>
                     <tr>
-                        <td>פתרונות שזוהו:</td>
+                        <td>${tr('algo.table.solutions')}</td>
                         <td>${cmp.mrv.solutionsCount}</td>
                         <td>${cmp.seq.solutionsCount}</td>
                     </tr>
                 </tbody>
             </table>
-            <div class="algo-highlight-stat">
-                🚀 מנוע ה-MRV גזם ${cmp.nodesSaved.toLocaleString()} צמתים (${cmp.nodesSavedPct.toFixed(1)}% פחות עבודה) והיה מהיר פי ${cmp.speedup.toFixed(1)}!
+            <div class="algo-highlight-stat${highlightClass}">
+                ${nodesSummary} ${speedSummary}
             </div>
         `;
         resultsEl.classList.remove('hidden');

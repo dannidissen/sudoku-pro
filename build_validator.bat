@@ -1,8 +1,3 @@
 @echo off
-gcc -O3 -march=native -flto -Wall tools/sudoku_validator.c -o sudoku_validator.exe
-if %ERRORLEVEL% EQU 0 (
-    echo [OK] sudoku_validator.exe compiled successfully with full optimizations.
-) else (
-    echo [ERROR] Compilation failed.
-)
-pause
+call "%~dp0tools\build_validator.bat"
+exit /b %ERRORLEVEL%

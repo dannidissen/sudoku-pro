@@ -1470,13 +1470,13 @@ class SudokuEngine {
 
         const t1 = performance.now();
         const isComplete = this.isBoardCompleteAndValid(copy);
-        const solved = isComplete ? copy : (this.solve(board) || null);
         return {
-            success: !!solved,
+            success: isComplete,
             isPureDeductive: isComplete,
+            stalled: !isComplete,
             stepsCount,
             timeUs: (t1 - t0) * 1000,
-            solvedBoard: solved,
+            solvedBoard: isComplete ? copy : null,
             techniquesUsed
         };
     }
@@ -1486,9 +1486,20 @@ class SudokuEngine {
      * @param {number[][]} board
      * @returns {{ mrv: Object, seq: Object, speedup: number, nodesSaved: number, nodesSavedPct: number }}
      */
-    static compareAlgorithms(board) {
-        const mrv = this.solveBitwiseMRV(board, 2);
-        const seq = this.solveBitwiseSequential(board, 2);
+    static compareAlgorithms(board, samples = 5) {
+        const sampleCount = Math.max(1, Math.min(9, Math.floor(samples) || 1));
+        const medianResult = solve => {
+            const runs = Array.from({ length: sampleCount }, solve);
+            const times = runs.map(result => result.timeUs).sort((a, b) => a - b);
+            const middle = Math.floor(times.length / 2);
+            const medianTime = times.length % 2 === 1
+                ? times[middle]
+                : (times[middle - 1] + times[middle]) / 2;
+            return { ...runs[0], timeUs: medianTime };
+        };
+
+        const mrv = medianResult(() => this.solveBitwiseMRV(board, 2));
+        const seq = medianResult(() => this.solveBitwiseSequential(board, 2));
 
         const nodesSaved = seq.nodesExplored - mrv.nodesExplored;
         const nodesSavedPct = seq.nodesExplored > 0 ? (nodesSaved / seq.nodesExplored) * 100 : 0;

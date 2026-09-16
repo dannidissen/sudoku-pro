@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
     <title data-i18n="app.title">סודוקו פרו - גרסת מומחים עם Snyder Notation ורמזים מדורגים</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260916c">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -18,13 +18,13 @@
             <span class="logo-emoji">🧩</span>
             <div>
                 <h1 data-i18n="app.name">סודוקו פרו</h1>
-                <span class="subtitle" data-i18n="app.subtitle">Snyder Notation • רמזים דדוקטיביים • צביעת תאים • אפס גלילה</span>
+                <span class="subtitle" data-i18n="app.subtitle">Snyder Notation • רמזים דדוקטיביים • צביעת תאים • פריסה מותאמת</span>
             </div>
         </div>
         <div class="header-actions">
             <label class="language-control" data-i18n-title="language.label" title="שפה">
                 <span aria-hidden="true">🌐</span>
-                <select id="language-select" class="language-select" aria-label="שפה">
+                <select id="language-select" class="language-select" aria-label="שפה" data-i18n-aria-label="language.label">
                     <option value="he">עברית</option>
                     <option value="en">English</option>
                     <option value="yi">ייִדיש</option>
@@ -276,7 +276,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h2 data-i18n="settings.title">הגדרות ממשק ותצוגה</h2>
-                <button class="modal-close" data-close="modal-settings">&times;</button>
+                <button class="modal-close" data-close="modal-settings" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
             </div>
             <div class="settings-list">
                 <div class="setting-item">
@@ -398,7 +398,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h2 data-i18n="custom.title">הזנת סודוקו מותאם אישית</h2>
-                <button class="modal-close" data-close="modal-custom">&times;</button>
+                <button class="modal-close" data-close="modal-custom" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
             </div>
             <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-i18n="custom.instructions">
                 הדבק מחרוזת של 81 תווים (ספרות 1-9, ו-0 או נקודה עבור תא ריק):
@@ -416,12 +416,12 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h2 data-i18n="credits.title">מאגרי החידות והקרדיטים</h2>
-                <button class="modal-close" data-close="modal-credits">&times;</button>
+                <button class="modal-close" data-close="modal-credits" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
             </div>
             <div class="credits-body">
                 <p data-i18n-html="credits.intro">
                     🎮 <b>סודוקו פרו - גרסה מקצועית למתקדמים:</b><br>
-                    כולל מנוע רמזים דדוקטיבי (Hidden Single, Pointing, Pairs, X-Wing), שיטת Snyder Notation, צביעת תאים, אפס גלילה, וחידות ברמת אקסטרים.
+                    כולל מנוע רמזים דדוקטיבי (Hidden Single, Pointing, Pairs, X-Wing), שיטת Snyder Notation, צביעת תאים, פריסה מותאמת וחידות ברמת אקסטרים.
                 </p>
                 <div class="credit-box">
                     <h4 data-i18n="credits.bank1Title">📚 מאגר 1: Sudoku Exchange Puzzle Bank</h4>
@@ -429,7 +429,7 @@
                 </div>
                 <div class="credit-box">
                     <h4 data-i18n="credits.bank2Title">☠️ מאגר 2: Top1465 Benchmark & היסטוריית האקסטרים</h4>
-                    <p data-i18n-html="credits.bank2Body">מאגר ה-1,465 החידות הקשות ביותר שנאספו בהיסטוריה (מאת Guenter Stertenbrink), יחד עם יצירות המופת של ד"ר Arto Inkala (כגון <b>AI Escargot</b> ו-<b>Platinum Blonde</b>, בדירוג 11/10) ו-<b>Easter Monster</b>.</p>
+                    <p data-i18n-html="credits.bank2Body">מאגר ה-1,465 החידות הקשות ביותר שנאספו בהיסטוריה (מאת Guenter Stertenbrink), יחד עם יצירות המופת של ד"ר Arto Inkala, ובהן <b>AI Escargot</b> ו-<b>Platinum Blonde</b>.</p>
                 </div>
             </div>
             <button class="action-btn primary full-width" data-close="modal-credits" data-i18n="credits.close">הבנתי, סגור</button>
@@ -479,12 +479,12 @@
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 1.3rem;">⚡</span>
-                    <h2>מעבדת אלגוריתמים ובחירת מנוע</h2>
+                    <h2 data-i18n="algo.title">מעבדת אלגוריתמים ובחירת מנוע</h2>
                 </div>
-                <button class="modal-close" data-close="modal-algo">&times;</button>
+                <button class="modal-close" data-close="modal-algo" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
             </div>
-            
-            <p class="algo-modal-intro">
+
+            <p class="algo-modal-intro" data-i18n="algo.intro">
                 בחר באיזה אלגוריתם ברצונך להשתמש. תוכל להפעיל אותו ישירות על הלוח הנוכחי או להריץ בנצ'מרק ביצועים:
             </p>
 
@@ -497,9 +497,9 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🚀 Bitwise MRV Backtracking</span>
-                            <span class="algo-badge badge-fast">מהיר ביותר (מומלץ)</span>
+                            <span class="algo-badge badge-fast" data-i18n="algo.mrvBadge">מהיר ביותר (מומלץ)</span>
                         </div>
-                        <p class="algo-card-desc">
+                        <p class="algo-card-desc" data-i18n="algo.mrvDescription">
                             בוחר תמיד את המשבצת עם הכי מעט מועמדים (MRV) בעזרת מסכות ביטים ישירות בחומרה. כולל גיזום מיידי של ענפים מתים (0 מועמדים) ומעבר מיידי ליחיד גלוי (1 מועמד).
                         </p>
                     </div>
@@ -513,9 +513,9 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🐢 Sequential Backtracking</span>
-                            <span class="algo-badge badge-standard">סריקה סדרתית (בקרת שפיות)</span>
+                            <span class="algo-badge badge-standard" data-i18n="algo.seqBadge">סריקה סדרתית (בקרת שפיות)</span>
                         </div>
-                        <p class="algo-card-desc">
+                        <p class="algo-card-desc" data-i18n="algo.seqDescription">
                             סורק את כל המשבצות לפי הסדר הרגיל (0 עד 80) ללא עדיפויות חכמות. מדגים עץ חיפוש רחב וממחיש כמה צמתים וזמן נחסכים בזכות היוריסטיקת MRV.
                         </p>
                     </div>
@@ -529,10 +529,10 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🧠 Deductive Logic Engine</span>
-                            <span class="algo-badge badge-logic">היוריסטיקות אנושיות</span>
+                            <span class="algo-badge badge-logic" data-i18n="algo.deductiveBadge">לוגיקה אנושית ללא ניחוש</span>
                         </div>
-                        <p class="algo-card-desc">
-                            מדמה פתרון אנושי שלב-אחר-שלב ללא שום ניחוש, באמצעות טכניקות לוגיות מתקדמות (Naked/Hidden Singles, Pointing, Pairs, X-Wing) עם הסבר מפורט.
+                        <p class="algo-card-desc" data-i18n="algo.deductiveDescription">
+                            מפעיל הצבות לוגיות שלב-אחר-שלב ללא ניחוש. אם נדרשת מחיקת מועמדים או שרשרת מתקדמת, המנוע עוצר ומדווח במקום לעבור לפתרון כוחני.
                         </p>
                     </div>
                 </label>
@@ -541,17 +541,17 @@
             <!-- Action Buttons -->
             <div class="algo-actions">
                 <button id="btn-run-algo-solve" class="action-btn primary full-width">
-                    <span>▶️ פתור לוח עם האלגוריתם הנבחר</span>
+                    <span data-i18n="algo.solve">▶️ פתור לוח עם האלגוריתם הנבחר</span>
                 </button>
                 <button id="btn-run-algo-compare" class="action-btn full-width" style="border-color: var(--accent); color: var(--accent);">
-                    <span>📊 הרץ השוואת ביצועים (Benchmark)</span>
+                    <span data-i18n="algo.benchmark">📊 הרץ השוואת ביצועים (Benchmark)</span>
                 </button>
             </div>
 
             <!-- Benchmark Results Area (Dynamic) -->
             <div id="algo-benchmark-results" class="algo-results hidden"></div>
 
-            <button class="action-btn full-width" data-close="modal-algo" style="margin-top: 4px;">סגור</button>
+            <button class="action-btn full-width" data-close="modal-algo" style="margin-top: 4px;" data-i18n="common.close">סגור</button>
         </div>
     </div>
 
@@ -559,9 +559,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js"></script>
-    <script src="puzzles.js"></script>
-    <script src="solver.js"></script>
-    <script src="app.js"></script>
+    <script src="i18n.js?v=20260916c"></script>
+    <script src="puzzles.js?v=20260916c"></script>
+    <script src="solver.js?v=20260916c"></script>
+    <script src="app.js?v=20260916c"></script>
 </body>
 </html>

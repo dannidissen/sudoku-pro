@@ -453,7 +453,7 @@ int main(int argc, char *argv[]) {
         printf("%-26s | %-24llu | %-24llu\n", "Nodes Explored",
                (unsigned long long)mrv_stats.nodes_explored,
                (unsigned long long)seq_stats.nodes_explored);
-        
+
         char mrv_time_str[32], seq_time_str[32];
         snprintf(mrv_time_str, sizeof(mrv_time_str), "%.2f µs (%.3f ms)", mrv_stats.elapsed_us, mrv_stats.elapsed_us / 1000.0);
         snprintf(seq_time_str, sizeof(seq_time_str), "%.2f µs (%.3f ms)", seq_stats.elapsed_us, seq_stats.elapsed_us / 1000.0);
