@@ -466,4 +466,235 @@ test('non-unique custom games never offer deterministic cascade completion', () 
     assert.deepEqual(addedClasses, ['hidden']);
 });
 
+test('checkProgress rejects non-unique puzzles with toast.checkNeedsUnique', () => {
+    const SudokuApp = require('../app.js');
+    const messages = [];
+    const fakeApp = {
+        isExecutingCascade: false,
+        isPaused: false,
+        solutionIsUnique: false,
+        showToast(message) { messages.push(message); }
+    };
 
+    SudokuApp.prototype.checkProgress.call(fakeApp);
+    assert.deepEqual(messages, [globalThis.tr('toast.checkNeedsUnique')]);
+});
+
+test('checkProgress informs player when no user entries exist', () => {
+    const SudokuApp = require('../app.js');
+    const sample = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+    const grid = SudokuEngine.stringToGrid(sample);
+    const messages = [];
+    const fakeApp = {
+        isExecutingCascade: false,
+        isPaused: false,
+        solutionIsUnique: true,
+        initialBoard: grid.map(r => [...r]),
+        currentBoard: grid.map(r => [...r]),
+        solutionBoard: SudokuEngine.solve(grid),
+        showToast(message) { messages.push(message); }
+    };
+
+    SudokuApp.prototype.checkProgress.call(fakeApp);
+    assert.deepEqual(messages, [globalThis.tr('toast.checkNoEntries')]);
+});
+
+test('checkProgress validates all matching entries, pulses cells and plays chime', () => {
+    const SudokuApp = require('../app.js');
+    const sample = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+    const grid = SudokuEngine.stringToGrid(sample);
+    const solution = SudokuEngine.solve(grid);
+    const messages = [];
+    const pulsed = [];
+    let playedSuccess = false;
+    let visualHighlightsUpdated = false;
+
+    // Fill two correct cells
+    const current = grid.map(r => [...r]);
+    current[0][0] = solution[0][0];
+    current[0][1] = solution[0][1];
+
+    const fakeApp = {
+        isExecutingCascade: false,
+        isPaused: false,
+        solutionIsUnique: true,
+        initialBoard: grid.map(r => [...r]),
+        currentBoard: current,
+        solutionBoard: solution,
+        checkedMistakes: new Set(['0,0']),
+        audio: { playCheckSuccess() { playedSuccess = true; } },
+        showToast(message) { messages.push(message); },
+        pulseCell(r, c) { pulsed.push(`${r},${c}`); },
+        updateVisualHighlights() { visualHighlightsUpdated = true; }
+    };
+
+    SudokuApp.prototype.checkProgress.call(fakeApp);
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0], globalThis.tr('toast.checkAllCorrect', { count: 2 }));
+    assert.equal(playedSuccess, true);
+    assert.equal(visualHighlightsUpdated, true);
+    assert.deepEqual(pulsed.sort(), ['0,0', '0,1']);
+    assert.equal(fakeApp.checkedMistakes.size, 0);
+});
+
+test('checkProgress detects mismatches, sets checkedMistakes, shakes cells and selects first mistake', () => {
+    const SudokuApp = require('../app.js');
+    const sample = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+    const grid = SudokuEngine.stringToGrid(sample);
+    const solution = SudokuEngine.solve(grid);
+    const messages = [];
+    const shaken = [];
+    let selected = null;
+    let playedConflict = false;
+    let visualHighlightsUpdated = false;
+
+    // One correct entry, one wrong entry
+    const current = grid.map(r => [...r]);
+    current[0][0] = solution[0][0]; // correct
+    const wrongVal = solution[0][1] === 9 ? 1 : solution[0][1] + 1;
+    current[0][1] = wrongVal; // wrong
+
+    const fakeApp = {
+        isExecutingCascade: false,
+        isPaused: false,
+        solutionIsUnique: true,
+        initialBoard: grid.map(r => [...r]),
+        currentBoard: current,
+        solutionBoard: solution,
+        checkedMistakes: new Set(),
+        audio: { playConflict() { playedConflict = true; } },
+        showToast(message) { messages.push(message); },
+        shakeCell(r, c) { shaken.push(`${r},${c}`); },
+        selectCell(r, c) { selected = { row: r, col: c }; },
+        updateVisualHighlights() { visualHighlightsUpdated = true; }
+    };
+
+    SudokuApp.prototype.checkProgress.call(fakeApp);
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0], globalThis.tr('toast.checkMistakesFound', { count: 1 }));
+    assert.equal(playedConflict, true);
+    assert.equal(visualHighlightsUpdated, true);
+    assert.deepEqual(shaken, ['0,1']);
+    assert.deepEqual(selected, { row: 0, col: 1 });
+    assert.ok(fakeApp.checkedMistakes.has('0,1'));
+});
+
+test('index.html contains #btn-check-progress and shortcut V in keyboard-helper', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    assert.match(html, /id="btn-check-progress"/);
+    assert.match(html, /data-i18n="assist\.checkTitle"/);
+    assert.match(html, /data-i18n="keyboard\.check"/);
+    assert.match(html, /<kbd>V<\/kbd>/);
+});
+
+test('renderCellContent marks revealed cells with .revealed class when highlightRevealed is enabled', () => {
+    const SudokuApp = require('../app.js');
+    const classNames = [];
+    const fakeCell = {
+        className: '',
+        classList: {
+            add(name) { classNames.push(name); },
+            remove() {}
+        },
+        innerHTML: '',
+        dataset: {},
+        getAttribute() { return null; },
+        setAttribute() {}
+    };
+
+    const fakeApp = {
+        boardEl: { children: [fakeCell] },
+        currentBoard: [[5]],
+        initialBoard: [[0]],
+        cellColors: [[null]],
+        centerMarks: [[new Set()]],
+        cornerMarks: [[new Set()]],
+        revealedCells: new Set(['0,0']),
+        settings: { highlightRevealed: true },
+        updateCellLabel() {}
+    };
+
+    SudokuApp.prototype.renderCellContent.call(fakeApp, 0, 0);
+    assert.ok(classNames.includes('user-input'));
+    assert.ok(classNames.includes('revealed'));
+
+    // When setting is disabled, .revealed is not added
+    classNames.length = 0;
+    fakeApp.settings.highlightRevealed = false;
+    SudokuApp.prototype.renderCellContent.call(fakeApp, 0, 0);
+    assert.ok(classNames.includes('user-input'));
+    assert.equal(classNames.includes('revealed'), false);
+});
+
+test('index.html contains #set-highlight-revealed in settings modal', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    assert.match(html, /id="set-highlight-revealed"/);
+    assert.match(html, /data-i18n="settings\.revealedTitle"/);
+});
+
+test('index.html contains settings categories tablist and 4 distinct sections', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    // Tablist & tabs
+    assert.match(html, /class="settings-tabs"/);
+    assert.match(html, /data-tab="all"/);
+    assert.match(html, /data-tab="display"/);
+    assert.match(html, /data-tab="assists"/);
+    assert.match(html, /data-tab="pencils"/);
+    assert.match(html, /data-tab="sound"/);
+
+    // 4 sections
+    assert.match(html, /data-section="display"/);
+    assert.match(html, /data-section="assists"/);
+    assert.match(html, /data-section="pencils"/);
+    assert.match(html, /data-section="sound"/);
+
+    // Section headers i18n
+    assert.match(html, /data-i18n="settings\.sectionDisplay"/);
+    assert.match(html, /data-i18n="settings\.sectionAssists"/);
+    assert.match(html, /data-i18n="settings\.sectionPencils"/);
+    assert.match(html, /data-i18n="settings\.sectionSound"/);
+});
+
+test('setSettingsActiveTab updates active class, aria-selected and data-active-tab', () => {
+    const SudokuApp = require('../app.js');
+    const tabs = [
+        { dataset: { tab: 'all' }, classList: new Set(['active']), setAttribute(attr, val) { this[attr] = val; } },
+        { dataset: { tab: 'display' }, classList: new Set(), setAttribute(attr, val) { this[attr] = val; } },
+        { dataset: { tab: 'assists' }, classList: new Set(), setAttribute(attr, val) { this[attr] = val; } }
+    ];
+    // helper wrapper for classList
+    tabs.forEach(t => {
+        t.classList.toggle = function(cls, force) {
+            if (force) this.add(cls); else this.delete(cls);
+        };
+    });
+    const settingsList = { dataset: { activeTab: 'all' } };
+
+    const originalQuerySelectorAll = globalThis.document?.querySelectorAll;
+    const originalQuerySelector = globalThis.document?.querySelector;
+    if (!globalThis.document) globalThis.document = {};
+    globalThis.document.querySelectorAll = (sel) => {
+        if (sel === '.settings-tab') return tabs;
+        return [];
+    };
+    globalThis.document.querySelector = (sel) => {
+        if (sel === '.settings-list') return settingsList;
+        return null;
+    };
+
+    try {
+        const fakeApp = {};
+        SudokuApp.prototype.setSettingsActiveTab.call(fakeApp, 'display');
+
+        assert.equal(settingsList.dataset.activeTab, 'display');
+        assert.equal(tabs[0].classList.has('active'), false);
+        assert.equal(tabs[0]['aria-selected'], 'false');
+        assert.equal(tabs[1].classList.has('active'), true);
+        assert.equal(tabs[1]['aria-selected'], 'true');
+        assert.equal(tabs[2].classList.has('active'), false);
+        assert.equal(tabs[2]['aria-selected'], 'false');
+    } finally {
+        if (originalQuerySelectorAll) globalThis.document.querySelectorAll = originalQuerySelectorAll;
+        if (originalQuerySelector) globalThis.document.querySelector = originalQuerySelector;
+    }
+});

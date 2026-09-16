@@ -58,6 +58,10 @@ class SoundEffects {
         this.playTone(180, 0.08, 'sawtooth', 0.05);
         setTimeout(() => this.playTone(140, 0.12, 'sawtooth', 0.05), 70);
     }
+    playCheckSuccess() {
+        this.playTone(523.25, 0.1, 'sine', 0.08);
+        setTimeout(() => this.playTone(783.99, 0.18, 'sine', 0.09), 90);
+    }
     playVictory() {
         const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
@@ -95,7 +99,10 @@ class SudokuApp {
         this.hintStage = 0; // 0=inactive, 1=direction, 2=highlight, 3=applied
         this.hintsCount = 0;
         this.revealedCount = 0;
+        this.revealedCells = new Set();
         this.mistakesCount = 0;
+        // Coordinates 'r,c' of mismatches discovered during progress check
+        this.checkedMistakes = new Set();
         // 'r,c,d' candidates ruled out by applied elimination hints. The engine only sees the
         // board, so without this it would offer the same elimination again on the next hint.
         this.provenEliminations = new Set();
@@ -160,6 +167,7 @@ class SudokuApp {
             blockConflictingPencil: true,
             validateAgainstSolution: true,
             smartPencilGrid: true,
+            highlightRevealed: true,
             theme: 'dark',
             pencilSize: 'normal',
             activeAlgorithm: 'mrv'
@@ -293,6 +301,10 @@ class SudokuApp {
         document.getElementById('btn-deductive-hint').addEventListener('click', () => this.triggerDeductiveHint());
         this.btnHintNext.addEventListener('click', () => this.stepDeductiveHint());
         this.btnHintDismiss.addEventListener('click', () => this.dismissDeductiveHint());
+        const btnCheckProgress = document.getElementById('btn-check-progress');
+        if (btnCheckProgress) {
+            btnCheckProgress.addEventListener('click', () => this.checkProgress());
+        }
         document.getElementById('btn-reveal-cell').addEventListener('click', () => this.revealCell());
 
         // Pencil & Safety Tools
@@ -435,6 +447,17 @@ class SudokuApp {
             document.body.classList.toggle('classic-pencil-flow', !val);
             this.renderBoard();
         });
+        this.bindSettingCheckbox('set-highlight-revealed', 'highlightRevealed', () => {
+            this.renderBoard();
+        });
+
+        // Settings category tabs
+        const settingsTabs = document.querySelectorAll('.settings-tab');
+        settingsTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.setSettingsActiveTab(tab.dataset.tab || 'all');
+            });
+        });
 
         window.addEventListener('sudoku-language-change', () => this.refreshLocalizedUI());
     }
@@ -455,6 +478,19 @@ class SudokuApp {
             this.saveSettings();
             this.updateVisualHighlights();
         });
+    }
+
+    setSettingsActiveTab(targetTab = 'all') {
+        const settingsTabs = document.querySelectorAll('.settings-tab');
+        const settingsList = document.querySelector('.settings-list');
+        settingsTabs.forEach(t => {
+            const isActive = (t.dataset.tab || 'all') === targetTab;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        if (settingsList) {
+            settingsList.dataset.activeTab = targetTab;
+        }
     }
 
     setupKeyboard() {
@@ -588,6 +624,13 @@ class SudokuApp {
             if (e.key.toLowerCase() === 'h') {
                 e.preventDefault();
                 this.triggerDeductiveHint();
+                return;
+            }
+
+            // Check Progress (V)
+            if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'v') {
+                e.preventDefault();
+                this.checkProgress();
                 return;
             }
 
@@ -752,7 +795,9 @@ class SudokuApp {
         this.historyIndex = -1;
         this.hintsCount = 0;
         this.revealedCount = 0;
+        this.revealedCells = new Set();
         this.mistakesCount = 0;
+        this.checkedMistakes = new Set();
         this.provenEliminations = new Set();
         this.gameResultRecorded = false;
         this.dismissDeductiveHint();
@@ -927,6 +972,15 @@ class SudokuApp {
         setTimeout(() => cellEl.classList.remove('shake'), 400);
     }
 
+    pulseCell(row, col) {
+        const cellEl = this.boardEl?.children?.[row * 9 + col];
+        if (!cellEl) return;
+        cellEl.classList.remove('verified-pulse');
+        void cellEl.offsetWidth;
+        cellEl.classList.add('verified-pulse');
+        setTimeout(() => cellEl.classList.remove('verified-pulse'), 800);
+    }
+
     toggleCornerMark(row, col, num) {
         if (this.currentBoard[row][col] !== 0) return;
 
@@ -978,10 +1032,24 @@ class SudokuApp {
     /**
      * Set Cell Value with Safety Snapshot of Pruned Candidates
      */
-    setCellValue(row, col, num) {
+    setCellValue(row, col, num, options = {}) {
         const prevVal = this.currentBoard[row][col];
         const newVal = prevVal === num ? 0 : num;
         if (prevVal === newVal) return;
+
+        if (this.checkedMistakes) {
+            this.checkedMistakes.delete(`${row},${col}`);
+        }
+
+        const wasRevealedBefore = this.revealedCells ? this.revealedCells.has(`${row},${col}`) : false;
+        const becomesRevealed = !!(options && options.wasRevealed);
+        if (this.revealedCells) {
+            if (becomesRevealed) {
+                this.revealedCells.add(`${row},${col}`);
+            } else if (newVal === 0 || wasRevealedBefore) {
+                this.revealedCells.delete(`${row},${col}`);
+            }
+        }
 
         // Ensure solutionBoard is available for validation & grace checks
         if (!this.solutionBoard) {
@@ -1068,7 +1136,9 @@ class SudokuApp {
             cellPrevCorner,
             affectedCenter,
             affectedCorner,
-            oldSnapshot
+            oldSnapshot,
+            wasRevealed: becomesRevealed,
+            hadRevealedBefore: wasRevealedBefore
         });
 
         this.currentBoard[row][col] = newVal;
@@ -1194,6 +1264,15 @@ class SudokuApp {
 
         if (prevVal === 0 && !hadCenter && !hadCorner) return;
 
+        if (this.checkedMistakes) {
+            this.checkedMistakes.delete(`${row},${col}`);
+        }
+
+        const hadRevealedBefore = this.revealedCells ? this.revealedCells.has(`${row},${col}`) : false;
+        if (this.revealedCells) {
+            this.revealedCells.delete(`${row},${col}`);
+        }
+
         // Grace period check (2.5s)
         if (this.lastMistakeCell && this.lastMistakeCell.row === row && this.lastMistakeCell.col === col) {
             if (Date.now() - this.lastMistakeTimestamp <= 2500) {
@@ -1224,7 +1303,8 @@ class SudokuApp {
             prevVal,
             prevCenter: new Set(this.centerMarks[row][col]),
             prevCorner: new Set(this.cornerMarks[row][col]),
-            oldSnapshot
+            oldSnapshot,
+            hadRevealedBefore
         });
 
         this.currentBoard[row][col] = 0;
@@ -1567,6 +1647,80 @@ class SudokuApp {
     }
 
     /**
+     * Check whether numbers entered so far match the final solution
+     * without revealing answers or filling in cells.
+     */
+    checkProgress() {
+        if (this.isExecutingCascade || this.isPaused) return;
+
+        if (!this.solutionIsUnique) {
+            this.showToast(tr('toast.checkNeedsUnique'));
+            return;
+        }
+
+        if (!this.solutionBoard) {
+            this.solutionBoard = SudokuEngine.solve(this.initialBoard);
+        }
+        if (!this.solutionBoard) {
+            this.showToast(tr('toast.noSolution'));
+            return;
+        }
+
+        const userEntries = [];
+        const mistakes = [];
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (this.initialBoard[r][c] === 0 && this.currentBoard[r][c] !== 0) {
+                    userEntries.push({ row: r, col: c, value: this.currentBoard[r][c] });
+                    if (this.currentBoard[r][c] !== this.solutionBoard[r][c]) {
+                        mistakes.push({ row: r, col: c });
+                    }
+                }
+            }
+        }
+
+        if (userEntries.length === 0) {
+            this.showToast(tr('toast.checkNoEntries'));
+            return;
+        }
+
+        if (mistakes.length === 0) {
+            if (this.checkedMistakes) this.checkedMistakes.clear();
+            if (this.audio?.playCheckSuccess) this.audio.playCheckSuccess();
+            this.showToast(tr('toast.checkAllCorrect', { count: userEntries.length }));
+            userEntries.forEach(entry => {
+                this.pulseCell?.(entry.row, entry.col);
+            });
+            this.updateVisualHighlights?.();
+
+            let allFilled = true;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (this.currentBoard[r][c] === 0) {
+                        allFilled = false;
+                        break;
+                    }
+                }
+                if (!allFilled) break;
+            }
+            if (allFilled) {
+                this.checkGameCompletion?.();
+            }
+        } else {
+            if (this.checkedMistakes) {
+                this.checkedMistakes.clear();
+                mistakes.forEach(m => this.checkedMistakes.add(`${m.row},${m.col}`));
+            }
+            if (this.audio?.playConflict) this.audio.playConflict();
+            this.showToast(tr('toast.checkMistakesFound', { count: mistakes.length }));
+            mistakes.forEach(m => this.shakeCell?.(m.row, m.col));
+            if (this.selectCell) this.selectCell(mistakes[0].row, mistakes[0].col);
+            this.updateVisualHighlights?.();
+        }
+    }
+
+    /**
      * Separate "Reveal Cell" functionality
      */
     revealCell() {
@@ -1593,7 +1747,7 @@ class SudokuApp {
 
         this.revealedCount++;
         this.selectCell(reveal.row, reveal.col);
-        this.setCellValue(reveal.row, reveal.col, reveal.value);
+        this.setCellValue(reveal.row, reveal.col, reveal.value, { wasRevealed: true });
         this.showToast(tr('toast.revealed', {
             row: reveal.row + 1,
             col: reveal.col + 1,
@@ -1621,6 +1775,7 @@ class SudokuApp {
         this.currentBoard = this.solutionBoard.map(r => [...r]);
         this.centerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
         this.cornerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
+        if (this.checkedMistakes) this.checkedMistakes.clear();
 
         this.pushAction({
             type: 'full_solve',
@@ -1650,6 +1805,10 @@ class SudokuApp {
             return;
         }
 
+        if (this.checkedMistakes) {
+            this.checkedMistakes.clear();
+        }
+
         const action = this.history[this.historyIndex];
         this.historyIndex--;
 
@@ -1667,6 +1826,13 @@ class SudokuApp {
             }
 
             this.currentBoard[action.row][action.col] = action.prevVal;
+            if (this.revealedCells) {
+                if (action.hadRevealedBefore) {
+                    this.revealedCells.add(`${action.row},${action.col}`);
+                } else {
+                    this.revealedCells.delete(`${action.row},${action.col}`);
+                }
+            }
             this.centerMarks[action.row][action.col] = new Set(action.cellPrevCenter);
             this.cornerMarks[action.row][action.col] = new Set(action.cellPrevCorner);
             this.renderCellContent(action.row, action.col);
@@ -1711,6 +1877,9 @@ class SudokuApp {
             this.renderCellContent(action.row, action.col);
         } else if (action.type === 'erase') {
             this.currentBoard[action.row][action.col] = action.prevVal;
+            if (this.revealedCells && action.hadRevealedBefore) {
+                this.revealedCells.add(`${action.row},${action.col}`);
+            }
             this.centerMarks[action.row][action.col] = new Set(action.prevCenter);
             this.cornerMarks[action.row][action.col] = new Set(action.prevCorner);
             this.renderCellContent(action.row, action.col);
@@ -1768,6 +1937,10 @@ class SudokuApp {
             return;
         }
 
+        if (this.checkedMistakes) {
+            this.checkedMistakes.clear();
+        }
+
         this.historyIndex++;
         const action = this.history[this.historyIndex];
 
@@ -1784,6 +1957,13 @@ class SudokuApp {
             }
 
             this.currentBoard[action.row][action.col] = action.newVal;
+            if (this.revealedCells) {
+                if (action.wasRevealed) {
+                    this.revealedCells.add(`${action.row},${action.col}`);
+                } else {
+                    this.revealedCells.delete(`${action.row},${action.col}`);
+                }
+            }
             this.centerMarks[action.row][action.col].clear();
             this.cornerMarks[action.row][action.col].clear();
             if (action.affectedCenter) {
@@ -1833,6 +2013,9 @@ class SudokuApp {
             }
 
             this.currentBoard[action.row][action.col] = 0;
+            if (this.revealedCells) {
+                this.revealedCells.delete(`${action.row},${action.col}`);
+            }
             this.centerMarks[action.row][action.col].clear();
             this.cornerMarks[action.row][action.col].clear();
             delete this.prunedSnapshots[`${action.row},${action.col}`];
@@ -1905,6 +2088,9 @@ class SudokuApp {
             cell.classList.add('given');
         } else if (val !== 0) {
             cell.classList.add('user-input');
+            if (this.settings.highlightRevealed && this.revealedCells && this.revealedCells.has(`${r},${c}`)) {
+                cell.classList.add('revealed');
+            }
         }
 
         if (val !== 0) {
@@ -2024,6 +2210,10 @@ class SudokuApp {
                     }
                 }
             }
+        }
+
+        if (this.checkedMistakes && this.checkedMistakes.size > 0) {
+            this.checkedMistakes.forEach(coord => conflicts.add(coord));
         }
 
         const boxR = selected ? Math.floor(selected.row / 3) * 3 : -1;
@@ -3073,7 +3263,9 @@ class SudokuApp {
         this.historyIndex = -1;
         this.hintsCount = 0;
         this.revealedCount = 0;
+        this.revealedCells = new Set();
         this.mistakesCount = 0;
+        this.checkedMistakes = new Set();
         this.provenEliminations = new Set();
         this.gameResultRecorded = false;
         this.dismissDeductiveHint();
@@ -3126,6 +3318,7 @@ class SudokuApp {
                     const el = document.getElementById(id);
                     if (el) el.checked = !!this.settings[key];
                 });
+                this.setSettingsActiveTab('all');
             } else if (modalId === 'modal-stats') {
                 this.renderStats();
             } else if (modalId === 'modal-algo') {
@@ -3617,6 +3810,7 @@ class SudokuApp {
                 timerSeconds: this.timerSeconds,
                 hintsCount: this.hintsCount,
                 revealedCount: this.revealedCount,
+                revealedCells: Array.from(this.revealedCells || []),
                 mistakesCount: this.mistakesCount,
                 isCustomGame: this.isCustomGame,
                 solutionIsUnique: this.solutionIsUnique,
@@ -3653,7 +3847,9 @@ class SudokuApp {
             this.timerSeconds = data.timerSeconds || 0;
             this.hintsCount = data.hintsCount || 0;
             this.revealedCount = data.revealedCount || 0;
+            this.revealedCells = new Set(Array.isArray(data.revealedCells) ? data.revealedCells : []);
             this.mistakesCount = data.mistakesCount || 0;
+            this.checkedMistakes = new Set();
             this.isCustomGame = !!data.isCustomGame;
             if (typeof data.solutionIsUnique === 'boolean') {
                 this.solutionIsUnique = data.solutionIsUnique;
