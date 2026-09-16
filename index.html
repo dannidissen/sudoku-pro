@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
     <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
-    <link rel="stylesheet" href="style.css?v=20260916f">
+    <link rel="stylesheet" href="style.css?v=20260916g">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -392,6 +392,17 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
+                        <span class="setting-title" data-i18n="settings.pencilBlockTitle">Block conflicting pencil marks</span>
+                        <span class="setting-desc" data-i18n="settings.pencilBlockDesc">Refuses a pencil mark whose digit already appears in the same row, column or box. Existing marks can still be erased.</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="set-block-conflicting-pencil" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
                         <span class="setting-title" data-i18n="settings.gridTitle">Smart 3×3 candidate layout</span>
                         <span class="setting-desc" data-i18n="settings.gridDesc">Keeps each pencil digit in a fixed 3×3 position for quick visual scanning</span>
                     </div>
@@ -554,9 +565,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916f"></script>
-    <script src="puzzles.js?v=20260916f"></script>
-    <script src="solver.js?v=20260916f"></script>
-    <script src="app.js?v=20260916f"></script>
+    <script src="i18n.js?v=20260916g"></script>
+    <script src="puzzles.js?v=20260916g"></script>
+    <script src="solver.js?v=20260916g"></script>
+    <script src="app.js?v=20260916g"></script>
 </body>
 </html>

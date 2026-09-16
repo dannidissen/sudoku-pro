@@ -54,6 +54,8 @@ When a final digit is placed, matching candidates are pruned from neighboring ce
 
 The optional **Keep digit highlight on empty cells** setting controls whether navigation from a filled cell to an empty or pencil-mark-only cell preserves the previous digit highlight.
 
+The **Block conflicting pencil marks** setting (on by default) refuses a corner or center mark whose digit already appears in the same row, column, or box, with the same shake-and-sound feedback as a blocked numpad digit. In a pencil mode the keypad dims those digits too. Marks that are already written stay clickable and erasable, so candidates that turn illegal after a later placement can still be cleaned up.
+
 ### Cell coloring
 
 Four pastel colors help track chains, alternating inferences, and other advanced deductions. Colors work in both themes and participate in undo/redo history.

@@ -126,6 +126,9 @@ class SudokuApp {
         // Audio
         this.audio = new SoundEffects();
 
+        // Settings switch id -> settings key, filled in by bindSettingCheckbox
+        this.settingCheckboxKeys = new Map();
+
         // Settings
         this.settings = {
             enableSnyder: false,
@@ -137,6 +140,7 @@ class SudokuApp {
             autoRemovePencil: true,
             highlightConflicts: true,
             blockConflicts: true,
+            blockConflictingPencil: true,
             validateAgainstSolution: true,
             smartPencilGrid: true,
             theme: 'dark',
@@ -372,9 +376,8 @@ class SudokuApp {
         this.bindSettingCheckbox('set-auto-remove-pencil', 'autoRemovePencil');
         this.bindSettingCheckbox('set-highlight-conflicts', 'highlightConflicts');
         this.bindSettingCheckbox('set-validate-solution', 'validateAgainstSolution');
-        this.bindSettingCheckbox('set-block-conflicts', 'blockConflicts', () => {
-            this.updateSmartNumpad();
-        });
+        this.bindSettingCheckbox('set-block-conflicts', 'blockConflicts');
+        this.bindSettingCheckbox('set-block-conflicting-pencil', 'blockConflictingPencil');
         this.bindSettingCheckbox('set-smart-pencil-grid', 'smartPencilGrid', (val) => {
             document.body.classList.toggle('classic-pencil-flow', !val);
             this.renderBoard();
@@ -383,9 +386,15 @@ class SudokuApp {
         window.addEventListener('sudoku-language-change', () => this.refreshLocalizedUI());
     }
 
+    /**
+     * Binds one settings switch to a settings key. The binding is also recorded so the
+     * settings modal can re-sync every switch from a single source of truth instead of
+     * repeating the id -> key mapping (which used to drift whenever a setting was added).
+     */
     bindSettingCheckbox(elementId, settingKey, callback = null) {
         const checkbox = document.getElementById(elementId);
         if (!checkbox) return;
+        this.settingCheckboxKeys.set(elementId, settingKey);
         checkbox.checked = this.settings[settingKey];
         checkbox.addEventListener('change', (e) => {
             this.settings[settingKey] = e.target.checked;
@@ -765,11 +774,7 @@ class SudokuApp {
                 const legal = SudokuEngine.getCandidates(this.currentBoard, row, col);
                 if (!legal.includes(num)) {
                     this.audio.playConflict();
-                    const cellEl = this.boardEl.children[row * 9 + col];
-                    if (cellEl) {
-                        cellEl.classList.add('shake');
-                        setTimeout(() => cellEl.classList.remove('shake'), 400);
-                    }
+                    this.shakeCell(row, col);
                     return;
                 }
             }
@@ -777,11 +782,42 @@ class SudokuApp {
         }
     }
 
+    /**
+     * A pencil mark for a digit that already sits in the same row, column or box can never
+     * turn into a real placement, so writing one is always a slip. When the guard is on we
+     * refuse it with the same feedback a blocked numpad digit gets.
+     *
+     * Only *adding* is guarded: a mark can become illegal after a later placement (for
+     * example with automatic candidate removal switched off), and those leftovers must stay
+     * erasable. Cells that already hold a digit are left to the callers' own early return.
+     */
+    isPencilMarkBlocked(row, col, num) {
+        if (!this.settings.blockConflictingPencil) return false;
+        if (this.currentBoard[row][col] !== 0) return false;
+        return !SudokuEngine.getCandidates(this.currentBoard, row, col).includes(num);
+    }
+
+    rejectConflictingPencilMark(row, col, num) {
+        if (!this.isPencilMarkBlocked(row, col, num)) return false;
+        this.audio.playConflict();
+        this.shakeCell(row, col);
+        this.showToast(tr('toast.pencilConflict', { num }));
+        return true;
+    }
+
+    shakeCell(row, col) {
+        const cellEl = this.boardEl.children[row * 9 + col];
+        if (!cellEl) return;
+        cellEl.classList.add('shake');
+        setTimeout(() => cellEl.classList.remove('shake'), 400);
+    }
+
     toggleCornerMark(row, col, num) {
         if (this.currentBoard[row][col] !== 0) return;
 
         const set = this.cornerMarks[row][col];
         const hadNum = set.has(num);
+        if (!hadNum && this.rejectConflictingPencilMark(row, col, num)) return;
 
         this.pushAction({
             type: 'corner_toggle',
@@ -805,6 +841,7 @@ class SudokuApp {
 
         const set = this.centerMarks[row][col];
         const hadNum = set.has(num);
+        if (!hadNum && this.rejectConflictingPencilMark(row, col, num)) return;
 
         this.pushAction({
             type: 'center_toggle',
@@ -930,11 +967,7 @@ class SudokuApp {
                 this.lastMistakeTimestamp = Date.now();
                 this.lastMistakeCell = { row, col, val: newVal };
                 this.audio.playConflict();
-                const cellEl = this.boardEl.children[row * 9 + col];
-                if (cellEl) {
-                    cellEl.classList.add('shake');
-                    setTimeout(() => cellEl.classList.remove('shake'), 400);
-                }
+                this.shakeCell(row, col);
                 if (isSolutionMismatch) {
                     this.showToast(tr('toast.wrongNumber'));
                 }
@@ -1798,6 +1831,7 @@ class SudokuApp {
             }
         }
         const isDigitCompleted = activeNumCount >= 9;
+        const markHighlightNum = this.settings.highlightSame && !isDigitCompleted ? activeNum : 0;
 
         // Cross-hatching coverage
         const coveredRows = new Set();
@@ -1900,22 +1934,12 @@ class SudokuApp {
                     cell.classList.add('highlight-same');
                 }
 
-                // Highlight matching center marks
-                const centerMarksEls = cell.querySelectorAll('.center-mark');
-                centerMarksEls.forEach(pn => {
+                // Highlight matching pencil marks. This follows the "highlight matching
+                // digits" setting too - it promises to cover pencil marks, so switching it
+                // off has to silence them as well, not just the filled cells above.
+                cell.querySelectorAll('.center-mark, .corner-mark').forEach(pn => {
                     const num = parseInt(pn.dataset.num, 10);
-                    if (activeNum > 0 && !isDigitCompleted && num === activeNum) {
-                        pn.classList.add('highlight');
-                    } else {
-                        pn.classList.remove('highlight');
-                    }
-                });
-
-                // Highlight matching corner marks
-                const cornerMarksEls = cell.querySelectorAll('.corner-mark');
-                cornerMarksEls.forEach(pn => {
-                    const num = parseInt(pn.dataset.num, 10);
-                    if (activeNum > 0 && !isDigitCompleted && num === activeNum) {
+                    if (markHighlightNum > 0 && num === markHighlightNum) {
                         pn.classList.add('highlight');
                     } else {
                         pn.classList.remove('highlight');
@@ -1929,14 +1953,23 @@ class SudokuApp {
 
     updateSmartNumpad() {
         if (!this.numpadEl) return;
-        let illegalDigits = new Set();
-        if (this.inputMode === 'normal' && this.settings.blockConflicts && this.selectedCell) {
+        const illegalDigits = new Set();
+        const pencilSet = this.inputMode === 'corner' ? this.cornerMarks
+            : this.inputMode === 'center' ? this.centerMarks
+            : null;
+        const guardEnabled = pencilSet
+            ? this.settings.blockConflictingPencil
+            : this.settings.blockConflicts;
+
+        if (guardEnabled && this.selectedCell) {
             const { row, col } = this.selectedCell;
             if (this.currentBoard[row][col] === 0) {
-                const legal = SudokuEngine.getCandidates(this.currentBoard, row, col);
-                const legalSet = new Set(legal);
+                const legal = new Set(SudokuEngine.getCandidates(this.currentBoard, row, col));
+                // A mark already written in this cell stays clickable: marks can turn illegal
+                // after a later placement, and the numpad is how they get erased again.
+                const written = pencilSet ? pencilSet[row][col] : null;
                 for (let d = 1; d <= 9; d++) {
-                    if (!legalSet.has(d)) illegalDigits.add(d);
+                    if (!legal.has(d) && !(written && written.has(d))) illegalDigits.add(d);
                 }
             }
         }
@@ -2261,20 +2294,7 @@ class SudokuApp {
         const modal = document.getElementById(modalId);
         if (modal) {
             if (modalId === 'modal-settings') {
-                const map = {
-                    'set-enable-snyder': 'enableSnyder',
-                    'set-sound-enabled': 'soundEnabled',
-                    'set-highlight-same': 'highlightSame',
-                    'set-preserve-digit-highlight': 'preserveDigitHighlightOnEmpty',
-                    'set-highlight-area': 'highlightArea',
-                    'set-highlight-digit-lines': 'highlightDigitLines',
-                    'set-auto-remove-pencil': 'autoRemovePencil',
-                    'set-highlight-conflicts': 'highlightConflicts',
-                    'set-validate-solution': 'validateAgainstSolution',
-                    'set-block-conflicts': 'blockConflicts',
-                    'set-smart-pencil-grid': 'smartPencilGrid'
-                };
-                Object.entries(map).forEach(([id, key]) => {
+                this.settingCheckboxKeys.forEach((key, id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = !!this.settings[key];
                 });
