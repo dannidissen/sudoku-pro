@@ -1212,6 +1212,14 @@ kbd {
     transition: opacity 0.2s ease;
 }
 
+.modal-backdrop[hidden] {
+    display: none !important;
+}
+
+body.modal-open {
+    overflow: hidden !important;
+}
+
 .modal-backdrop.open {
     opacity: 1;
     pointer-events: auto;
@@ -1224,7 +1232,10 @@ kbd {
     border: 1px solid var(--card-border);
     width: 100%;
     max-width: 480px;
+    max-height: calc(100dvh - 32px);
     padding: 22px;
+    box-sizing: border-box;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -1405,15 +1416,18 @@ input:checked + .slider:before {
     justify-content: center;
     align-items: center;
     width: 100%;
+    min-width: 0;
 }
 
 .custom-board {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     grid-template-rows: repeat(9, 1fr);
-    width: min(350px, calc(100vw - 64px));
-    height: min(350px, calc(100vw - 64px));
+    width: min(350px, 100%);
+    height: auto;
     aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+    flex: 0 1 350px;
     background: var(--cell-border);
     border: 3px solid var(--box-border);
     border-radius: var(--radius-md);
@@ -1470,7 +1484,9 @@ input:checked + .slider:before {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     gap: 4px;
-    width: min(350px, calc(100vw - 64px));
+    width: min(350px, 100%);
+    min-width: 0;
+    box-sizing: border-box;
     margin: 0 auto;
 }
 
@@ -2030,6 +2046,23 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         min-width: 50px;
         max-width: 54px;
         font-size: 0.64rem;
+    }
+
+    .custom-modal-card {
+        width: calc(100vw - 24px);
+        padding: 14px;
+        gap: 10px;
+        overflow-x: hidden;
+    }
+
+    .custom-numpad {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .custom-num-btn {
+        min-height: 38px;
+        aspect-ratio: auto;
     }
 }
 

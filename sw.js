@@ -1,7 +1,7 @@
 // Offline support for Sudoku Pro.
 // Network-first: online players always get the latest deploy, and every successful
 // response refreshes the cache that is used when the network is unavailable.
-const CACHE_NAME = 'sudoku-pro-v1';
+const CACHE_NAME = 'sudoku-pro-v2';
 const APP_SHELL = [
     './',
     'index.html',
@@ -45,10 +45,15 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
         fetch(request)
-            .then(response => {
+            .then(async response => {
                 if (response.ok) {
                     const copy = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(cacheKey(request), copy));
+                    try {
+                        const cache = await caches.open(CACHE_NAME);
+                        await cache.put(cacheKey(request), copy);
+                    } catch (error) {
+                        console.warn('Sudoku Pro cache update failed', error);
+                    }
                 }
                 return response;
             })

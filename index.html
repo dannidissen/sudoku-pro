@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260916j">
+    <link rel="stylesheet" href="style.css?v=20260916k">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -185,6 +185,7 @@
                 <div class="diff-header">
                     <label for="difficulty-select" class="panel-label" data-i18n="difficulty.label">Difficulty:</label>
                     <select id="difficulty-select" class="diff-select">
+                        <option value="custom" disabled hidden data-i18n="meta.custom">Custom</option>
                         <option value="easy" selected data-i18n="difficulty.easyOption">🟢 Easy (rating ~1.2)</option>
                         <option value="medium" data-i18n="difficulty.mediumOption">🟡 Medium (rating ~2.3)</option>
                         <option value="hard" data-i18n="difficulty.hardOption">🟠 Hard (rating ~3.5)</option>
@@ -295,10 +296,10 @@
     <!-- Modals -->
 
     <!-- Settings Modal -->
-    <div id="modal-settings" class="modal-backdrop">
-        <div class="modal-card">
+    <div id="modal-settings" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title" tabindex="-1">
             <div class="modal-header">
-                <h2 data-i18n="settings.title">Interface and display settings</h2>
+                <h2 id="modal-settings-title" data-i18n="settings.title">Interface and display settings</h2>
                 <button class="modal-close" data-close="modal-settings" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="settings-list">
@@ -439,12 +440,12 @@
     </div>
 
     <!-- Custom Puzzle Modal -->
-    <div id="modal-custom" class="modal-backdrop">
-        <div class="modal-card custom-modal-card">
+    <div id="modal-custom" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card custom-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-custom-title" tabindex="-1">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 1.25rem;">✏️</span>
-                    <h2 data-i18n="custom.title">Load a custom Sudoku</h2>
+                    <h2 id="modal-custom-title" data-i18n="custom.title">Load a custom Sudoku</h2>
                 </div>
                 <button class="modal-close" data-close="modal-custom" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
@@ -514,10 +515,10 @@
     </div>
 
     <!-- Credits / About Modal -->
-    <div id="modal-credits" class="modal-backdrop">
-        <div class="modal-card">
+    <div id="modal-credits" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-credits-title" tabindex="-1">
             <div class="modal-header">
-                <h2 data-i18n="credits.title">Puzzle libraries and credits</h2>
+                <h2 id="modal-credits-title" data-i18n="credits.title">Puzzle libraries and credits</h2>
                 <button class="modal-close" data-close="modal-credits" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="credits-body">
@@ -536,10 +537,10 @@
     </div>
 
     <!-- Victory Modal with Advanced Stats and Social Share -->
-    <div id="modal-victory" class="modal-backdrop">
-        <div class="modal-card victory-card">
+    <div id="modal-victory" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card victory-card" role="dialog" aria-modal="true" aria-labelledby="modal-victory-title" tabindex="-1">
             <div class="victory-icon">🏆</div>
-            <h2 data-i18n="victory.title">Amazing! You solved the puzzle!</h2>
+            <h2 id="modal-victory-title" data-i18n="victory.title">Amazing! You solved the puzzle!</h2>
             <p style="color: var(--text-secondary); font-size: 0.95rem;" data-i18n="victory.subtitle">A complete, valid solution with no remaining errors.</p>
             <p id="victory-record" class="victory-record" hidden></p>
 
@@ -570,10 +571,10 @@
     </div>
 
     <!-- Statistics Modal -->
-    <div id="modal-stats" class="modal-backdrop">
-        <div class="modal-card">
+    <div id="modal-stats" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-stats-title" tabindex="-1">
             <div class="modal-header">
-                <h2 data-i18n="stats.title">Statistics</h2>
+                <h2 id="modal-stats-title" data-i18n="stats.title">Statistics</h2>
                 <button class="modal-close" data-close="modal-stats" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="victory-stats stats-summary">
@@ -609,12 +610,12 @@
     </div>
 
     <!-- Algorithm Lab & Engine Selector Modal -->
-    <div id="modal-algo" class="modal-backdrop">
-        <div class="modal-card algo-modal-card">
+    <div id="modal-algo" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card algo-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-algo-title" tabindex="-1">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 1.3rem;">⚡</span>
-                    <h2 data-i18n="algo.title">Algorithm Lab and solver selection</h2>
+                    <h2 id="modal-algo-title" data-i18n="algo.title">Algorithm Lab and solver selection</h2>
                 </div>
                 <button class="modal-close" data-close="modal-algo" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
@@ -660,7 +661,7 @@
                             <span class="algo-card-title">🧠 Deductive Logic Engine</span>
                             <span class="algo-badge badge-logic" data-i18n="algo.deductiveBadge">Human logic without guessing</span>
                         </div>
-                        <p class="algo-card-desc" data-i18n="algo.deductiveDescription">Applies logical placements step by step without guessing. If a technique that does not immediately place a digit is required, the engine stops and reports it instead of switching to brute force.</p>
+                        <p class="algo-card-desc" data-i18n="algo.deductiveDescription">Applies logical placements and candidate eliminations step by step without guessing, and reports when the available techniques can no longer advance the board.</p>
                     </div>
                 </label>
             </div>
@@ -686,9 +687,9 @@
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916j"></script>
-    <script src="puzzles.js?v=20260916j"></script>
-    <script src="solver.js?v=20260916j"></script>
-    <script src="app.js?v=20260916j"></script>
+    <script src="i18n.js?v=20260916k"></script>
+    <script src="puzzles.js?v=20260916k"></script>
+    <script src="solver.js?v=20260916k"></script>
+    <script src="app.js?v=20260916k"></script>
 </body>
 </html>

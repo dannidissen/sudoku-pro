@@ -72,6 +72,7 @@ class SudokuApp {
         this.initialBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.currentBoard = Array(9).fill(null).map(() => Array(9).fill(0));
         this.solutionBoard = null;
+        this.solutionIsUnique = true;
 
         // Snyder Notation: Corner Marks vs Center Marks
         this.cornerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
@@ -111,6 +112,9 @@ class SudokuApp {
         this.timerSeconds = 0;
         this.timerInterval = null;
         this.isPaused = false;
+
+        // Focus is restored to the opener when a modal closes.
+        this.modalReturnFocus = new Map();
 
         // Metadata
         this.currentDifficulty = 'easy';
@@ -251,13 +255,14 @@ class SudokuApp {
             if (this.hasGameProgress() && !confirm(tr('confirm.newGame'))) {
                 return;
             }
-            this.startNewGame(this.diffSelect.value);
+            const difficulty = this.diffSelect.value === 'custom' ? this.currentDifficulty : this.diffSelect.value;
+            this.startNewGame(difficulty);
         });
 
         this.diffSelect.addEventListener('change', (e) => {
             const newDifficulty = e.target.value;
             if (this.hasGameProgress() && !confirm(tr('confirm.difficulty'))) {
-                e.target.value = this.currentDifficulty;
+                e.target.value = this.isCustomGame ? 'custom' : this.currentDifficulty;
                 return;
             }
             this.startNewGame(newDifficulty);
@@ -274,7 +279,9 @@ class SudokuApp {
             if (document.hidden && this.timerInterval && !this.isPaused && !this.isExecutingCascade) {
                 this.togglePause(true);
             }
+            if (document.hidden) this.saveGameState();
         });
+        window.addEventListener('pagehide', () => this.saveGameState());
 
         // Deductive Hints & Reveal Cell (Separated!)
         document.getElementById('btn-deductive-hint').addEventListener('click', () => this.triggerDeductiveHint());
@@ -435,7 +442,6 @@ class SudokuApp {
     setupKeyboard() {
         window.addEventListener('keydown', (e) => {
             if (this.isExecutingCascade) return;
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             // Escape
             if (e.key === 'Escape') {
@@ -451,9 +457,23 @@ class SudokuApp {
                 return;
             }
 
+            const openModal = document.querySelector('.modal-backdrop.open');
+            if (openModal && e.key === 'Tab') {
+                this.trapModalFocus(openModal, e);
+                return;
+            }
+
+            const target = e.target;
+            const isEditable = target instanceof Element && (
+                target.matches('input, textarea, select') || target.isContentEditable
+            );
+            if (isEditable) return;
+
             // Route inputs to custom board editor when custom modal is open
             if (document.getElementById('modal-custom')?.classList.contains('open')) {
-                this.handleCustomKeyboard(e);
+                if (document.getElementById('custom-board')?.contains(document.activeElement)) {
+                    this.handleCustomKeyboard(e);
+                }
                 return;
             }
 
@@ -462,11 +482,19 @@ class SudokuApp {
                 return;
             }
 
+            // Let ordinary controls keep their native keyboard behavior. Game shortcuts are
+            // active only from the board or a non-interactive page surface.
+            const isNonBoardControl = target instanceof Element
+                && target.closest('button, a, select, summary, [role="button"], [role="radio"]')
+                && !target.closest('#sudoku-board');
+            if (isNonBoardControl) return;
+
             // Space / Tab: Fast toggle (Normal <-> Center) when Snyder disabled; 3-way toggle when enabled.
             // Tab only switches modes while focus is on the board, so keyboard users can still Tab
             // between buttons; Shift+Tab always moves focus out of the board.
             const tabSwitchesMode = e.key === 'Tab' && !e.shiftKey && this.boardEl.contains(document.activeElement);
-            if (e.key === ' ' || tabSwitchesMode) {
+            const spaceSwitchesMode = e.key === ' ' && this.boardEl.contains(document.activeElement);
+            if (spaceSwitchesMode || tabSwitchesMode) {
                 e.preventDefault();
                 if (this.settings.enableSnyder) {
                     const modes = ['normal', 'corner', 'center'];
@@ -634,18 +662,20 @@ class SudokuApp {
         this.saveGameState();
     }
 
-    // True if the player has filled in any non-given cell on the current board.
-    // Used to decide whether starting a new game / switching difficulty needs confirmation.
+    // True when replacing the board would discard player-created work.
     hasGameProgress() {
         if (!this.initialBoard || !this.currentBoard) return false;
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
-                if (this.initialBoard[r][c] === 0 && this.currentBoard[r][c] !== 0) {
+                if (this.initialBoard[r][c] !== this.currentBoard[r][c]
+                    || this.centerMarks[r][c].size > 0
+                    || this.cornerMarks[r][c].size > 0
+                    || this.cellColors[r][c] !== null) {
                     return true;
                 }
             }
         }
-        return false;
+        return this.provenEliminations.size > 0;
     }
 
     startNewGame(difficulty = 'easy', specificPuzzle = null) {
@@ -658,6 +688,7 @@ class SudokuApp {
         this.currentDifficulty = difficulty;
         this.diffSelect.value = difficulty;
         this.isCustomGame = false;
+        this.solutionIsUnique = true;
 
         let puzzleObj = specificPuzzle;
         if (!puzzleObj) {
@@ -729,9 +760,14 @@ class SudokuApp {
     }
 
     getDifficultyLabel(diff) {
+        if (diff === 'custom') return tr('meta.custom');
         const key = `difficulty.${diff}`;
         const translated = tr(key);
         return translated === key ? diff : translated;
+    }
+
+    getCurrentGameDifficultyLabel() {
+        return this.isCustomGame ? tr('meta.custom') : this.getDifficultyLabel(this.currentDifficulty);
     }
 
     updatePuzzleMetaDisplay() {
@@ -756,7 +792,7 @@ class SudokuApp {
             this.runAlgorithmBenchmark();
         }
         const victoryDifficulty = document.getElementById('victory-difficulty');
-        if (victoryDifficulty) victoryDifficulty.textContent = this.getDifficultyLabel(this.currentDifficulty);
+        if (victoryDifficulty) victoryDifficulty.textContent = this.getCurrentGameDifficultyLabel();
         this.renderVictoryRecord();
         if (document.getElementById('modal-stats')?.classList.contains('open')) {
             this.renderStats();
@@ -933,7 +969,10 @@ class SudokuApp {
         // Direct Overwrite Grace Period check (2.5s)
         if (this.lastMistakeCell && this.lastMistakeCell.row === row && this.lastMistakeCell.col === col) {
             if (Date.now() - this.lastMistakeTimestamp <= 2500) {
-                if (this.solutionBoard && newVal === this.solutionBoard[row][col]) {
+                const corrected = this.solutionIsUnique
+                    ? this.solutionBoard && newVal === this.solutionBoard[row][col]
+                    : newVal !== 0 && SudokuEngine.isValid(this.currentBoard, row, col, newVal);
+                if (corrected) {
                     if (this.mistakesCount > 0) {
                         this.mistakesCount--;
                         this.showToast(tr('toast.mistakeCorrected'));
@@ -1017,7 +1056,10 @@ class SudokuApp {
         if (newVal !== 0) {
             const conflicts = SudokuEngine.findConflicts(this.currentBoard);
             const hasRuleConflict = conflicts.has(`${row},${col}`);
-            const isSolutionMismatch = this.settings.validateAgainstSolution && this.solutionBoard && (newVal !== this.solutionBoard[row][col]);
+            const isSolutionMismatch = this.solutionIsUnique
+                && this.settings.validateAgainstSolution
+                && this.solutionBoard
+                && (newVal !== this.solutionBoard[row][col]);
 
             if (hasRuleConflict || isSolutionMismatch) {
                 this.mistakesCount++;
@@ -1368,7 +1410,7 @@ class SudokuApp {
         // Refuse to hint on a board that already contains a wrong entry:
         // the hint engine reasons from currentBoard, so a mistake can make it
         // "confidently" suggest an incorrect placement.
-        if (this.solutionBoard) {
+        if (this.solutionIsUnique && this.solutionBoard) {
             let mistakeFound = false;
             for (let r = 0; r < 9 && !mistakeFound; r++) {
                 for (let c = 0; c < 9; c++) {
@@ -1507,6 +1549,11 @@ class SudokuApp {
      */
     revealCell() {
         if (this.isExecutingCascade || this.isPaused) return;
+
+        if (!this.solutionIsUnique) {
+            this.showToast(tr('toast.revealNeedsUnique'));
+            return;
+        }
 
         if (!this.solutionBoard) {
             this.solutionBoard = SudokuEngine.solve(this.initialBoard);
@@ -1946,7 +1993,7 @@ class SudokuApp {
             ? SudokuEngine.findConflicts(this.currentBoard)
             : new Set();
 
-        if (this.settings.validateAgainstSolution && this.solutionBoard) {
+        if (this.solutionIsUnique && this.settings.validateAgainstSolution && this.solutionBoard) {
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     const val = this.currentBoard[r][c];
@@ -2121,10 +2168,16 @@ class SudokuApp {
     }
 
     /**
-     * Check if 2 to 12 empty cells remain and can be deterministically solved via a chain of Naked Singles
+     * Check if 2 to 20 empty cells remain and can be solved through a chain of Naked and Hidden Singles.
      */
     checkCascadeAvailability() {
         if (!this.cascadeBannerEl || this.isPaused || this.isExecutingCascade || this.cascadeDismissedForCurrentPuzzle) {
+            return;
+        }
+
+        if (!this.solutionIsUnique) {
+            this.pendingCascadeSteps = null;
+            this.cascadeBannerEl.classList.add('hidden');
             return;
         }
 
@@ -2238,7 +2291,7 @@ class SudokuApp {
             this.lastVictoryNewBest = this.recordSolvedGame();
         }
         document.getElementById('victory-time').textContent = this.formatTime(this.timerSeconds);
-        document.getElementById('victory-difficulty').textContent = this.getDifficultyLabel(this.currentDifficulty);
+        document.getElementById('victory-difficulty').textContent = this.getCurrentGameDifficultyLabel();
         document.getElementById('victory-mistakes').textContent = `${this.mistakesCount}`;
         document.getElementById('victory-hints').textContent = `${this.hintsCount + this.revealedCount}`;
         this.renderVictoryRecord();
@@ -2364,7 +2417,7 @@ class SudokuApp {
     }
 
     shareResult() {
-        const diffName = this.getDifficultyLabel(this.currentDifficulty);
+        const diffName = this.getCurrentGameDifficultyLabel();
         const rating = this.currentPuzzleMeta.ratingKey ? tr(this.currentPuzzleMeta.ratingKey) : this.currentPuzzleMeta.rating;
         const timeStr = this.formatTime(this.timerSeconds);
         const totalHints = this.hintsCount + this.revealedCount;
@@ -2395,6 +2448,7 @@ class SudokuApp {
             if (!this.isPaused) {
                 this.timerSeconds++;
                 this.updateTimerDisplay();
+                this.saveTimerCheckpoint();
             }
         }, 1000);
     }
@@ -2404,12 +2458,14 @@ class SudokuApp {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+        this.saveTimerCheckpoint();
     }
 
     resetTimer() {
         this.stopTimer();
         this.timerSeconds = 0;
         this.updateTimerDisplay();
+        this.saveTimerCheckpoint();
     }
 
     updateTimerDisplay() {
@@ -2422,6 +2478,33 @@ class SudokuApp {
         return `${mins}:${secs}`;
     }
 
+    saveTimerCheckpoint() {
+        try {
+            if (!this.initialBoard || !Array.isArray(this.initialBoard[0])) return;
+            localStorage.setItem('sudoku_pro_timer_checkpoint_v1', JSON.stringify({
+                puzzle: SudokuEngine.gridToString(this.initialBoard),
+                timerSeconds: this.timerSeconds
+            }));
+        } catch (e) {
+            console.warn('Could not save timer checkpoint', e);
+        }
+    }
+
+    restoreTimerCheckpoint() {
+        try {
+            const raw = localStorage.getItem('sudoku_pro_timer_checkpoint_v1');
+            if (!raw) return;
+            const checkpoint = JSON.parse(raw);
+            const samePuzzle = checkpoint.puzzle === SudokuEngine.gridToString(this.initialBoard);
+            const seconds = Number(checkpoint.timerSeconds);
+            if (samePuzzle && Number.isFinite(seconds) && seconds >= 0) {
+                this.timerSeconds = Math.max(this.timerSeconds, Math.floor(seconds));
+            }
+        } catch (e) {
+            console.warn('Could not restore timer checkpoint', e);
+        }
+    }
+
     togglePause(forceState = null) {
         this.isPaused = forceState !== null ? forceState : !this.isPaused;
         if (this.isPaused) {
@@ -2429,6 +2512,7 @@ class SudokuApp {
         } else {
             this.pauseOverlay.classList.add('hidden');
         }
+        this.saveGameState();
     }
 
     // -------------------------------------------------------------------------
@@ -2455,12 +2539,13 @@ class SudokuApp {
                 cell.dataset.row = r;
                 cell.dataset.col = c;
                 cell.setAttribute('role', 'gridcell');
-                cell.setAttribute('tabindex', '-1');
+                cell.tabIndex = r === 0 && c === 0 ? 0 : -1;
 
                 cell.addEventListener('click', () => {
                     document.getElementById('custom-puzzle-input')?.blur();
-                    this.selectCustomCell(r, c);
+                    this.selectCustomCell(r, c, true);
                 });
+                cell.addEventListener('focus', () => this.selectCustomCell(r, c));
 
                 boardEl.appendChild(cell);
                 this.customCellEls[r][c] = cell;
@@ -2527,14 +2612,16 @@ class SudokuApp {
         this.updateCustomHighlights();
     }
 
-    selectCustomCell(r, c) {
+    selectCustomCell(r, c, shouldFocus = false) {
         this.customSelectedCell = { row: r, col: c };
         this.updateCustomHighlights();
+        if (shouldFocus) this.customCellEls[r]?.[c]?.focus({ preventScroll: true });
     }
 
     inputCustomNumber(num) {
         if (!this.customSelectedCell) return;
         const { row, col } = this.customSelectedCell;
+        const keepKeyboardFocus = document.getElementById('custom-board')?.contains(document.activeElement);
 
         if (num >= 1 && num <= 9) {
             this.customGrid[row][col] = num;
@@ -2550,6 +2637,10 @@ class SudokuApp {
         this.updateCustomCluesBadge();
         this.clearCustomValidationStatus();
         this.updateCustomHighlights();
+        if (keepKeyboardFocus) {
+            const selected = this.customSelectedCell;
+            this.customCellEls[selected.row]?.[selected.col]?.focus({ preventScroll: true });
+        }
         this.audio.playInput();
     }
 
@@ -2610,18 +2701,18 @@ class SudokuApp {
 
             if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                this.selectCustomCell((row - 1 + 9) % 9, col);
+                this.selectCustomCell((row - 1 + 9) % 9, col, true);
             } else if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                this.selectCustomCell((row + 1) % 9, col);
+                this.selectCustomCell((row + 1) % 9, col, true);
             } else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
                 const nextCol = isRTL ? (col + 1) % 9 : (col - 1 + 9) % 9;
-                this.selectCustomCell(row, nextCol);
+                this.selectCustomCell(row, nextCol, true);
             } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 const nextCol = isRTL ? (col - 1 + 9) % 9 : (col + 1) % 9;
-                this.selectCustomCell(row, nextCol);
+                this.selectCustomCell(row, nextCol, true);
             }
         }
     }
@@ -2633,6 +2724,11 @@ class SudokuApp {
                 if (!cellEl) continue;
                 const val = this.customGrid[r][c];
                 cellEl.textContent = val === 0 ? '' : val.toString();
+                cellEl.setAttribute('aria-label', tr('a11y.cell', {
+                    row: r + 1,
+                    col: c + 1,
+                    content: val === 0 ? tr('a11y.empty') : `${val}`
+                }));
             }
         }
     }
@@ -2657,6 +2753,8 @@ class SudokuApp {
                 cellEl.classList.toggle('selected', isSelected);
                 cellEl.classList.toggle('highlight-unit', isUnit && !isSelected);
                 cellEl.classList.toggle('highlight-same', isSame && !isSelected);
+                cellEl.tabIndex = isSelected ? 0 : -1;
+                cellEl.setAttribute('aria-selected', isSelected ? 'true' : 'false');
             }
         }
     }
@@ -2937,12 +3035,15 @@ class SudokuApp {
 
         this.closeModal('modal-custom');
         this.isCustomGame = true;
+        this.solutionIsUnique = check.status === 'unique';
+        this.diffSelect.value = 'custom';
         this.initialBoard = grid;
         this.currentBoard = grid.map(r => [...r]);
         this.solutionBoard = solved;
         this.centerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
         this.cornerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
         this.cellColors = Array(9).fill(null).map(() => Array(9).fill(null));
+        this.prunedSnapshots = {};
 
         this.selectedCell = null;
         this.selectedNumber = 0;
@@ -2994,6 +3095,10 @@ class SudokuApp {
     openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            const activeElement = document.activeElement;
+            if (activeElement instanceof HTMLElement) {
+                this.modalReturnFocus.set(modalId, activeElement);
+            }
             if (modalId === 'modal-settings') {
                 this.settingCheckboxKeys.forEach((key, id) => {
                     const el = document.getElementById(id);
@@ -3012,13 +3117,57 @@ class SudokuApp {
             } else if (modalId === 'modal-custom') {
                 this.onOpenCustomModal();
             }
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
             modal.classList.add('open');
+            document.body.classList.add('modal-open');
+            const dialog = modal.querySelector('[role="dialog"]');
+            requestAnimationFrame(() => dialog?.focus({ preventScroll: true }));
         }
     }
 
-    closeModal(modalId) {
+    closeModal(modalId, restoreFocus = true) {
         const modal = document.getElementById(modalId);
-        if (modal) modal.classList.remove('open');
+        if (!modal) return;
+        modal.classList.remove('open');
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        if (!document.querySelector('.modal-backdrop.open')) {
+            document.body.classList.remove('modal-open');
+        }
+        const returnTarget = this.modalReturnFocus.get(modalId);
+        this.modalReturnFocus.delete(modalId);
+        if (restoreFocus && returnTarget?.isConnected) {
+            returnTarget.focus({ preventScroll: true });
+        }
+    }
+
+    trapModalFocus(modal, event) {
+        const focusable = Array.from(modal.querySelectorAll(
+            'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, a[href], [tabindex]:not([tabindex="-1"])'
+        )).filter(element => !element.hidden
+            && element.getAttribute('aria-hidden') !== 'true'
+            && element.getClientRects().length > 0);
+
+        if (focusable.length === 0) {
+            event.preventDefault();
+            modal.querySelector('[role="dialog"]')?.focus({ preventScroll: true });
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        if (!modal.contains(active) || !focusable.includes(active)) {
+            event.preventDefault();
+            (event.shiftKey ? last : first).focus({ preventScroll: true });
+        } else if (event.shiftKey && active === first) {
+            event.preventDefault();
+            last.focus({ preventScroll: true });
+        } else if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus({ preventScroll: true });
+        }
     }
 
     runSelectedAlgorithmSolve() {
@@ -3153,6 +3302,30 @@ class SudokuApp {
         resultsEl.classList.remove('hidden');
     }
 
+    serializePrunedSnapshots() {
+        return Object.fromEntries(Object.entries(this.prunedSnapshots).map(([key, snapshot]) => [key, {
+            cellCenter: Array.from(snapshot.cellCenter || []),
+            cellCorner: Array.from(snapshot.cellCorner || []),
+            affectedCenter: (snapshot.affectedCenter || []).map(item => ({ ...item })),
+            affectedCorner: (snapshot.affectedCorner || []).map(item => ({ ...item }))
+        }]));
+    }
+
+    deserializePrunedSnapshots(rawSnapshots) {
+        if (!rawSnapshots || typeof rawSnapshots !== 'object' || Array.isArray(rawSnapshots)) return {};
+        const snapshots = {};
+        for (const [key, snapshot] of Object.entries(rawSnapshots)) {
+            if (!snapshot || typeof snapshot !== 'object') continue;
+            snapshots[key] = {
+                cellCenter: new Set(Array.isArray(snapshot.cellCenter) ? snapshot.cellCenter : []),
+                cellCorner: new Set(Array.isArray(snapshot.cellCorner) ? snapshot.cellCorner : []),
+                affectedCenter: Array.isArray(snapshot.affectedCenter) ? snapshot.affectedCenter.map(item => ({ ...item })) : [],
+                affectedCorner: Array.isArray(snapshot.affectedCorner) ? snapshot.affectedCorner.map(item => ({ ...item })) : []
+            };
+        }
+        return snapshots;
+    }
+
     saveGameState() {
         try {
             const data = {
@@ -3168,10 +3341,13 @@ class SudokuApp {
                 revealedCount: this.revealedCount,
                 mistakesCount: this.mistakesCount,
                 isCustomGame: this.isCustomGame,
+                solutionIsUnique: this.solutionIsUnique,
+                prunedSnapshots: this.serializePrunedSnapshots(),
                 provenEliminations: Array.from(this.provenEliminations),
                 gameResultRecorded: this.gameResultRecorded
             };
             localStorage.setItem('sudoku_pro_game_state_v2', JSON.stringify(data));
+            this.saveTimerCheckpoint();
         } catch (e) {
             console.warn('Could not save game state to localStorage', e);
         }
@@ -3192,18 +3368,27 @@ class SudokuApp {
             this.centerMarks = (data.centerMarks || []).map(r => r.map(arr => new Set(arr)));
             this.cornerMarks = (data.cornerMarks || []).map(r => r.map(arr => new Set(arr)));
             this.cellColors = data.cellColors || Array(9).fill(null).map(() => Array(9).fill(null));
+            this.prunedSnapshots = this.deserializePrunedSnapshots(data.prunedSnapshots);
 
             this.currentDifficulty = data.difficulty || 'easy';
-            this.diffSelect.value = this.currentDifficulty;
             this.currentPuzzleMeta = data.puzzleMeta || { id: '', rating: '-', note: '' };
             this.timerSeconds = data.timerSeconds || 0;
             this.hintsCount = data.hintsCount || 0;
             this.revealedCount = data.revealedCount || 0;
             this.mistakesCount = data.mistakesCount || 0;
             this.isCustomGame = !!data.isCustomGame;
+            if (typeof data.solutionIsUnique === 'boolean') {
+                this.solutionIsUnique = data.solutionIsUnique;
+            } else if (this.isCustomGame) {
+                this.solutionIsUnique = SudokuEngine.solveBitwiseMRV(this.initialBoard, 2).solutionsCount === 1;
+            } else {
+                this.solutionIsUnique = true;
+            }
+            this.diffSelect.value = this.isCustomGame ? 'custom' : this.currentDifficulty;
             this.provenEliminations = new Set(Array.isArray(data.provenEliminations) ? data.provenEliminations : []);
             // Saves from before statistics existed have no flag; never count an already finished board.
             this.gameResultRecorded = data.gameResultRecorded ?? SudokuEngine.isBoardCompleteAndValid(this.currentBoard);
+            this.restoreTimerCheckpoint();
 
             this.updatePuzzleMetaDisplay();
 
