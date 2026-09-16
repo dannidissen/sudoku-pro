@@ -65,6 +65,10 @@ The optional **Keep digit highlight on empty cells** setting controls whether na
 
 The **Block conflicting pencil marks** setting (on by default) refuses a corner or center mark whose digit already appears in the same row, column, or box, with the same shake-and-sound feedback as a blocked numpad digit. In a pencil mode the keypad dims those digits too. Marks that are already written stay clickable and erasable, so candidates that turn illegal after a later placement can still be cleaned up.
 
+### Custom puzzles
+
+The **Custom** dialog has a 9×9 editor with its own keypad and keyboard input, plus a two-way synced 81-character text field, a sample puzzle, and clipboard paste. **Check validity & uniqueness** reports conflicts (highlighted in the grid), unsolvable boards, too few clues, multiple solutions, or a unique solution. Boards without a unique solution can still be loaded after a confirmation.
+
 ### Timer and statistics
 
 The timer pauses automatically when the page is hidden — switching tabs, minimizing the window, or locking the phone — so it only measures time spent on the puzzle.

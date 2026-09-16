@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
     <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
-    <link rel="stylesheet" href="style.css?v=20260916h">
+    <link rel="stylesheet" href="style.css?v=20260916i">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -421,16 +421,75 @@
 
     <!-- Custom Puzzle Modal -->
     <div id="modal-custom" class="modal-backdrop">
-        <div class="modal-card">
+        <div class="modal-card custom-modal-card">
             <div class="modal-header">
-                <h2 data-i18n="custom.title">Load a custom Sudoku</h2>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.25rem;">✏️</span>
+                    <h2 data-i18n="custom.title">Load a custom Sudoku</h2>
+                </div>
                 <button class="modal-close" data-close="modal-custom" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-i18n="custom.instructions">Paste 81 characters (digits 1-9, with 0 or a dot for an empty cell):</p>
-            <textarea id="custom-puzzle-input" class="custom-puzzle-textarea" placeholder="...5.1...4.............002..."></textarea>
-            <div style="display: flex; gap: 10px;">
-                <button id="btn-load-custom" class="action-btn primary" style="flex: 1;" data-i18n="custom.load">Load and play</button>
-                <button class="action-btn" data-close="modal-custom" data-i18n="common.cancel">Cancel</button>
+
+            <p class="custom-modal-subtitle" data-i18n="custom.gridSubtitle">Enter digits directly into the 9x9 grid, or paste a text string:</p>
+
+            <!-- Custom Editor Toolbar: Clue counter + Quick Tools -->
+            <div class="custom-toolbar">
+                <div class="custom-clues-badge" id="custom-clues-badge">
+                    <span id="custom-clues-text" data-i18n="custom.cluesCount">Clues: 0/81</span>
+                </div>
+                <div class="custom-tools-btns">
+                    <button type="button" id="btn-custom-sample" class="custom-mini-btn" data-i18n-title="custom.example" title="Sample">
+                        <span>🧪</span> <span data-i18n="custom.example">Sample</span>
+                    </button>
+                    <button type="button" id="btn-custom-paste" class="custom-mini-btn" data-i18n-title="custom.paste" title="Paste">
+                        <span>📋</span> <span data-i18n="custom.paste">Paste</span>
+                    </button>
+                    <button type="button" id="btn-custom-clear" class="custom-mini-btn danger" data-i18n-title="custom.clear" title="Clear board">
+                        <span>🗑️</span> <span data-i18n="custom.clear">Clear</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visual 9x9 Grid -->
+            <div class="custom-board-container">
+                <div id="custom-board" class="custom-board" role="grid" aria-label="Custom Sudoku Grid"></div>
+            </div>
+
+            <!-- Compact Touch/Mouse Keypad (1-9 + Erase) -->
+            <div class="custom-numpad" id="custom-numpad">
+                <button type="button" class="custom-num-btn" data-num="1">1</button>
+                <button type="button" class="custom-num-btn" data-num="2">2</button>
+                <button type="button" class="custom-num-btn" data-num="3">3</button>
+                <button type="button" class="custom-num-btn" data-num="4">4</button>
+                <button type="button" class="custom-num-btn" data-num="5">5</button>
+                <button type="button" class="custom-num-btn" data-num="6">6</button>
+                <button type="button" class="custom-num-btn" data-num="7">7</button>
+                <button type="button" class="custom-num-btn" data-num="8">8</button>
+                <button type="button" class="custom-num-btn" data-num="9">9</button>
+                <button type="button" class="custom-num-btn custom-erase-btn" data-num="0" data-i18n-title="custom.erase" title="Erase">⌫</button>
+            </div>
+
+            <!-- Collapsible Text String Representation (2-way sync) -->
+            <details class="custom-details" id="custom-string-accordion">
+                <summary class="custom-summary">
+                    <span data-i18n="custom.stringToggle">Text string (81 characters)</span>
+                </summary>
+                <div class="custom-details-body">
+                    <textarea id="custom-puzzle-input" class="custom-puzzle-textarea" rows="2" placeholder="...5.1...4.............002..."></textarea>
+                </div>
+            </details>
+
+            <!-- Verification / Validity Check Section -->
+            <div class="custom-verification-section">
+                <button type="button" id="btn-custom-validate" class="action-btn full-width custom-validate-btn">
+                    <span data-i18n="custom.checkBtn">🔍 Check validity & uniqueness</span>
+                </button>
+                <div id="custom-validation-status" class="custom-validation-status hidden" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="custom-modal-actions">
+                <button id="btn-load-custom" class="action-btn primary" style="flex: 1.5;" data-i18n="custom.load">Load and play</button>
+                <button class="action-btn" data-close="modal-custom" style="flex: 1;" data-i18n="common.cancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -608,9 +667,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916h"></script>
-    <script src="puzzles.js?v=20260916h"></script>
-    <script src="solver.js?v=20260916h"></script>
-    <script src="app.js?v=20260916h"></script>
+    <script src="i18n.js?v=20260916i"></script>
+    <script src="puzzles.js?v=20260916i"></script>
+    <script src="solver.js?v=20260916i"></script>
+    <script src="app.js?v=20260916i"></script>
 </body>
 </html>

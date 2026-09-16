@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 globalThis.window = globalThis;
 require('../puzzles.js');
 const SudokuEngine = require('../solver.js');
+globalThis.SudokuEngine = SudokuEngine;
 
 function parseBoard(puzzle) {
     return Array.from({ length: 9 }, (_, row) => (
@@ -169,3 +170,133 @@ test('all languages expose the same translation keys and correct direction', () 
     globalThis.SudokuI18n.setLanguage('yi', { persist: false });
     assert.equal(globalThis.document.documentElement.dir, 'rtl');
 });
+
+test('SudokuEngine.solveBitwiseMRV detects unique vs multiple vs unsolvable boards', () => {
+    // 1. Unique solution (Easy puzzle #0)
+    const easyPuzzle = globalThis.SUDOKU_PUZZLES.easy[0].puzzle;
+    const grid = parseBoard(easyPuzzle);
+    const uniqueRes = SudokuEngine.solveBitwiseMRV(grid, 2);
+    assert.equal(uniqueRes.success, true);
+    assert.equal(uniqueRes.solutionsCount, 1);
+    assert.ok(uniqueRes.solvedBoard);
+    assert.equal(SudokuEngine.isBoardCompleteAndValid(uniqueRes.solvedBoard), true);
+
+    // 2. Multiple solutions (board with only 4 clues)
+    const fewClues = Array(9).fill(null).map(() => Array(9).fill(0));
+    fewClues[0][0] = 5;
+    fewClues[1][1] = 6;
+    fewClues[2][2] = 7;
+    fewClues[3][3] = 8;
+    const multiRes = SudokuEngine.solveBitwiseMRV(fewClues, 2);
+    assert.equal(multiRes.success, true);
+    assert.equal(multiRes.solutionsCount >= 2, true);
+
+    // 3. Unsolvable board without direct conflicts
+    const unsolvableBoard = [
+        [5, 1, 6, 8, 4, 9, 7, 3, 2],
+        [3, 4, 7, 6, 0, 5, 0, 0, 0],
+        [8, 0, 9, 7, 0, 0, 0, 6, 5],
+        [1, 3, 5, 0, 6, 0, 9, 0, 7],
+        [4, 7, 2, 5, 9, 1, 0, 0, 6],
+        [9, 6, 8, 3, 7, 0, 0, 5, 0],
+        [2, 5, 3, 1, 8, 6, 0, 7, 9],
+        [6, 8, 4, 2, 0, 7, 5, 0, 0],
+        [7, 9, 1, 0, 5, 0, 6, 0, 8]
+    ];
+    const unsolvableRes = SudokuEngine.solveBitwiseMRV(unsolvableBoard, 2);
+    assert.equal(unsolvableRes.solutionsCount, 0);
+    assert.equal(unsolvableRes.success, false);
+});
+
+test('SudokuEngine.findConflicts detects row, col, and 3x3 box duplicates accurately', () => {
+    const board = Array(9).fill(null).map(() => Array(9).fill(0));
+    board[0][0] = 5;
+    board[0][8] = 5; // row duplicate
+    board[2][3] = 9;
+    board[7][3] = 9; // col duplicate
+    board[4][4] = 2;
+    board[5][5] = 2; // box duplicate
+
+    const conflicts = SudokuEngine.findConflicts(board);
+    assert.ok(conflicts.has('0,0'));
+    assert.ok(conflicts.has('0,8'));
+    assert.ok(conflicts.has('2,3'));
+    assert.ok(conflicts.has('7,3'));
+    assert.ok(conflicts.has('4,4'));
+    assert.ok(conflicts.has('5,5'));
+    assert.equal(conflicts.size, 6);
+});
+
+test('Custom sample puzzle is valid, unique, and has no conflicts', () => {
+    const sample = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+    const grid = SudokuEngine.stringToGrid(sample);
+    let clues = 0;
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            if (grid[r][c] !== 0) clues++;
+        }
+    }
+    assert.ok(clues >= 17, `Clues: ${clues}`);
+    assert.equal(SudokuEngine.findConflicts(grid).size, 0);
+
+    const res = SudokuEngine.solveBitwiseMRV(grid, 2);
+    assert.equal(res.solutionsCount, 1);
+    assert.ok(res.solvedBoard);
+    assert.equal(SudokuEngine.isBoardCompleteAndValid(res.solvedBoard), true);
+});
+
+test('validateCustomBoard accurately handles all validation states', () => {
+    // Setup minimal app context
+    const fakeApp = {
+        customGrid: Array(9).fill(null).map(() => Array(9).fill(0)),
+        customCellEls: Array(9).fill(null).map(() => Array(9).fill(null)),
+        clearCustomConflictClasses() {},
+        lastCustomValidation: null
+    };
+
+    // Require app to borrow method
+    globalThis.AudioContext = class {};
+    globalThis.webkitAudioContext = class {};
+    globalThis.tr = (key, params) => globalThis.SudokuI18n.t(key, params);
+    const SudokuApp = require('../app.js');
+    fakeApp.validateCustomBoard = SudokuApp.prototype.validateCustomBoard;
+
+    // 1. Empty board
+    const emptyCheck = fakeApp.validateCustomBoard(false);
+    assert.equal(emptyCheck.status, 'empty');
+    assert.equal(emptyCheck.valid, false);
+
+    // 2. Conflict board
+    fakeApp.customGrid[0][0] = 5;
+    fakeApp.customGrid[0][5] = 5;
+    const conflictCheck = fakeApp.validateCustomBoard(false);
+    assert.equal(conflictCheck.status, 'conflicts');
+    assert.equal(conflictCheck.valid, false);
+    fakeApp.customGrid[0][5] = 0; // remove duplicate
+
+    // 3. Too few clues (< 17) but solvable
+    fakeApp.customGrid[1][1] = 3;
+    fakeApp.customGrid[2][2] = 4;
+    const tooFewCheck = fakeApp.validateCustomBoard(false);
+    assert.equal(tooFewCheck.status, 'too_few');
+    assert.equal(tooFewCheck.valid, false);
+
+    // 4. Fully valid unique board
+    const sample = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+    fakeApp.customGrid = SudokuEngine.stringToGrid(sample);
+    const uniqueCheck = fakeApp.validateCustomBoard(false);
+    assert.equal(uniqueCheck.status, 'unique');
+    assert.equal(uniqueCheck.valid, true);
+    assert.equal(uniqueCheck.solutionsCount, 1);
+    assert.ok(uniqueCheck.solvedBoard);
+
+    // 5. Multiple solutions (sample puzzle with clue at (0,6) removed, has 27 clues >= 17 and exactly 2+ solutions)
+    fakeApp.customGrid = SudokuEngine.stringToGrid(sample);
+    fakeApp.customGrid[0][6] = 0;
+    const multiCheck = fakeApp.validateCustomBoard(false);
+    assert.equal(multiCheck.status, 'multiple');
+    assert.equal(multiCheck.valid, false);
+    assert.ok(multiCheck.solutionsCount > 1);
+});
+
+

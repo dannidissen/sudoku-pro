@@ -168,6 +168,7 @@ class SudokuApp {
         this.updateSnyderModeUI();
         this.setupEvents();
         this.setupKeyboard();
+        this.initCustomBoardEditor();
 
         if (!this.loadGameState()) {
             this.startNewGame(this.currentDifficulty);
@@ -438,6 +439,17 @@ class SudokuApp {
                 this.selectedCell = null;
                 this.selectedNumber = 0;
                 this.updateVisualHighlights();
+                return;
+            }
+
+            // Route inputs to custom board editor when custom modal is open
+            if (document.getElementById('modal-custom')?.classList.contains('open')) {
+                this.handleCustomKeyboard(e);
+                return;
+            }
+
+            // If any other modal is open, ignore main board keyboard shortcuts
+            if (document.querySelector('.modal-backdrop.open')) {
                 return;
             }
 
@@ -734,6 +746,7 @@ class SudokuApp {
         if (document.getElementById('modal-stats')?.classList.contains('open')) {
             this.renderStats();
         }
+        this.refreshCustomModalLocalization();
     }
 
     selectCell(r, c) {
@@ -2363,6 +2376,466 @@ class SudokuApp {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Custom Puzzle Visual Grid & Uniqueness Validator
+    // -------------------------------------------------------------------------
+
+    initCustomBoardEditor() {
+        if (this.customEditorInitialized) return;
+        this.customEditorInitialized = true;
+
+        this.customGrid = Array(9).fill(null).map(() => Array(9).fill(0));
+        this.customSelectedCell = { row: 0, col: 0 };
+        this.customCellEls = Array(9).fill(null).map(() => Array(9).fill(null));
+        this.lastCustomValidation = null;
+
+        const boardEl = document.getElementById('custom-board');
+        if (!boardEl) return;
+        boardEl.innerHTML = '';
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'custom-cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                cell.setAttribute('role', 'gridcell');
+                cell.setAttribute('tabindex', '-1');
+
+                cell.addEventListener('click', () => {
+                    document.getElementById('custom-puzzle-input')?.blur();
+                    this.selectCustomCell(r, c);
+                });
+
+                boardEl.appendChild(cell);
+                this.customCellEls[r][c] = cell;
+            }
+        }
+
+        // Custom Numpad buttons (1-9 and Erase)
+        const numpadEl = document.getElementById('custom-numpad');
+        if (numpadEl) {
+            numpadEl.querySelectorAll('.custom-num-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const num = parseInt(btn.dataset.num, 10);
+                    this.inputCustomNumber(num);
+                });
+            });
+        }
+
+        // Clear board button
+        const btnClear = document.getElementById('btn-custom-clear');
+        if (btnClear) {
+            btnClear.addEventListener('click', () => this.clearCustomBoard());
+        }
+
+        // Sample puzzle button
+        const btnSample = document.getElementById('btn-custom-sample');
+        if (btnSample) {
+            btnSample.addEventListener('click', () => this.loadCustomSample());
+        }
+
+        // Paste button
+        const btnPaste = document.getElementById('btn-custom-paste');
+        if (btnPaste) {
+            btnPaste.addEventListener('click', () => this.pasteCustomBoardFromClipboard());
+        }
+
+        // Validate button
+        const btnValidate = document.getElementById('btn-custom-validate');
+        if (btnValidate) {
+            btnValidate.addEventListener('click', () => this.validateCustomBoard(true));
+        }
+
+        // Textarea two-way sync
+        const inputEl = document.getElementById('custom-puzzle-input');
+        if (inputEl) {
+            inputEl.addEventListener('input', () => {
+                this.syncCustomGridFromText(inputEl.value);
+            });
+            inputEl.addEventListener('paste', () => {
+                setTimeout(() => this.syncCustomGridFromText(inputEl.value), 20);
+            });
+        }
+
+        this.updateCustomBoardDisplay();
+        this.updateCustomCluesBadge();
+        this.updateCustomHighlights();
+    }
+
+    onOpenCustomModal() {
+        this.initCustomBoardEditor();
+        this.selectCustomCell(0, 0);
+        this.clearCustomValidationStatus();
+        this.updateCustomBoardDisplay();
+        this.updateCustomCluesBadge();
+        this.updateCustomHighlights();
+    }
+
+    selectCustomCell(r, c) {
+        this.customSelectedCell = { row: r, col: c };
+        this.updateCustomHighlights();
+    }
+
+    inputCustomNumber(num) {
+        if (!this.customSelectedCell) return;
+        const { row, col } = this.customSelectedCell;
+
+        if (num >= 1 && num <= 9) {
+            this.customGrid[row][col] = num;
+            // Auto advance to next cell
+            const nextIdx = (row * 9 + col + 1) % 81;
+            this.customSelectedCell = { row: Math.floor(nextIdx / 9), col: nextIdx % 9 };
+        } else {
+            this.customGrid[row][col] = 0;
+        }
+
+        this.updateCustomBoardDisplay();
+        this.syncCustomTextareaFromGrid();
+        this.updateCustomCluesBadge();
+        this.clearCustomValidationStatus();
+        this.updateCustomHighlights();
+        this.audio.playInput();
+    }
+
+    eraseCustomCell(moveBack = false) {
+        if (!this.customSelectedCell) return;
+        const { row, col } = this.customSelectedCell;
+
+        if (this.customGrid[row][col] !== 0) {
+            this.customGrid[row][col] = 0;
+        } else if (moveBack) {
+            const prevIdx = (row * 9 + col - 1 + 81) % 81;
+            this.customSelectedCell = { row: Math.floor(prevIdx / 9), col: prevIdx % 9 };
+            this.customGrid[this.customSelectedCell.row][this.customSelectedCell.col] = 0;
+        } else {
+            return;
+        }
+
+        this.updateCustomBoardDisplay();
+        this.syncCustomTextareaFromGrid();
+        this.updateCustomCluesBadge();
+        this.clearCustomValidationStatus();
+        this.updateCustomHighlights();
+        this.audio.playErase();
+    }
+
+    handleCustomKeyboard(e) {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+            return;
+        }
+
+        // Backspace
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            this.eraseCustomCell(true);
+            return;
+        }
+
+        // Delete or 0
+        if (e.key === 'Delete' || e.key === '0') {
+            e.preventDefault();
+            this.eraseCustomCell(false);
+            return;
+        }
+
+        // Digits 1-9
+        const digitMatch = /^(Digit|Numpad)([1-9])$/.exec(e.code);
+        if (digitMatch) {
+            e.preventDefault();
+            const num = parseInt(digitMatch[2], 10);
+            this.inputCustomNumber(num);
+            return;
+        }
+
+        // Arrow navigation
+        if (this.customSelectedCell) {
+            let { row, col } = this.customSelectedCell;
+            const isRTL = document.documentElement.dir === 'rtl' || document.body.dir === 'rtl' || getComputedStyle(document.body).direction === 'rtl';
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.selectCustomCell((row - 1 + 9) % 9, col);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.selectCustomCell((row + 1) % 9, col);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const nextCol = isRTL ? (col + 1) % 9 : (col - 1 + 9) % 9;
+                this.selectCustomCell(row, nextCol);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const nextCol = isRTL ? (col - 1 + 9) % 9 : (col + 1) % 9;
+                this.selectCustomCell(row, nextCol);
+            }
+        }
+    }
+
+    updateCustomBoardDisplay() {
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cellEl = this.customCellEls[r]?.[c];
+                if (!cellEl) continue;
+                const val = this.customGrid[r][c];
+                cellEl.textContent = val === 0 ? '' : val.toString();
+            }
+        }
+    }
+
+    updateCustomHighlights() {
+        if (!this.customSelectedCell) return;
+        const { row: selR, col: selC } = this.customSelectedCell;
+        const selVal = this.customGrid[selR]?.[selC] || 0;
+        const selBox = Math.floor(selR / 3) * 3 + Math.floor(selC / 3);
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cellEl = this.customCellEls[r]?.[c];
+                if (!cellEl) continue;
+
+                const isSelected = (r === selR && c === selC);
+                const curBox = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+                const isUnit = (r === selR || c === selC || curBox === selBox);
+                const val = this.customGrid[r][c];
+                const isSame = (selVal !== 0 && val === selVal);
+
+                cellEl.classList.toggle('selected', isSelected);
+                cellEl.classList.toggle('highlight-unit', isUnit && !isSelected);
+                cellEl.classList.toggle('highlight-same', isSame && !isSelected);
+            }
+        }
+    }
+
+    syncCustomGridFromText(rawText) {
+        const cleaned = rawText.replace(/[\s\r\n]/g, '').replace(/\./g, '0');
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const idx = r * 9 + c;
+                if (idx < cleaned.length) {
+                    const digit = parseInt(cleaned[idx], 10);
+                    this.customGrid[r][c] = (digit >= 1 && digit <= 9) ? digit : 0;
+                } else {
+                    this.customGrid[r][c] = 0;
+                }
+            }
+        }
+        this.updateCustomBoardDisplay();
+        this.updateCustomCluesBadge();
+        this.clearCustomValidationStatus();
+        this.updateCustomHighlights();
+    }
+
+    syncCustomTextareaFromGrid() {
+        const inputEl = document.getElementById('custom-puzzle-input');
+        if (!inputEl) return;
+        const str = SudokuEngine.gridToString(this.customGrid);
+        inputEl.value = str;
+    }
+
+    updateCustomCluesBadge() {
+        let count = 0;
+        if (this.customGrid) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (this.customGrid[r][c] !== 0) count++;
+                }
+            }
+        }
+        const textEl = document.getElementById('custom-clues-text');
+        if (textEl) {
+            textEl.textContent = tr('custom.cluesCount', { count });
+        }
+    }
+
+    clearCustomBoard() {
+        this.customGrid = Array(9).fill(null).map(() => Array(9).fill(0));
+        this.customSelectedCell = { row: 0, col: 0 };
+        this.updateCustomBoardDisplay();
+        this.syncCustomTextareaFromGrid();
+        this.updateCustomCluesBadge();
+        this.clearCustomValidationStatus();
+        this.updateCustomHighlights();
+        this.clearCustomConflictClasses();
+    }
+
+    loadCustomSample() {
+        // High quality classic sample puzzle with a proven unique solution
+        const samplePuzzle = '003020600900305001001806400008102900700000008006708200002609500800203009005010300';
+        this.syncCustomGridFromText(samplePuzzle);
+        this.syncCustomTextareaFromGrid();
+        this.validateCustomBoard(true);
+    }
+
+    async pasteCustomBoardFromClipboard() {
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim().length > 0) {
+                    this.syncCustomGridFromText(text.trim());
+                    this.syncCustomTextareaFromGrid();
+                    this.validateCustomBoard(true);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Clipboard read error', e);
+        }
+        // Fallback: focus textarea
+        const inputEl = document.getElementById('custom-puzzle-input');
+        if (inputEl) {
+            const details = document.getElementById('custom-string-accordion');
+            if (details) details.open = true;
+            inputEl.focus();
+            inputEl.select();
+        }
+    }
+
+    clearCustomConflictClasses() {
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                this.customCellEls[r]?.[c]?.classList.remove('conflict');
+            }
+        }
+    }
+
+    clearCustomValidationStatus() {
+        this.clearCustomConflictClasses();
+        const statusEl = document.getElementById('custom-validation-status');
+        if (statusEl) {
+            statusEl.className = 'custom-validation-status hidden';
+            statusEl.innerHTML = '';
+        }
+        this.lastCustomValidation = null;
+    }
+
+    validateCustomBoard(showStatusCard = true) {
+        if (!this.customGrid) {
+            this.customGrid = Array(9).fill(null).map(() => Array(9).fill(0));
+        }
+
+        this.clearCustomConflictClasses();
+        const statusEl = document.getElementById('custom-validation-status');
+
+        let clueCount = 0;
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (this.customGrid[r][c] !== 0) clueCount++;
+            }
+        }
+
+        // 1. Check if empty
+        if (clueCount === 0) {
+            const msg = tr('custom.statusEmpty');
+            if (showStatusCard && statusEl) {
+                statusEl.className = 'custom-validation-status status-info';
+                statusEl.innerHTML = `<span>ℹ️</span> <div>${msg}</div>`;
+            }
+            this.lastCustomValidation = { status: 'empty', valid: false, clueCount, message: msg };
+            return this.lastCustomValidation;
+        }
+
+        // 2. Check for duplicate conflicts
+        const conflicts = SudokuEngine.findConflicts(this.customGrid);
+        if (conflicts.size > 0) {
+            conflicts.forEach(coord => {
+                const [r, c] = coord.split(',').map(Number);
+                this.customCellEls[r]?.[c]?.classList.add('conflict');
+            });
+            const msg = tr('custom.statusConflicts', { count: conflicts.size });
+            if (showStatusCard && statusEl) {
+                statusEl.className = 'custom-validation-status status-error';
+                statusEl.innerHTML = `<span>🚫</span> <div><b>${tr('custom.conflicts')}:</b> ${msg}</div>`;
+            }
+            this.lastCustomValidation = { status: 'conflicts', valid: false, clueCount, conflicts, message: msg };
+            return this.lastCustomValidation;
+        }
+
+        // 3. Check for fewer than 17 clues (mathematically impossible to have a unique solution)
+        if (clueCount < 17) {
+            const mrvRes = SudokuEngine.solveBitwiseMRV(this.customGrid, 2);
+            if (mrvRes.solutionsCount === 0) {
+                const msg = tr('custom.statusUnsolvable');
+                if (showStatusCard && statusEl) {
+                    statusEl.className = 'custom-validation-status status-error';
+                    statusEl.innerHTML = `<span>❌</span> <div>${msg}</div>`;
+                }
+                this.lastCustomValidation = { status: 'unsolvable', valid: false, clueCount, message: msg };
+                return this.lastCustomValidation;
+            } else {
+                const msg = tr('custom.statusTooFew', { count: clueCount });
+                if (showStatusCard && statusEl) {
+                    statusEl.className = 'custom-validation-status status-warning';
+                    statusEl.innerHTML = `<span>⚠️</span> <div>${msg}</div>`;
+                }
+                this.lastCustomValidation = {
+                    status: 'too_few',
+                    valid: false,
+                    clueCount,
+                    solutionsCount: mrvRes.solutionsCount,
+                    solvedBoard: mrvRes.solvedBoard,
+                    message: msg
+                };
+                return this.lastCustomValidation;
+            }
+        }
+
+        // 4. Solve and test uniqueness (clueCount >= 17)
+        const result = SudokuEngine.solveBitwiseMRV(this.customGrid, 2);
+
+        if (result.solutionsCount === 0) {
+            const msg = tr('custom.statusUnsolvable');
+            if (showStatusCard && statusEl) {
+                statusEl.className = 'custom-validation-status status-error';
+                statusEl.innerHTML = `<span>❌</span> <div>${msg}</div>`;
+            }
+            this.lastCustomValidation = { status: 'unsolvable', valid: false, clueCount, message: msg };
+            return this.lastCustomValidation;
+        }
+
+        if (result.solutionsCount > 1) {
+            const msg = tr('custom.statusMultiple');
+            if (showStatusCard && statusEl) {
+                statusEl.className = 'custom-validation-status status-warning';
+                statusEl.innerHTML = `<span>⚠️</span> <div>${msg}</div>`;
+            }
+            this.lastCustomValidation = {
+                status: 'multiple',
+                valid: false,
+                clueCount,
+                solutionsCount: result.solutionsCount,
+                solvedBoard: result.solvedBoard,
+                message: msg
+            };
+            return this.lastCustomValidation;
+        }
+
+        // Exactly 1 solution! Fully valid unique puzzle!
+        const timeMs = (result.timeUs / 1000).toFixed(1);
+        const msg = tr('custom.statusUnique', { time: timeMs });
+        if (showStatusCard && statusEl) {
+            statusEl.className = 'custom-validation-status status-success';
+            // The unique-status translation already starts with ✅.
+            statusEl.innerHTML = `<div>${msg}</div>`;
+        }
+        this.lastCustomValidation = {
+            status: 'unique',
+            valid: true,
+            clueCount,
+            solutionsCount: 1,
+            solvedBoard: result.solvedBoard,
+            timeMs,
+            message: msg
+        };
+        return this.lastCustomValidation;
+    }
+
+    refreshCustomModalLocalization() {
+        this.updateCustomCluesBadge();
+        if (this.lastCustomValidation) {
+            this.validateCustomBoard(true);
+        }
+    }
+
     // Custom Puzzle Loader
     loadCustomPuzzle(input) {
         if (this.isExecutingCascade) {
@@ -2371,20 +2844,37 @@ class SudokuApp {
         }
         this.cascadeDismissedForCurrentPuzzle = false;
 
-        const cleaned = input.replace(/[\s\r\n]/g, '').replace(/\./g, '0');
-        if (cleaned.length !== 81) {
+        if (typeof input === 'string' && input.trim().length > 0) {
+            this.syncCustomGridFromText(input.trim());
+        }
+
+        const check = this.validateCustomBoard(true);
+
+        if (check.status === 'empty') {
             alert(tr('custom.invalidLength'));
             return;
         }
 
-        const grid = SudokuEngine.stringToGrid(cleaned);
-        const conflicts = SudokuEngine.findConflicts(grid);
-        if (conflicts.size > 0) {
+        if (check.status === 'conflicts') {
             alert(tr('custom.conflicts'));
             return;
         }
 
-        const solved = SudokuEngine.solve(grid);
+        if (check.status === 'unsolvable') {
+            alert(tr('custom.unsolvable'));
+            return;
+        }
+
+        if (check.status === 'multiple' || check.status === 'too_few') {
+            const proceed = confirm(tr('custom.warnMultipleConfirm'));
+            if (!proceed) return;
+        }
+
+        const grid = this.customGrid.map(r => [...r]);
+        let solved = check.solvedBoard;
+        if (!solved) {
+            solved = SudokuEngine.solve(grid);
+        }
         if (!solved) {
             alert(tr('custom.unsolvable'));
             return;
@@ -2464,6 +2954,8 @@ class SudokuApp {
                     const cardRadio = card.querySelector('input[type="radio"]');
                     if (cardRadio) card.classList.toggle('active', cardRadio.checked);
                 });
+            } else if (modalId === 'modal-custom') {
+                this.onOpenCustomModal();
             }
             modal.classList.add('open');
         }
@@ -2726,6 +3218,12 @@ class SudokuApp {
 }
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new SudokuApp();
-});
+if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.app = new SudokuApp();
+    });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SudokuApp;
+}
