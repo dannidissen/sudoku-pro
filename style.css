@@ -2304,6 +2304,8 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
 .algo-code-tabs {
     display: inline-flex;
     flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: center;
     padding: 2px;
     border: 1px solid var(--card-border);
     border-radius: var(--radius-sm);
@@ -2441,6 +2443,14 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
 
     .algo-section-heading {
         flex-wrap: wrap;
+    }
+
+    .algo-code-tabs {
+        width: 100%;
+    }
+
+    .algo-code-tab {
+        flex: 1 1 auto;
     }
 }
 

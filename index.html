@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260916l">
+    <link rel="stylesheet" href="style.css?v=20260916m">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -765,11 +765,13 @@
                 <div class="algo-section-heading">
                     <div>
                         <h3 id="algo-code-title" data-i18n="algo.code.title">Implementation sketch</h3>
-                        <p data-i18n="algo.code.intro">Compare the browser implementation with the same MRV idea in modern C++.</p>
+                        <p data-i18n="algo.code.intro">Compare the same MRV backtracking idea in JavaScript, C++, C, and Java.</p>
                     </div>
                     <div class="algo-code-tabs" role="tablist" data-i18n-aria-label="algo.code.tabsLabel" aria-label="Code language">
-                        <button id="algo-code-tab-js" class="algo-code-tab active" type="button" role="tab" aria-selected="true" aria-controls="algo-code-js">JavaScript</button>
-                        <button id="algo-code-tab-cpp" class="algo-code-tab" type="button" role="tab" aria-selected="false" aria-controls="algo-code-cpp" tabindex="-1">C++</button>
+                        <button id="algo-code-tab-js" class="algo-code-tab active" type="button" role="tab" aria-selected="true" aria-controls="algo-code-js" data-language="js">JavaScript</button>
+                        <button id="algo-code-tab-cpp" class="algo-code-tab" type="button" role="tab" aria-selected="false" aria-controls="algo-code-cpp" data-language="cpp" tabindex="-1">C++</button>
+                        <button id="algo-code-tab-c" class="algo-code-tab" type="button" role="tab" aria-selected="false" aria-controls="algo-code-c" data-language="c" tabindex="-1">C</button>
+                        <button id="algo-code-tab-java" class="algo-code-tab" type="button" role="tab" aria-selected="false" aria-controls="algo-code-java" data-language="java" tabindex="-1">Java</button>
                     </div>
                 </div>
                 <pre id="algo-code-js" class="algo-code-block" role="tabpanel" aria-labelledby="algo-code-tab-js"><code>function solveMRV(board) {
@@ -798,7 +800,52 @@ bool solve_mrv(Board&amp; board) {
     }
     return false;
 }</code></pre>
-                <p class="algo-code-note" data-i18n="algo.code.note">The repository also includes a complete native validator in tools/sudoku_validator.c; the C++ sketch focuses on the recursive idea.</p>
+                <pre id="algo-code-c" class="algo-code-block" role="tabpanel" aria-labelledby="algo-code-tab-c" hidden><code>#include &lt;stdbool.h&gt;
+#include &lt;stdint.h&gt;
+
+static int first_digit(uint16_t mask) {
+    /* The lowest set bit represents the next digit to try. */
+    int digit = 1;
+    while ((mask &amp; 1u) == 0u) {
+        mask &gt;&gt;= 1;
+        digit++;
+    }
+    return digit;
+}
+
+bool solve_mrv(Board *board) {
+    if (board_complete(board)) return true;
+    Cell cell = board_fewest_candidates(board);
+    uint16_t mask = board_candidates(board, cell);
+
+    while (mask != 0u) {
+        int digit = first_digit(mask);
+        board_place(board, cell, digit);
+        if (solve_mrv(board)) return true;
+        board_remove(board, cell); /* backtrack */
+        /* Clear the candidate just tried, preserving the others. */
+        mask &amp;= (uint16_t)(mask - 1u);
+    }
+    return false;
+}</code></pre>
+                <pre id="algo-code-java" class="algo-code-block" role="tabpanel" aria-labelledby="algo-code-tab-java" hidden><code>boolean solveMrv(Board board) {
+    if (board.isComplete()) return true;
+    Cell cell = board.emptyCellWithFewestCandidates();
+    int mask = board.candidates(cell);
+
+    while (mask != 0) {
+        // Isolate the lowest candidate bit and convert it to 1..9.
+        int bit = mask &amp; -mask;
+        int digit = Integer.numberOfTrailingZeros(bit) + 1;
+        board.place(cell, digit);
+        if (solveMrv(board)) return true;
+        board.remove(cell); // backtrack
+        // Remove this candidate before trying the next one.
+        mask ^= bit;
+    }
+    return false;
+}</code></pre>
+                <p class="algo-code-note" data-i18n="algo.code.note">Each sketch uses the same four steps: choose the most constrained cell, iterate its candidate bit mask, recurse, and undo failed choices. Board helpers are omitted for clarity; the repository includes a complete C validator in tools/sudoku_validator.c.</p>
             </section>
 
             <!-- Action Buttons -->
@@ -822,9 +869,9 @@ bool solve_mrv(Board&amp; board) {
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916l"></script>
-    <script src="puzzles.js?v=20260916l"></script>
-    <script src="solver.js?v=20260916l"></script>
-    <script src="app.js?v=20260916l"></script>
+    <script src="i18n.js?v=20260916m"></script>
+    <script src="puzzles.js?v=20260916m"></script>
+    <script src="solver.js?v=20260916m"></script>
+    <script src="app.js?v=20260916m"></script>
 </body>
 </html>
