@@ -177,6 +177,7 @@ class SudokuApp {
 
     setupDOM() {
         this.boardEl = document.getElementById('sudoku-board');
+        this.boardStatusEl = document.getElementById('board-status');
         this.numpadEl = document.getElementById('numpad');
         this.timerEl = document.getElementById('timer-display');
         this.pauseBtn = document.getElementById('btn-pause');
@@ -230,7 +231,15 @@ class SudokuApp {
                 cell.className = 'cell';
                 cell.dataset.row = r;
                 cell.dataset.col = c;
+                cell.setAttribute('role', 'button');
+                cell.tabIndex = r === 0 && c === 0 ? 0 : -1;
                 cell.addEventListener('click', () => this.selectCell(r, c));
+                // Tabbing into the board selects the cell that receives focus.
+                cell.addEventListener('focus', () => {
+                    const sel = this.selectedCell;
+                    // Paint mode colors on click; merely focusing a cell must not paint it.
+                    if (this.activeColor === null && (!sel || sel.row !== r || sel.col !== c)) this.selectCell(r, c);
+                });
                 this.boardEl.appendChild(cell);
             }
         }
@@ -453,8 +462,11 @@ class SudokuApp {
                 return;
             }
 
-            // Space / Tab: Fast toggle (Normal <-> Center) when Snyder disabled; 3-way toggle when enabled
-            if (e.key === ' ' || e.key === 'Tab') {
+            // Space / Tab: Fast toggle (Normal <-> Center) when Snyder disabled; 3-way toggle when enabled.
+            // Tab only switches modes while focus is on the board, so keyboard users can still Tab
+            // between buttons; Shift+Tab always moves focus out of the board.
+            const tabSwitchesMode = e.key === 'Tab' && !e.shiftKey && this.boardEl.contains(document.activeElement);
+            if (e.key === ' ' || tabSwitchesMode) {
                 e.preventDefault();
                 if (this.settings.enableSnyder) {
                     const modes = ['normal', 'corner', 'center'];
@@ -733,6 +745,9 @@ class SudokuApp {
 
     refreshLocalizedUI() {
         this.updatePuzzleMetaDisplay();
+        this.renderBoard();
+        this.updateRemainingCounts();
+        this.updateVisualHighlights();
         if (this.currentDeductiveHint && this.hintStage > 0) {
             this.renderCurrentHintStage();
         }
@@ -767,6 +782,11 @@ class SudokuApp {
             this.selectedNumber = 0;
         }
         this.updateVisualHighlights();
+
+        // Keep keyboard focus on the selected cell while navigating with the arrow keys.
+        if (this.boardEl.contains(document.activeElement)) {
+            this.boardEl.children[r * 9 + c]?.focus({ preventScroll: true });
+        }
     }
 
     handleNumpadClick(num) {
@@ -1804,6 +1824,7 @@ class SudokuApp {
         const isGiven = this.initialBoard[r][c] !== 0;
         const customColor = this.cellColors[r][c];
 
+        this.updateCellLabel(r, c);
         cell.className = 'cell';
         if (customColor) {
             cell.dataset.color = customColor;
@@ -1853,6 +1874,32 @@ class SudokuApp {
             } else {
                 cell.innerHTML = '';
             }
+        }
+    }
+
+    /**
+     * Screen-reader name for a cell: position plus its digit, notes or "empty". When the
+     * focused cell's content changes, the new name is also sent to the polite live region,
+     * because an aria-label change on the focused element is not announced reliably.
+     */
+    updateCellLabel(r, c) {
+        const cell = this.boardEl.children[r * 9 + c];
+        if (!cell) return;
+
+        const val = this.currentBoard[r][c];
+        let content;
+        if (val !== 0) {
+            content = this.initialBoard[r][c] !== 0 ? tr('a11y.given', { value: val }) : `${val}`;
+        } else {
+            const notes = [...new Set([...this.cornerMarks[r][c], ...this.centerMarks[r][c]])].sort((a, b) => a - b);
+            content = notes.length > 0 ? tr('a11y.notes', { digits: notes.join(', ') }) : tr('a11y.empty');
+        }
+
+        const label = tr('a11y.cell', { row: r + 1, col: c + 1, content });
+        const previous = cell.getAttribute('aria-label');
+        cell.setAttribute('aria-label', label);
+        if (previous && previous !== label && document.activeElement === cell && this.boardStatusEl) {
+            this.boardStatusEl.textContent = label;
         }
     }
 
@@ -1943,6 +1990,10 @@ class SudokuApp {
                     'selected', 'highlight-rowcol', 'highlight-same',
                     'digit-line-highlight', 'conflict', 'hint-target', 'hint-unit'
                 );
+
+                // Roving tabindex: the board is a single Tab stop that lands on the selected cell.
+                const isTabStop = selected ? (selected.row === r && selected.col === c) : (r === 0 && c === 0);
+                cell.tabIndex = isTabStop ? 0 : -1;
 
                 // Deductive Hint Highlighting
                 if (hintTargets.has(`${r},${c}`)) {
@@ -2049,6 +2100,10 @@ class SudokuApp {
             if (btn) {
                 if (rem <= 0) btn.classList.add('completed');
                 else btn.classList.remove('completed');
+                // Without a label the button reads as two bare numbers ("5 4").
+                btn.setAttribute('aria-label', rem > 0
+                    ? tr('a11y.numpadDigit', { num, count: rem })
+                    : tr('a11y.numpadDone', { num }));
             }
         }
     }
@@ -3222,6 +3277,14 @@ if (typeof document !== 'undefined' && document.addEventListener) {
     document.addEventListener('DOMContentLoaded', () => {
         window.app = new SudokuApp();
     });
+
+    // Offline support and "install app". Service workers need http(s), so opening
+    // index.html straight from disk (open_game.bat) simply skips this.
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service worker registration failed', e));
+        });
+    }
 }
 
 if (typeof module !== 'undefined' && module.exports) {

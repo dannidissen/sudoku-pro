@@ -2100,3 +2100,27 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
         50% { box-shadow: inset 0 0 0 3px var(--cell-conflict-text); }
     }
 }
+
+/* Visually hidden, still read by screen readers */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Keyboard focus ring on board cells (mouse clicks keep the existing selection look) */
+.cell:focus {
+    outline: none;
+}
+
+.cell:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+    z-index: 5;
+}

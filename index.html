@@ -7,8 +7,25 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-title" content="Sudoku Pro">
     <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
-    <link rel="stylesheet" href="style.css?v=20260916i">
+    <meta name="description" content="Free Sudoku for advanced solvers: step-by-step logical hints (X-Wing, Swordfish, XY-Wing), Snyder notation, cell coloring, statistics and extreme puzzles. Works offline, in English, Hebrew, Yiddish and Latin.">
+    <link rel="canonical" href="https://dannidissen.github.io/sudoku-pro/">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <!-- Link previews (WhatsApp, Telegram, Facebook, X, Slack...) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Sudoku Pro">
+    <meta property="og:title" content="Sudoku Pro — Sudoku with logical hints">
+    <meta property="og:description" content="Step-by-step logical hints, Snyder notation and extreme puzzles. Free in your browser, works offline.">
+    <meta property="og:url" content="https://dannidissen.github.io/sudoku-pro/">
+    <meta property="og:image" content="https://dannidissen.github.io/sudoku-pro/icons/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="style.css?v=20260916j">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -70,7 +87,7 @@
             <div id="hint-banner" class="hint-banner hidden">
                 <div class="hint-banner-content">
                     <span class="hint-badge" id="hint-stage-badge" data-i18n="hint.initialBadge">Stage 1</span>
-                    <span id="hint-text" class="hint-text" data-i18n="hint.placeholder">The hint explanation will appear here</span>
+                    <span id="hint-text" class="hint-text" aria-live="polite" data-i18n="hint.placeholder">The hint explanation will appear here</span>
                 </div>
                 <div class="hint-banner-actions">
                     <button id="btn-hint-next" class="hint-step-btn" data-i18n="hint.next">Continue to the next stage 👉</button>
@@ -80,7 +97,9 @@
 
             <!-- Board Container -->
             <div class="board-container">
-                <div id="sudoku-board" class="sudoku-board"></div>
+                <div id="sudoku-board" class="sudoku-board" role="group" aria-label="Sudoku board" data-i18n-aria-label="a11y.board" aria-describedby="board-help"></div>
+                <p id="board-help" class="sr-only" data-i18n="a11y.boardHelp">Use the arrow keys to move, 1 to 9 to enter a digit, Backspace to erase, and Shift+Tab to leave the board.</p>
+                <div id="board-status" class="sr-only" role="status" aria-live="polite"></div>
 
                 <!-- Pause Overlay -->
                 <div id="pause-overlay" class="pause-overlay hidden">
@@ -664,12 +683,12 @@
     </div>
 
     <!-- Toasts Container -->
-    <div id="toast-container" class="toast-container"></div>
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916i"></script>
-    <script src="puzzles.js?v=20260916i"></script>
-    <script src="solver.js?v=20260916i"></script>
-    <script src="app.js?v=20260916i"></script>
+    <script src="i18n.js?v=20260916j"></script>
+    <script src="puzzles.js?v=20260916j"></script>
+    <script src="solver.js?v=20260916j"></script>
+    <script src="app.js?v=20260916j"></script>
 </body>
 </html>

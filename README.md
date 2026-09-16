@@ -6,6 +6,8 @@ The interface is available in English, Hebrew, Yiddish, and Latin. English is th
 
 **Play online:** https://dannidissen.github.io/sudoku-pro/
 
+The online version can be installed as an app (browser menu → *Install* / *Add to Home screen*) and keeps working offline after the first visit.
+
 ## Run locally
 
 No installation, server, or internet connection is required.
@@ -48,7 +50,7 @@ A separate **Reveal Cell** action is available when the player wants the correct
 
 Keyboard shortcuts:
 
-- `Space` or `Tab`: switch input mode.
+- `Space`, or `Tab` while a board cell has focus: switch input mode. `Shift+Tab` leaves the board.
 - `Shift + 1-9`: toggle a corner mark when Snyder mode is enabled.
 - `Ctrl + 1-9`: toggle a center mark.
 - `Z`, `X`, `C`: select Normal, Corner, or Center mode.
@@ -88,6 +90,14 @@ The desktop layout keeps the board, keypad, timer, and controls in a compact wor
 Small synthesized effects are generated with the Web Audio API, so no audio assets are required. Sounds can be disabled in Settings. Conflict animations, victory feedback, and a localized share summary are also included.
 
 When the operating system requests reduced motion, animations and transitions are switched off; the conflict shake becomes a color blink so the feedback is not lost.
+
+### Accessibility
+
+The board is a single keyboard Tab stop: focus lands on the selected cell and follows the arrow keys. Every cell has a screen-reader name with its row, column, and content (given digit, entered digit, pencil marks, or empty), and changes to the focused cell are announced through a polite live region, as are toasts and hint text. Keypad buttons announce how many of each digit remain.
+
+### Offline app
+
+A web app manifest and a network-first service worker (`sw.js`) let the hosted game be installed and played offline: online visits always fetch the latest files and refresh the cache, which is used only when the network is unavailable. The service worker needs http(s), so opening `index.html` directly from disk works exactly as before without it.
 
 ## Languages and directionality
 
@@ -156,8 +166,12 @@ app.js                         UI, game state, history, and interactions
 solver.js                      Puzzle generation, solving, hints, and benchmarks
 puzzles.js                     Bundled puzzle catalogue
 i18n.js                        English, Hebrew, Yiddish, and Latin translations
+sw.js                          Offline service worker
+manifest.webmanifest           Installable app metadata
+icons/                         App icons and link-preview image
 tests_js/sudoku-core.test.mjs  Core and localization tests
 tools/sudoku_validator.c       Optional native validator
+.github/workflows/tests.yml    Runs the test suite on every push and pull request
 ```
 
 ## Privacy
