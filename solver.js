@@ -1519,9 +1519,10 @@ class SudokuEngine {
      * Solve board using Bitwise MRV Backtracking (Engine 1)
      * @param {number[][]} board 9x9 grid
      * @param {number} maxSolutions default 2 (stops early at 2 to prove uniqueness)
+     * @param {{ onStep?: function(Object): void }} options optional trace callback for teaching/visualization
      * @returns {{ success: boolean, solutionsCount: number, nodesExplored: number, timeUs: number, solvedBoard: number[][]|null, error?: string }}
      */
-    static solveBitwiseMRV(board, maxSolutions = 2) {
+    static solveBitwiseMRV(board, maxSolutions = 2, options = {}) {
         const t0 = performance.now();
         const POPCOUNT_9 = this._getPopcountTable();
 
@@ -1623,12 +1624,36 @@ class SudokuEngine {
                 colMask[c] |= digitBit;
                 boxMask[b] |= digitBit;
 
+                if (options.onStep) {
+                    options.onStep({
+                        type: 'place',
+                        algorithm: 'mrv',
+                        row: r,
+                        col: c,
+                        value: digit,
+                        candidateCount: minCands,
+                        depth: emptyCells.length - numEmpty
+                    });
+                }
+
+                const solutionsBeforeBranch = solutionsCount;
                 solveMRV(numEmpty - 1);
 
                 rowMask[r] &= ~digitBit;
                 colMask[c] &= ~digitBit;
                 boxMask[b] &= ~digitBit;
                 cells[chosenCell] = 0;
+
+                if (options.onStep && solutionsCount === solutionsBeforeBranch) {
+                    options.onStep({
+                        type: 'backtrack',
+                        algorithm: 'mrv',
+                        row: r,
+                        col: c,
+                        value: digit,
+                        depth: emptyCells.length - numEmpty
+                    });
+                }
 
                 if (solutionsCount >= maxSolutions) break;
             }
@@ -1660,9 +1685,10 @@ class SudokuEngine {
      * Solve board using Sequential Backtracking (Engine 2)
      * @param {number[][]} board 9x9 grid
      * @param {number} maxSolutions default 2
+     * @param {{ onStep?: function(Object): void }} options optional trace callback for teaching/visualization
      * @returns {{ success: boolean, solutionsCount: number, nodesExplored: number, timeUs: number, solvedBoard: number[][]|null, error?: string }}
      */
-    static solveBitwiseSequential(board, maxSolutions = 2) {
+    static solveBitwiseSequential(board, maxSolutions = 2, options = {}) {
         const t0 = performance.now();
 
         const cells = new Int8Array(81);
@@ -1745,12 +1771,35 @@ class SudokuEngine {
                 colMask[c] |= digitBit;
                 boxMask[b] |= digitBit;
 
+                if (options.onStep) {
+                    options.onStep({
+                        type: 'place',
+                        algorithm: 'seq',
+                        row: r,
+                        col: c,
+                        value: digit,
+                        depth: currIdx
+                    });
+                }
+
+                const solutionsBeforeBranch = solutionsCount;
                 solveSeq(currIdx + 1);
 
                 rowMask[r] &= ~digitBit;
                 colMask[c] &= ~digitBit;
                 boxMask[b] &= ~digitBit;
                 cells[cell] = 0;
+
+                if (options.onStep && solutionsCount === solutionsBeforeBranch) {
+                    options.onStep({
+                        type: 'backtrack',
+                        algorithm: 'seq',
+                        row: r,
+                        col: c,
+                        value: digit,
+                        depth: currIdx
+                    });
+                }
 
                 if (solutionsCount >= maxSolutions) break;
             }

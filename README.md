@@ -116,11 +116,20 @@ Translations live in `i18n.js`. Every locale must expose the same keys and prese
 
 The game includes three solver modes:
 
-- **Bitwise MRV** — bit-mask backtracking that selects the empty cell with the fewest candidates.
-- **Sequential Backtracking** — a simple row-major baseline for comparison.
-- **Deductive Logic** — applies logical placements without guessing and reports when it stalls instead of silently falling back to brute force.
+- **Bitwise MRV** — depth-first backtracking with 9-bit row, column, and box masks. At every level it selects the empty cell with the fewest legal candidates, so contradictions are discovered and pruned early. Its worst-case running time remains exponential, `O(9^m)` for `m` empty cells, but the heuristic dramatically reduces the practical search tree.
+- **Sequential Backtracking** — the same recursive search in fixed row-major order. It is intentionally simple and serves as a control that makes the effect of MRV visible. It has the same asymptotic bounds but often explores many more nodes.
+- **Deductive Logic** — rebuilds candidate sets and applies human-style rules in increasing order of difficulty. It can place digits and eliminate candidates without guessing; if the available techniques cannot advance the board, it reports a stall instead of silently switching to brute force.
 
 The benchmark runs multiple samples and reports median execution time, explored nodes, and detected solutions. It explicitly reports whether MRV was faster, slower, or effectively similar in the measured run.
+
+The lab also contains a self-contained teaching area:
+
+- a three-step explanation, complexity summary, and trade-off for the selected engine;
+- a miniature 9×9 animation that visualizes placements, candidate eliminations, and failed branches without touching the player's board;
+- JavaScript and modern C++ MRV sketches shown side by side;
+- localized controls and live descriptions in English, Hebrew, Yiddish, and Latin, including RTL layout and reduced-motion support.
+
+The animation is generated from the real solver trace callbacks rather than from a prerecorded sequence. Search traces are capped for presentation, then joined to the verified solved grid so the demonstration remains short even for sequential backtracking.
 
 ## Puzzle sources
 
@@ -147,7 +156,7 @@ The suite verifies:
 - every locale has the complete translation-key and placeholder set;
 - RTL/LTR behavior is correct for all supported languages.
 
-## Optional C validator
+## Optional native validator
 
 Build the command-line validator on Windows with:
 
@@ -155,7 +164,7 @@ Build the command-line validator on Windows with:
 .\build_validator.bat
 ```
 
-The build script detects GCC, Clang, or Microsoft C/C++. If no supported compiler is installed, it exits with a clear error and does not affect the browser game.
+The complete native validator is written in portable C, while the in-game Algorithm Lab includes a compact modern C++ version of the recursive MRV idea. The build script detects GCC, Clang, or Microsoft C/C++. If no supported compiler is installed, it exits with a clear error and does not affect the browser game.
 
 ## Project structure
 

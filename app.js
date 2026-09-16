@@ -116,6 +116,12 @@ class SudokuApp {
         // Focus is restored to the opener when a modal closes.
         this.modalReturnFocus = new Map();
 
+        // Algorithm Lab teaching animation. It always uses a small demo puzzle and never
+        // mutates the player's board.
+        this.algorithmDemo = null;
+        this.algorithmDemoTimer = null;
+        this.algorithmDemoPlaying = false;
+
         // Metadata
         this.currentDifficulty = 'easy';
         this.currentPuzzleMeta = { id: '', rating: 0, note: '' };
@@ -351,6 +357,7 @@ class SudokuApp {
                         card.classList.toggle('active', cardRadio.checked);
                     }
                 });
+                this.updateAlgorithmLab();
             });
         });
 
@@ -364,6 +371,17 @@ class SudokuApp {
         if (btnRunCompare) {
             btnRunCompare.addEventListener('click', () => this.runAlgorithmBenchmark());
         }
+
+        document.getElementById('btn-algo-demo-play')?.addEventListener('click', () => this.toggleAlgorithmDemo());
+        document.getElementById('btn-algo-demo-reset')?.addEventListener('click', () => this.resetAlgorithmDemo());
+        document.getElementById('algo-code-tab-js')?.addEventListener('click', () => this.selectAlgorithmCodeTab('js'));
+        document.getElementById('algo-code-tab-cpp')?.addEventListener('click', () => this.selectAlgorithmCodeTab('cpp'));
+        document.querySelector('.algo-code-tabs')?.addEventListener('keydown', event => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const selectCpp = event.key === 'ArrowRight' || event.key === 'End';
+            this.selectAlgorithmCodeTab(selectCpp ? 'cpp' : 'js');
+        });
 
         document.getElementById('btn-victory-new-game').addEventListener('click', () => {
             this.closeModal('modal-victory');
@@ -796,6 +814,10 @@ class SudokuApp {
         this.renderVictoryRecord();
         if (document.getElementById('modal-stats')?.classList.contains('open')) {
             this.renderStats();
+        }
+        if (document.getElementById('modal-algo')?.classList.contains('open')) {
+            this.updateAlgorithmGuide();
+            this.renderAlgorithmDemo();
         }
         this.refreshCustomModalLocalization();
     }
@@ -3114,6 +3136,7 @@ class SudokuApp {
                     const cardRadio = card.querySelector('input[type="radio"]');
                     if (cardRadio) card.classList.toggle('active', cardRadio.checked);
                 });
+                this.updateAlgorithmLab();
             } else if (modalId === 'modal-custom') {
                 this.onOpenCustomModal();
             }
@@ -3130,6 +3153,7 @@ class SudokuApp {
         const modal = document.getElementById(modalId);
         if (!modal) return;
         modal.classList.remove('open');
+        if (modalId === 'modal-algo') this.stopAlgorithmDemo();
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
         if (!document.querySelector('.modal-backdrop.open')) {
@@ -3168,6 +3192,260 @@ class SudokuApp {
             event.preventDefault();
             first.focus({ preventScroll: true });
         }
+    }
+
+    updateAlgorithmLab() {
+        this.updateAlgorithmGuide();
+        this.prepareAlgorithmDemo();
+    }
+
+    updateAlgorithmGuide() {
+        const algo = this.settings.activeAlgorithm || 'mrv';
+        const content = document.getElementById('algo-guide-content');
+        const complexity = document.getElementById('algo-guide-complexity');
+        const tradeoff = document.getElementById('algo-guide-tradeoff');
+        if (!content || !complexity || !tradeoff) return;
+
+        const summary = document.createElement('p');
+        summary.textContent = tr(`algo.guide.${algo}.summary`);
+        const steps = document.createElement('ol');
+        for (let index = 1; index <= 3; index++) {
+            const item = document.createElement('li');
+            item.textContent = tr(`algo.guide.${algo}.step${index}`);
+            steps.appendChild(item);
+        }
+        content.replaceChildren(summary, steps);
+        complexity.textContent = tr(`algo.guide.${algo}.complexity`);
+        tradeoff.textContent = tr(`algo.guide.${algo}.tradeoff`);
+    }
+
+    prepareAlgorithmDemo() {
+        this.stopAlgorithmDemo();
+        const puzzle = '020900000048000031000063020009407003003080200400105600030570000250000180000006050';
+        const initial = SudokuEngine.stringToGrid(puzzle);
+        const algo = this.settings.activeAlgorithm || 'mrv';
+        const steps = [];
+        const traceLimit = 260;
+        let condensed = false;
+        const record = step => {
+            if (steps.length < traceLimit) steps.push(step);
+            else condensed = true;
+        };
+        let result;
+
+        if (algo === 'seq') {
+            result = SudokuEngine.solveBitwiseSequential(initial, 1, { onStep: record });
+        } else if (algo === 'deductive') {
+            result = SudokuEngine.solveDeductive(initial, {
+                onStep: hint => {
+                    if (hint.action?.type === 'set_value') {
+                        record({
+                            type: 'place',
+                            algorithm: 'deductive',
+                            row: hint.action.row,
+                            col: hint.action.col,
+                            value: hint.action.value,
+                            nameKey: hint.nameKey,
+                            technique: hint.technique
+                        });
+                    } else if (hint.action?.type === 'eliminate_candidates') {
+                        record({
+                            type: 'eliminate',
+                            algorithm: 'deductive',
+                            eliminations: hint.action.eliminations,
+                            nameKey: hint.nameKey,
+                            technique: hint.technique
+                        });
+                    }
+                }
+            });
+        } else {
+            result = SudokuEngine.solveBitwiseMRV(initial, 1, { onStep: record });
+        }
+
+        if (result?.solvedBoard) {
+            steps.push({ type: 'finish', board: result.solvedBoard, condensed });
+        } else {
+            steps.push({ type: 'stalled' });
+        }
+
+        this.algorithmDemo = {
+            algorithm: algo,
+            initial,
+            board: initial.map(row => [...row]),
+            steps,
+            index: 0
+        };
+        this.renderAlgorithmDemo();
+        this.renderAlgorithmDemoStatus('algo.demo.ready');
+    }
+
+    renderAlgorithmDemo() {
+        const demo = this.algorithmDemo;
+        const boardEl = document.getElementById('algo-demo-board');
+        if (!demo || !boardEl) return;
+
+        if (boardEl.children.length !== 81) {
+            boardEl.replaceChildren();
+            for (let index = 0; index < 81; index++) {
+                const cell = document.createElement('span');
+                cell.className = 'algo-demo-cell';
+                cell.setAttribute('role', 'gridcell');
+                boardEl.appendChild(cell);
+            }
+        }
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cell = boardEl.children[r * 9 + c];
+                const value = demo.board[r][c];
+                cell.textContent = value || '';
+                cell.classList.toggle('given', demo.initial[r][c] !== 0);
+                cell.setAttribute('aria-label', tr('algo.demo.cell', {
+                    row: r + 1,
+                    col: c + 1,
+                    value: value || tr('a11y.empty')
+                }));
+            }
+        }
+
+        const counter = document.getElementById('algo-demo-counter');
+        if (counter) counter.textContent = `${demo.index} / ${demo.steps.length}`;
+        this.updateAlgorithmDemoPlayButton();
+    }
+
+    renderAlgorithmDemoStatus(key, params = {}) {
+        const status = document.getElementById('algo-demo-status');
+        if (status) status.textContent = tr(key, params);
+    }
+
+    resetAlgorithmDemo() {
+        if (!this.algorithmDemo) {
+            this.prepareAlgorithmDemo();
+            return;
+        }
+        this.stopAlgorithmDemo();
+        this.algorithmDemo.board = this.algorithmDemo.initial.map(row => [...row]);
+        this.algorithmDemo.index = 0;
+        document.querySelectorAll('.algo-demo-cell').forEach(cell => {
+            cell.classList.remove('demo-choice', 'demo-backtrack', 'demo-eliminate', 'demo-solved');
+        });
+        this.renderAlgorithmDemo();
+        this.renderAlgorithmDemoStatus('algo.demo.ready');
+    }
+
+    toggleAlgorithmDemo() {
+        if (!this.algorithmDemo) this.prepareAlgorithmDemo();
+        if (this.algorithmDemoPlaying) {
+            this.stopAlgorithmDemo();
+            return;
+        }
+        if (this.algorithmDemo.index >= this.algorithmDemo.steps.length) this.resetAlgorithmDemo();
+
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            while (this.algorithmDemo.index < this.algorithmDemo.steps.length) {
+                this.applyNextAlgorithmDemoStep();
+            }
+            return;
+        }
+
+        this.algorithmDemoPlaying = true;
+        this.updateAlgorithmDemoPlayButton();
+        this.scheduleAlgorithmDemoStep();
+    }
+
+    scheduleAlgorithmDemoStep() {
+        if (!this.algorithmDemoPlaying) return;
+        if (!this.applyNextAlgorithmDemoStep()) {
+            this.stopAlgorithmDemo();
+            return;
+        }
+        const speed = Number(document.getElementById('algo-demo-speed')?.value || 2);
+        const delays = { 1: 620, 2: 280, 3: 125, 4: 55 };
+        this.algorithmDemoTimer = window.setTimeout(() => this.scheduleAlgorithmDemoStep(), delays[speed] || 280);
+    }
+
+    applyNextAlgorithmDemoStep() {
+        const demo = this.algorithmDemo;
+        if (!demo || demo.index >= demo.steps.length) return false;
+        const step = demo.steps[demo.index++];
+        const boardEl = document.getElementById('algo-demo-board');
+        boardEl?.querySelectorAll('.algo-demo-cell').forEach(cell => {
+            cell.classList.remove('demo-choice', 'demo-backtrack', 'demo-eliminate');
+        });
+
+        if (step.type === 'place') {
+            demo.board[step.row][step.col] = step.value;
+            boardEl?.children[step.row * 9 + step.col]?.classList.add('demo-choice');
+            const technique = step.nameKey ? tr(step.nameKey) : tr(`algo.name.${step.algorithm}`);
+            this.renderAlgorithmDemoStatus('algo.demo.placing', {
+                value: step.value,
+                row: step.row + 1,
+                col: step.col + 1,
+                technique
+            });
+        } else if (step.type === 'backtrack') {
+            demo.board[step.row][step.col] = 0;
+            boardEl?.children[step.row * 9 + step.col]?.classList.add('demo-backtrack');
+            this.renderAlgorithmDemoStatus('algo.demo.backtracking', {
+                value: step.value,
+                row: step.row + 1,
+                col: step.col + 1
+            });
+        } else if (step.type === 'eliminate') {
+            const affected = new Set();
+            step.eliminations.forEach(({ row, col }) => {
+                affected.add(`${row},${col}`);
+                boardEl?.children[row * 9 + col]?.classList.add('demo-eliminate');
+            });
+            const technique = step.nameKey ? tr(step.nameKey) : step.technique;
+            this.renderAlgorithmDemoStatus('algo.demo.eliminating', {
+                count: affected.size,
+                technique
+            });
+        } else if (step.type === 'finish') {
+            demo.board = step.board.map(row => [...row]);
+            boardEl?.querySelectorAll('.algo-demo-cell:not(.given)').forEach(cell => cell.classList.add('demo-solved'));
+            this.renderAlgorithmDemoStatus(step.condensed ? 'algo.demo.solvedCondensed' : 'algo.demo.solved');
+        } else {
+            this.renderAlgorithmDemoStatus('algo.demo.stalled');
+        }
+
+        this.renderAlgorithmDemo();
+        return demo.index < demo.steps.length;
+    }
+
+    stopAlgorithmDemo() {
+        if (this.algorithmDemoTimer !== null) {
+            window.clearTimeout(this.algorithmDemoTimer);
+            this.algorithmDemoTimer = null;
+        }
+        this.algorithmDemoPlaying = false;
+        this.updateAlgorithmDemoPlayButton();
+    }
+
+    updateAlgorithmDemoPlayButton() {
+        const button = document.getElementById('btn-algo-demo-play');
+        if (!button) return;
+        button.textContent = this.algorithmDemoPlaying ? tr('algo.demo.pause') : tr('algo.demo.play');
+        button.setAttribute('aria-pressed', `${this.algorithmDemoPlaying}`);
+    }
+
+    selectAlgorithmCodeTab(language) {
+        const isCpp = language === 'cpp';
+        const jsTab = document.getElementById('algo-code-tab-js');
+        const cppTab = document.getElementById('algo-code-tab-cpp');
+        const jsPanel = document.getElementById('algo-code-js');
+        const cppPanel = document.getElementById('algo-code-cpp');
+        jsTab?.classList.toggle('active', !isCpp);
+        cppTab?.classList.toggle('active', isCpp);
+        jsTab?.setAttribute('aria-selected', `${!isCpp}`);
+        cppTab?.setAttribute('aria-selected', `${isCpp}`);
+        if (jsTab) jsTab.tabIndex = isCpp ? -1 : 0;
+        if (cppTab) cppTab.tabIndex = isCpp ? 0 : -1;
+        if (jsPanel) jsPanel.hidden = isCpp;
+        if (cppPanel) cppPanel.hidden = !isCpp;
+        (isCpp ? cppTab : jsTab)?.focus({ preventScroll: true });
     }
 
     runSelectedAlgorithmSolve() {
