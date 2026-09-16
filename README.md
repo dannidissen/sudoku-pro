@@ -4,6 +4,8 @@ A dependency-free, browser-based Sudoku game for advanced solvers. Sudoku Pro ru
 
 The interface is available in English, Hebrew, Yiddish, and Latin. English is the default; Hebrew and Yiddish use right-to-left layout automatically.
 
+**Play online:** https://dannidissen.github.io/sudoku-pro/
+
 ## Run locally
 
 No installation, server, or internet connection is required.
