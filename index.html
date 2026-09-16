@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260916m">
+    <link rel="stylesheet" href="style.css?v=20260917a">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -62,6 +62,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 <span data-i18n="header.credits">Library</span>
             </button>
+            <button id="btn-training" class="icon-btn"><span aria-hidden="true">🎯</span><span data-i18n="training.title">Technique practice</span></button>
             <button id="btn-algo-lab" class="icon-btn" data-i18n-title="header.algoLabTitle" title="Algorithm lab and solver engine comparison">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span data-i18n="header.algoLab">Algo Lab</span>
@@ -865,13 +866,45 @@ bool solve_mrv(Board *board) {
         </div>
     </div>
 
+    <div id="modal-training" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card training-card" role="dialog" aria-modal="true" aria-labelledby="training-title" tabindex="-1">
+            <div class="modal-header">
+                <h2 id="training-title" data-i18n="training.title">Technique practice</h2>
+                <button class="modal-close" data-close="modal-training" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
+            </div>
+            <p data-i18n="training.intro">Practice one deduction at a time. Your game waits here; its timer pauses during practice.</p>
+            <label for="training-technique" data-i18n="training.choose">Choose a technique</label>
+            <select id="training-technique" class="diff-select"></select>
+            <p id="training-progress"></p>
+            <p id="training-rule" class="training-rule"></p>
+            <p id="training-direction"></p>
+            <p id="training-instruction"></p>
+            <p data-i18n="training.legend">Outlined cells form the pattern. Marked digits are your answer. Row 1 is at the top; column 1 is on the left.</p>
+            <div id="training-board" class="training-board" role="group" data-i18n-aria-label="training.board" aria-label="Practice board" aria-describedby="training-instruction"></div>
+            <p id="training-selection" aria-live="polite"></p>
+            <div id="training-keypad" class="training-keypad" role="group" data-i18n-aria-label="training.keypad" aria-label="Choose a digit"></div>
+            <div class="training-actions">
+                <button id="training-check" class="action-btn primary" data-i18n="training.check">Check answer</button>
+                <button id="training-clear" class="action-btn" data-i18n="training.clear">Clear marks</button>
+                <button id="training-reveal" class="action-btn" data-i18n="training.reveal">Show explanation</button>
+                <button id="training-next" class="action-btn" data-i18n="training.next">Next exercise</button>
+            </div>
+            <p id="training-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+            <p id="training-explanation"></p>
+            <p id="training-source" class="training-source"></p>
+        </div>
+    </div>
+
     <!-- Toasts Container -->
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916m"></script>
-    <script src="puzzles.js?v=20260916m"></script>
-    <script src="solver.js?v=20260916m"></script>
-    <script src="app.js?v=20260916m"></script>
+    <script src="i18n.js?v=20260917a"></script>
+    <script src="puzzles.js?v=20260917a"></script>
+    <script src="solver.js?v=20260917a"></script>
+    <script src="training-recipes.js?v=20260917a"></script>
+    <script src="training.js?v=20260917a"></script>
+    <script src="training-ui.js?v=20260917a"></script>
+    <script src="app.js?v=20260917a"></script>
 </body>
 </html>

@@ -15,6 +15,43 @@ function parseBoard(puzzle) {
     ));
 }
 
+test('all 40 training drills replay to the requested technique without mutating the catalogue', () => {
+    const Training = require('../training.js');
+    const recipes = require('../training-recipes.js');
+    const before = JSON.stringify(globalThis.SUDOKU_PUZZLES);
+    assert.deepEqual(Object.keys(recipes), Training.techniques);
+    for (const technique of Training.techniques) {
+        assert.equal(recipes[technique].length, 4);
+        assert.equal(new Set(recipes[technique].map(recipe => recipe.id)).size, 4);
+        for (const recipe of recipes[technique]) {
+            const drill = Training.create(technique, recipe, globalThis.SUDOKU_PUZZLES);
+            const result = SudokuEngine.solveBitwiseMRV(drill.board, 2);
+            assert.equal(result.solutionsCount, 1);
+            assert.equal(drill.hint.nameKey, `hint.${technique}.name`);
+            for (const [cell, candidates] of Object.entries(drill.candidates)) {
+                const [r, c] = cell.split(',').map(Number);
+                if (!drill.board[r][c]) assert.ok(candidates.includes(result.solvedBoard[r][c]));
+            }
+            assert.ok(drill.answer.size > 0);
+            for (const key of drill.answer) {
+                const [r, c, digit] = key.split(',').map(Number);
+                assert.ok(drill.candidates[`${r},${c}`].includes(digit));
+                assert.equal(digit === result.solvedBoard[r][c], drill.hint.action.type === 'set_value');
+            }
+            assert.equal(Training.check(drill, new Set()), 'empty');
+            assert.equal(Training.check(drill, new Set(drill.answer)), 'correct');
+            assert.equal(Training.check(drill, new Set([...drill.answer, '0,0,0'])), 'incorrect');
+            if (drill.answer.size > 1) {
+                assert.equal(Training.check(drill, new Set([[...drill.answer][0]])), 'incomplete');
+            }
+            drill.board[0][0] = 0;
+            drill.candidates['0,0'] = [];
+            assert.equal(Training.create(technique, recipe, globalThis.SUDOKU_PUZZLES).hint.nameKey, `hint.${technique}.name`);
+        }
+    }
+    assert.equal(JSON.stringify(globalThis.SUDOKU_PUZZLES), before);
+});
+
 test('every bundled puzzle is structurally valid, unique and has one solution', () => {
     const ids = new Set();
     const puzzles = new Set();
@@ -403,8 +440,8 @@ test('timer checkpoint prevents reload rollback for the same puzzle', () => {
 
 test('modal markup is hidden by default and exposes dialog semantics', () => {
     const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-    assert.equal([...html.matchAll(/class="modal-backdrop" hidden aria-hidden="true"/g)].length, 6);
-    assert.equal([...html.matchAll(/role="dialog" aria-modal="true"/g)].length, 6);
+    assert.equal([...html.matchAll(/class="modal-backdrop" hidden aria-hidden="true"/g)].length, 7);
+    assert.equal([...html.matchAll(/role="dialog" aria-modal="true"/g)].length, 7);
 
     const serviceWorker = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
     assert.match(serviceWorker, /await cache\.put\(/);

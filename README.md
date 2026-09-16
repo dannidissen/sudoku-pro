@@ -42,6 +42,16 @@ Hints are presented in three stages:
 
 A separate **Reveal Cell** action is available when the player wants the correct value directly.
 
+### Technique practice
+
+Open **Technique practice** in the header to practice all ten supported deductive techniques, from Naked Single to XY-Wing. Each technique has four guided exercises from different Sudoku Exchange puzzles (40 total), cycling in order. Each drill explains the rule and outlines its pattern; select a cell and use the keypad or number keys to mark a placement or all candidate eliminations. Arrow keys navigate the practice board. The board keeps column 1 on the left in every language so coordinates and candidate positions stay consistent.
+
+Answer checking distinguishes incorrect, incomplete, and correct selections. **Show explanation** reveals the answer and its localized reasoning without counting an independent solve. The session counter tracks distinct correctly answered exercises and resets on page reload. These guided drills assess the displayed pattern rather than every possible valid move on the board.
+
+Exercises replay verified deduction paths from the existing catalogue, including prior candidate eliminations. Practice never modifies the active game, its undo history, or its statistics, and the game timer does not advance while practice is open. All four languages, keyboard navigation, mobile layout, and offline play are supported.
+
+To inspect or regenerate the recipe list, run `node tools/find_training_recipes.cjs`; it prints deterministic source IDs and step counts for `training-recipes.js`. The test suite reconstructs every exercise and checks its candidates and answer against the unique solution.
+
 ### Snyder notation and candidate entry
 
 - **Normal mode** enters a final digit.
@@ -173,6 +183,9 @@ index.html                     Application markup
 style.css                      Responsive layout and themes
 app.js                         UI, game state, history, and interactions
 solver.js                      Puzzle generation, solving, hints, and benchmarks
+training.js                    Practice replay and answer checking
+training-ui.js                 Isolated technique practice interface
+training-recipes.js            Forty source puzzle IDs and deduction offsets
 puzzles.js                     Bundled puzzle catalogue
 i18n.js                        English, Hebrew, Yiddish, and Latin translations
 sw.js                          Offline service worker

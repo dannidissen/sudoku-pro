@@ -1,3 +1,33 @@
+/* Technique practice keeps coordinates and candidate positions stable in RTL. */
+.modal-card.training-card { max-width: 680px; gap: 10px; }
+.training-card p { margin: 0; line-height: 1.5; font-size: .9rem; }
+.training-card select { width: 100%; }
+.training-rule { background: var(--bg-surface); padding: 12px; border-radius: 8px; }
+.training-board { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); width: 100%; max-width: 468px; align-self: center; direction: ltr; border: 2px solid var(--box-border); }
+.training-cell { aspect-ratio: 1; min-width: 0; padding: 1px; border: 0; border-right: 1px solid var(--cell-border); border-bottom: 1px solid var(--cell-border); border-radius: 0; background: var(--cell-bg); color: var(--text-primary); cursor: pointer; font: inherit; font-size: clamp(18px, 4vw, 27px); position: relative; }
+.training-cell:nth-child(3n) { border-right: 2px solid var(--box-border); }
+.training-cell:nth-child(9n) { border-right: 0; }
+.training-cell:nth-child(n+19):nth-child(-n+27), .training-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--box-border); }
+.training-cell:nth-child(n+73) { border-bottom: 0; }
+.training-cell.given { background: var(--cell-given-bg); font-weight: 700; }
+.training-cell.pattern { box-shadow: inset 0 0 0 2px var(--hint-target-border); background: var(--hint-target-bg); }
+.training-cell.active { outline: 3px solid var(--accent); outline-offset: -3px; z-index: 1; }
+.training-cell:focus-visible { outline: 3px dashed var(--accent); outline-offset: -3px; z-index: 2; }
+.training-candidates { display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; font-size: clamp(10px, 2.3vw, 14px); font-weight: 600; line-height: 1; }
+.training-candidates > span { display: grid; place-items: center; border-radius: 2px; }
+.training-candidates .marked { color: white; background: #1d4ed8; }
+.training-candidates .eliminated { text-decoration: line-through; text-decoration-thickness: 2px; }
+.training-keypad { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; direction: ltr; }
+.training-keypad .action-btn { min-width: 0; min-height: 44px; padding: 5px 0; font-size: 1.1rem; }
+.training-keypad [aria-pressed="true"] { background: #1d4ed8; color: white; }
+.training-card button:disabled { opacity: .45; cursor: default; }
+.training-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.training-actions button { min-height: 44px; white-space: normal; }
+.training-source { color: var(--text-muted); overflow-wrap: anywhere; }
+#training-feedback:not(:empty) { padding: 10px; background: var(--bg-surface); border-inline-start: 4px solid var(--accent); }
+#training-feedback.training-success { border-color: #22c55e; }
+@media (max-width: 480px) { .modal-card.training-card { padding: 12px; } .training-card p { font-size: .82rem; } }
+
 :root {
     --bg-primary: #f8fafc;
     --bg-secondary: #ffffff;
