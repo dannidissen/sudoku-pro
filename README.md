@@ -126,7 +126,7 @@ The lab also contains a self-contained teaching area:
 
 - a three-step explanation, complexity summary, and trade-off for the selected engine;
 - a miniature 9×9 animation that visualizes placements, candidate eliminations, and failed branches without touching the player's board;
-- JavaScript and modern C++ MRV sketches shown side by side;
+- equivalent MRV implementations in JavaScript, modern C++, portable C, and Java, with comments that expose the shared choose/try/recurse/backtrack structure;
 - localized controls and live descriptions in English, Hebrew, Yiddish, and Latin, including RTL layout and reduced-motion support.
 
 The animation is generated from the real solver trace callbacks rather than from a prerecorded sequence. Search traces are capped for presentation, then joined to the verified solved grid so the demonstration remains short even for sequential backtracking.
@@ -164,7 +164,7 @@ Build the command-line validator on Windows with:
 .\build_validator.bat
 ```
 
-The complete native validator is written in portable C, while the in-game Algorithm Lab includes a compact modern C++ version of the recursive MRV idea. The build script detects GCC, Clang, or Microsoft C/C++. If no supported compiler is installed, it exits with a clear error and does not affect the browser game.
+The complete native validator is written in portable C, while the in-game Algorithm Lab includes compact JavaScript, C++, C, and Java versions of the recursive MRV idea. The build script detects GCC, Clang, or Microsoft C/C++. If no supported compiler is installed, it exits with a clear error and does not affect the browser game.
 
 ## Project structure
 

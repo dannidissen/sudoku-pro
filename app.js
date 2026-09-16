@@ -386,13 +386,20 @@ class SudokuApp {
 
         document.getElementById('btn-algo-demo-play')?.addEventListener('click', () => this.toggleAlgorithmDemo());
         document.getElementById('btn-algo-demo-reset')?.addEventListener('click', () => this.resetAlgorithmDemo());
-        document.getElementById('algo-code-tab-js')?.addEventListener('click', () => this.selectAlgorithmCodeTab('js'));
-        document.getElementById('algo-code-tab-cpp')?.addEventListener('click', () => this.selectAlgorithmCodeTab('cpp'));
+        const algorithmCodeTabs = [...document.querySelectorAll('.algo-code-tab')];
+        algorithmCodeTabs.forEach(tab => {
+            tab.addEventListener('click', () => this.selectAlgorithmCodeTab(tab.dataset.language));
+        });
         document.querySelector('.algo-code-tabs')?.addEventListener('keydown', event => {
             if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
             event.preventDefault();
-            const selectCpp = event.key === 'ArrowRight' || event.key === 'End';
-            this.selectAlgorithmCodeTab(selectCpp ? 'cpp' : 'js');
+            const currentIndex = Math.max(0, algorithmCodeTabs.indexOf(document.activeElement));
+            let nextIndex = currentIndex;
+            if (event.key === 'Home') nextIndex = 0;
+            if (event.key === 'End') nextIndex = algorithmCodeTabs.length - 1;
+            if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % algorithmCodeTabs.length;
+            if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + algorithmCodeTabs.length) % algorithmCodeTabs.length;
+            this.selectAlgorithmCodeTab(algorithmCodeTabs[nextIndex].dataset.language);
         });
 
         document.getElementById('btn-victory-new-game').addEventListener('click', () => {
@@ -3625,20 +3632,19 @@ class SudokuApp {
     }
 
     selectAlgorithmCodeTab(language) {
-        const isCpp = language === 'cpp';
-        const jsTab = document.getElementById('algo-code-tab-js');
-        const cppTab = document.getElementById('algo-code-tab-cpp');
-        const jsPanel = document.getElementById('algo-code-js');
-        const cppPanel = document.getElementById('algo-code-cpp');
-        jsTab?.classList.toggle('active', !isCpp);
-        cppTab?.classList.toggle('active', isCpp);
-        jsTab?.setAttribute('aria-selected', `${!isCpp}`);
-        cppTab?.setAttribute('aria-selected', `${isCpp}`);
-        if (jsTab) jsTab.tabIndex = isCpp ? -1 : 0;
-        if (cppTab) cppTab.tabIndex = isCpp ? 0 : -1;
-        if (jsPanel) jsPanel.hidden = isCpp;
-        if (cppPanel) cppPanel.hidden = !isCpp;
-        (isCpp ? cppTab : jsTab)?.focus({ preventScroll: true });
+        const tabs = [...document.querySelectorAll('.algo-code-tab')];
+        const selectedTab = tabs.find(tab => tab.dataset.language === language) || tabs[0];
+        if (!selectedTab) return;
+
+        tabs.forEach(tab => {
+            const selected = tab === selectedTab;
+            tab.classList.toggle('active', selected);
+            tab.setAttribute('aria-selected', `${selected}`);
+            tab.tabIndex = selected ? 0 : -1;
+            const panel = document.getElementById(tab.getAttribute('aria-controls'));
+            if (panel) panel.hidden = !selected;
+        });
+        selectedTab.focus({ preventScroll: true });
     }
 
     runSelectedAlgorithmSolve() {

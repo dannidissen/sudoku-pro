@@ -410,6 +410,17 @@ test('modal markup is hidden by default and exposes dialog semantics', () => {
     assert.match(serviceWorker, /await cache\.put\(/);
 });
 
+test('Algorithm Lab exposes equivalent JavaScript, C++, C, and Java examples', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    for (const language of ['js', 'cpp', 'c', 'java']) {
+        assert.match(html, new RegExp(`id="algo-code-tab-${language}"[^>]+data-language="${language}"`));
+        assert.match(html, new RegExp(`id="algo-code-${language}"[^>]+role="tabpanel"`));
+    }
+    assert.match(html, /bool solve_mrv\(Board \*board\)/);
+    assert.match(html, /boolean solveMrv\(Board board\)/);
+    assert.match(html, /Integer\.numberOfTrailingZeros/);
+});
+
 test('modal focus trap handles initial dialog focus in both directions', () => {
     const SudokuApp = require('../app.js');
     const focused = [];
