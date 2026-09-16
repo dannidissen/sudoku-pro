@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
@@ -7,8 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090d16">
-    <title data-i18n="app.title">סודוקו פרו - גרסת מומחים עם Snyder Notation ורמזים מדורגים</title>
-    <link rel="stylesheet" href="style.css?v=20260916c">
+    <title data-i18n="app.title">Sudoku Pro - Expert Edition with Snyder Notation and Progressive Hints</title>
+    <link rel="stylesheet" href="style.css?v=20260916e">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -17,42 +17,42 @@
         <div class="logo-section">
             <span class="logo-emoji">🧩</span>
             <div>
-                <h1 data-i18n="app.name">סודוקו פרו</h1>
-                <span class="subtitle" data-i18n="app.subtitle">Snyder Notation • רמזים דדוקטיביים • צביעת תאים • פריסה מותאמת</span>
+                <h1 data-i18n="app.name">Sudoku Pro</h1>
+                <span class="subtitle" data-i18n="app.subtitle">Snyder Notation • Deductive hints • Cell coloring • Responsive layout</span>
             </div>
         </div>
         <div class="header-actions">
-            <label class="language-control" data-i18n-title="language.label" title="שפה">
+            <label class="language-control" data-i18n-title="language.label" title="Language">
                 <span aria-hidden="true">🌐</span>
-                <select id="language-select" class="language-select" aria-label="שפה" data-i18n-aria-label="language.label">
+                <select id="language-select" class="language-select" aria-label="Language" data-i18n-aria-label="language.label">
                     <option value="he">עברית</option>
-                    <option value="en">English</option>
+                    <option value="en" selected>English</option>
                     <option value="la">Latina</option>
                     <option value="yi">ייִדיש</option>
                 </select>
             </label>
-            <div class="pencil-size-control" data-i18n-title="pencilSize.title" title="גודל כתב רישומי העיפרון">
-                <span class="control-tag" data-i18n="pencilSize.label">עיפרון:</span>
-                <button id="btn-pencil-size-normal" class="size-btn active" data-i18n="pencilSize.normal">רגיל</button>
-                <button id="btn-pencil-size-large" class="size-btn" data-i18n="pencilSize.large">גדול</button>
-                <button id="btn-pencil-size-xlarge" class="size-btn" data-i18n="pencilSize.xlarge">ענק</button>
+            <div class="pencil-size-control" data-i18n-title="pencilSize.title" title="Pencil-mark text size">
+                <span class="control-tag" data-i18n="pencilSize.label">Pencil:</span>
+                <button id="btn-pencil-size-normal" class="size-btn active" data-i18n="pencilSize.normal">Normal</button>
+                <button id="btn-pencil-size-large" class="size-btn" data-i18n="pencilSize.large">Large</button>
+                <button id="btn-pencil-size-xlarge" class="size-btn" data-i18n="pencilSize.xlarge">Huge</button>
             </div>
-            <button id="btn-custom-puzzle" class="icon-btn" data-i18n-title="header.customTitle" title="טען סודוקו משלך">
+            <button id="btn-custom-puzzle" class="icon-btn" data-i18n-title="header.customTitle" title="Load your own Sudoku">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                <span data-i18n="header.custom">לוח אישי</span>
+                <span data-i18n="header.custom">Custom</span>
             </button>
-            <button id="btn-credits" class="icon-btn" data-i18n-title="header.creditsTitle" title="אודות ומקור החידות">
+            <button id="btn-credits" class="icon-btn" data-i18n-title="header.creditsTitle" title="About and puzzle sources">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                <span data-i18n="header.credits">מאגר</span>
+                <span data-i18n="header.credits">Library</span>
             </button>
-            <button id="btn-algo-lab" class="icon-btn" data-i18n-title="header.algoLabTitle" title="מעבדת אלגוריתמים ובחירת מנוע">
+            <button id="btn-algo-lab" class="icon-btn" data-i18n-title="header.algoLabTitle" title="Algorithm lab and solver engine comparison">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span data-i18n="header.algoLab">אלגוריתם</span>
+                <span data-i18n="header.algoLab">Algo Lab</span>
             </button>
-            <button id="btn-settings" class="icon-btn" data-i18n-title="header.settingsTitle" title="הגדרות">
+            <button id="btn-settings" class="icon-btn" data-i18n-title="header.settingsTitle" title="Settings">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
-            <button id="btn-theme" class="icon-btn" data-i18n-title="header.themeTitle" title="החלף מצב לילה/יום">
+            <button id="btn-theme" class="icon-btn" data-i18n-title="header.themeTitle" title="Switch light/dark theme">
                 <span id="theme-icon">☀️</span>
             </button>
         </div>
@@ -66,12 +66,12 @@
             <!-- Progressive Hint Banner -->
             <div id="hint-banner" class="hint-banner hidden">
                 <div class="hint-banner-content">
-                    <span class="hint-badge" id="hint-stage-badge" data-i18n="hint.initialBadge">שלב 1</span>
-                    <span id="hint-text" class="hint-text" data-i18n="hint.placeholder">כאן יופיע הסבר הרמז</span>
+                    <span class="hint-badge" id="hint-stage-badge" data-i18n="hint.initialBadge">Stage 1</span>
+                    <span id="hint-text" class="hint-text" data-i18n="hint.placeholder">The hint explanation will appear here</span>
                 </div>
                 <div class="hint-banner-actions">
-                    <button id="btn-hint-next" class="hint-step-btn" data-i18n="hint.next">המשך לשלב הבא 👈</button>
-                    <button id="btn-hint-dismiss" class="hint-close-btn" data-i18n-title="hint.dismissTitle" title="סגור רמז">&times;</button>
+                    <button id="btn-hint-next" class="hint-step-btn" data-i18n="hint.next">Continue to the next stage 👉</button>
+                    <button id="btn-hint-dismiss" class="hint-close-btn" data-i18n-title="hint.dismissTitle" title="Close hint">&times;</button>
                 </div>
             </div>
 
@@ -82,10 +82,10 @@
                 <!-- Pause Overlay -->
                 <div id="pause-overlay" class="pause-overlay hidden">
                     <span style="font-size: 3.5rem;">⏸️</span>
-                    <h2 data-i18n="pause.title">המשחק מושהה</h2>
-                    <p data-i18n="pause.description">הלוח מוסתר כדי לעצור את מדידת הזמן</p>
+                    <h2 data-i18n="pause.title">Game paused</h2>
+                    <p data-i18n="pause.description">The board is hidden while the timer is paused</p>
                     <button id="btn-resume" class="action-btn primary large-btn">
-                        <span data-i18n="pause.resume">המשך לשחק</span>
+                        <span data-i18n="pause.resume">Resume game</span>
                     </button>
                 </div>
             </div>
@@ -94,13 +94,13 @@
             <div id="cascade-banner" class="cascade-banner hidden">
                 <div class="cascade-content">
                     <span class="cascade-icon">⚡</span>
-                    <span class="cascade-text" data-i18n="cascade.text">כל המשבצות הנותרות ברורות!</span>
+                    <span class="cascade-text" data-i18n="cascade.text">Every remaining cell is forced!</span>
                 </div>
                 <div class="cascade-actions">
-                    <button id="btn-cascade-autocomplete" class="cascade-btn" data-i18n-title="cascade.actionTitle" title="השלם אוטומטית את כל התאים הנותרים וסיים">
-                        <span data-i18n="cascade.action">השלם אוטומטית וסיים 🚀</span>
+                    <button id="btn-cascade-autocomplete" class="cascade-btn" data-i18n-title="cascade.actionTitle" title="Fill all remaining cells automatically and finish">
+                        <span data-i18n="cascade.action">Auto-complete and finish 🚀</span>
                     </button>
-                    <button id="btn-cascade-dismiss" class="cascade-dismiss-btn" data-i18n-title="cascade.dismissTitle" title="סגור באנר והמשך לפתור לבד">&times;</button>
+                    <button id="btn-cascade-dismiss" class="cascade-dismiss-btn" data-i18n-title="cascade.dismissTitle" title="Dismiss and continue solving">&times;</button>
                 </div>
             </div>
 
@@ -112,46 +112,46 @@
             <!-- Input Modes (Snyder / Normal / Center) & Cell Color Palette Row -->
             <div class="board-controls-row">
                 <!-- Snyder Mode Selector -->
-                <div class="mode-selector-group" data-i18n-title="input.title" title="בחירת מצב הזנה">
+                <div class="mode-selector-group" data-i18n-title="input.title" title="Input mode">
                     <button id="mode-normal" class="mode-btn active" data-mode="normal">
-                        <span data-i18n="input.normal">✍️ רגיל</span>
+                        <span data-i18n="input.normal">✍️ Normal</span>
                     </button>
-                    <button id="mode-corner" class="mode-btn" data-mode="corner" data-i18n-title="input.cornerTitle" title="סימון פינתי לספרות מוגבלות בבלוק (Snyder)">
-                        <span data-i18n="input.corner">📐 פינתי (Snyder)</span>
+                    <button id="mode-corner" class="mode-btn" data-mode="corner" data-i18n-title="input.cornerTitle" title="Corner marks for digits restricted within a box (Snyder)">
+                        <span data-i18n="input.corner">📐 Corner (Snyder)</span>
                     </button>
-                    <button id="mode-center" class="mode-btn" data-mode="center" data-i18n-title="input.centerTitle" title="סימון מרכזי לכל המועמדים האפשריים">
-                        <span data-i18n="input.center">🎯 מרכזי</span>
+                    <button id="mode-center" class="mode-btn" data-mode="center" data-i18n-title="input.centerTitle" title="Centered marks for all possible candidates">
+                        <span data-i18n="input.center">🎯 Center</span>
                     </button>
                 </div>
 
                 <!-- Cell Coloring Palette -->
-                <div class="color-palette-group" data-i18n-title="colors.title" title="צביעת תאים למעקב אחר שרשראות (Chains)">
-                    <button class="color-btn" data-color="green" style="--c: #86efac;" data-i18n-title="colors.green" title="ירוק"></button>
-                    <button class="color-btn" data-color="blue" style="--c: #93c5fd;" data-i18n-title="colors.blue" title="כחול"></button>
-                    <button class="color-btn" data-color="orange" style="--c: #fdba74;" data-i18n-title="colors.orange" title="כתום"></button>
-                    <button class="color-btn" data-color="purple" style="--c: #d8b4fe;" data-i18n-title="colors.purple" title="סגול"></button>
-                    <button class="color-btn clear-color" data-color="" data-i18n-title="colors.clear" title="נקה צבע תא">🚫</button>
+                <div class="color-palette-group" data-i18n-title="colors.title" title="Cell colors for tracking chains">
+                    <button class="color-btn" data-color="green" style="--c: #86efac;" data-i18n-title="colors.green" title="Green"></button>
+                    <button class="color-btn" data-color="blue" style="--c: #93c5fd;" data-i18n-title="colors.blue" title="Blue"></button>
+                    <button class="color-btn" data-color="orange" style="--c: #fdba74;" data-i18n-title="colors.orange" title="Orange"></button>
+                    <button class="color-btn" data-color="purple" style="--c: #d8b4fe;" data-i18n-title="colors.purple" title="Purple"></button>
+                    <button class="color-btn clear-color" data-color="" data-i18n-title="colors.clear" title="Clear cell color">🚫</button>
                 </div>
             </div>
 
             <!-- Keyboard shortcut footer -->
             <div class="keyboard-helper">
-                <span data-i18n="keyboard.label">💡 מקשים:</span>
-                <kbd>1-9</kbd> <span data-i18n="keyboard.numbers">מספרים</span>
+                <span data-i18n="keyboard.label">💡 Keys:</span>
+                <kbd>1-9</kbd> <span data-i18n="keyboard.numbers">numbers</span>
                 <span>•</span>
-                <kbd>Space</kbd> <span data-i18n="keyboard.switchMode">החלף מצב כתיבה</span>
+                <kbd>Space</kbd> <span data-i18n="keyboard.switchMode">switch input mode</span>
                 <span>•</span>
-                <kbd>Shift + 1-9</kbd> <span data-i18n="keyboard.corner">סימון פינתי</span>
+                <kbd>Shift + 1-9</kbd> <span data-i18n="keyboard.corner">corner mark</span>
                 <span>•</span>
-                <kbd>Ctrl + 1-9</kbd> <span data-i18n="keyboard.center">סימון מרכזי</span>
+                <kbd>Ctrl + 1-9</kbd> <span data-i18n="keyboard.center">center mark</span>
                 <span>•</span>
-                <kbd data-i18n="keyboard.arrows">חיצים</kbd> <span data-i18n="keyboard.navigation">ניווט</span>
+                <kbd data-i18n="keyboard.arrows">Arrows</kbd> <span data-i18n="keyboard.navigation">navigate</span>
                 <span>•</span>
-                <kbd>Backspace</kbd> <span data-i18n="keyboard.erase">מחיקה</span>
+                <kbd>Backspace</kbd> <span data-i18n="keyboard.erase">erase</span>
                 <span>•</span>
-                <kbd>Ctrl+Z</kbd> <span data-i18n="keyboard.undo">ביטול</span>
+                <kbd>Ctrl+Z</kbd> <span data-i18n="keyboard.undo">undo</span>
                 <span>•</span>
-                <kbd>H</kbd> <span data-i18n="keyboard.hint">רמז לוגי</span>
+                <kbd>H</kbd> <span data-i18n="keyboard.hint">logical hint</span>
             </div>
         </section>
 
@@ -161,32 +161,32 @@
             <!-- Difficulty & New Game Card -->
             <div class="panel-card diff-card">
                 <div class="diff-header">
-                    <label for="difficulty-select" class="panel-label" data-i18n="difficulty.label">דרגת קושי:</label>
+                    <label for="difficulty-select" class="panel-label" data-i18n="difficulty.label">Difficulty:</label>
                     <select id="difficulty-select" class="diff-select">
-                        <option value="easy" selected data-i18n="difficulty.easyOption">🟢 קל (דירוג ~1.2)</option>
-                        <option value="medium" data-i18n="difficulty.mediumOption">🟡 בינוני (דירוג ~2.3)</option>
-                        <option value="hard" data-i18n="difficulty.hardOption">🟠 קשה (דירוג ~3.5)</option>
-                        <option value="expert" data-i18n="difficulty.expertOption">🔴 מומחה (דירוג 5.0 - 6.8)</option>
-                        <option value="master" data-i18n="difficulty.masterOption">🟣 מאסטר / שטני (דירוג 7.0 - 9.1+)</option>
-                        <option value="extreme" data-i18n="difficulty.extremeOption">☠️ סיוט עולמי (Top1465 / אקסטרים 10-11)</option>
+                        <option value="easy" selected data-i18n="difficulty.easyOption">🟢 Easy (rating ~1.2)</option>
+                        <option value="medium" data-i18n="difficulty.mediumOption">🟡 Medium (rating ~2.3)</option>
+                        <option value="hard" data-i18n="difficulty.hardOption">🟠 Hard (rating ~3.5)</option>
+                        <option value="expert" data-i18n="difficulty.expertOption">🔴 Expert (rating 5.0 - 6.8)</option>
+                        <option value="master" data-i18n="difficulty.masterOption">🟣 Master / Diabolical (rating 7.0 - 9.1+)</option>
+                        <option value="extreme" data-i18n="difficulty.extremeOption">☠️ World Nightmare (Top1465 / Extreme 10-11)</option>
                     </select>
                 </div>
 
                 <div class="diff-actions">
                     <button id="btn-new-game" class="action-btn primary full-width">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-                        <span data-i18n="game.new">הגרל לוח חדש</span>
+                        <span data-i18n="game.new">New random board</span>
                     </button>
                 </div>
 
                 <!-- Info Badges -->
                 <div class="meta-row">
                     <div class="meta-item">
-                        <span class="meta-title" data-i18n="meta.puzzle">לוח:</span>
+                        <span class="meta-title" data-i18n="meta.puzzle">Puzzle:</span>
                         <span id="puzzle-id-display" class="meta-val">Top1465-0001</span>
                     </div>
                     <div class="meta-item">
-                        <span class="meta-title" data-i18n="meta.rating">דירוג:</span>
+                        <span class="meta-title" data-i18n="meta.rating">Rating:</span>
                         <span id="puzzle-rating-display" class="meta-val badge-rating">11.0</span>
                     </div>
                 </div>
@@ -199,28 +199,28 @@
                     <span class="timer-icon">⏱️</span>
                     <span id="timer-display" class="timer-digits">00:00</span>
                 </div>
-                <button id="btn-pause" class="action-btn compact-btn" data-i18n-title="timer.pauseTitle" title="השהה משחק">
+                <button id="btn-pause" class="action-btn compact-btn" data-i18n-title="timer.pauseTitle" title="Pause game">
                     <svg id="pause-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                    <span data-i18n="timer.pause">השהה</span>
+                    <span data-i18n="timer.pause">Pause</span>
                 </button>
             </div>
 
             <!-- Deductive Hints & Reveal Card (Separated as requested!) -->
             <div class="panel-card hint-card">
-                <div class="panel-card-title" data-i18n="assist.title">💡 עזרי פתרון ורמזים:</div>
+                <div class="panel-card-title" data-i18n="assist.title">💡 Solving aids and hints:</div>
                 <div class="hint-buttons-grid">
-                    <button id="btn-deductive-hint" class="action-btn hint-main-btn" data-i18n-title="assist.hintHelp" title="רמז דדוקטיבי מדורג ב-3 שלבים: כיוון, הדגשה ופתרון מלא">
+                    <button id="btn-deductive-hint" class="action-btn hint-main-btn" data-i18n-title="assist.hintHelp" title="A three-stage deductive hint: direction, highlight and full solution">
                         <span style="font-size: 1.2rem;">🧠</span>
                         <div class="btn-text-col">
-                            <span class="btn-title" data-i18n="assist.hintTitle">רמז לוגי (Hint)</span>
-                            <span class="btn-subtitle" data-i18n="assist.hintSubtitle">3 שלבים: כיוון 👈 הדגשה 👈 פתרון</span>
+                            <span class="btn-title" data-i18n="assist.hintTitle">Logical hint</span>
+                            <span class="btn-subtitle" data-i18n="assist.hintSubtitle">3 stages: direction 👉 highlight 👉 solution</span>
                         </div>
                     </button>
-                    <button id="btn-reveal-cell" class="action-btn reveal-btn" data-i18n-title="assist.revealHelp" title="חושף ישירות את המספר הנכון לתא המסומן מתוך הפתרון המלא">
+                    <button id="btn-reveal-cell" class="action-btn reveal-btn" data-i18n-title="assist.revealHelp" title="Reveal the correct digit for the selected cell from the full solution">
                         <span style="font-size: 1.2rem;">👁️</span>
                         <div class="btn-text-col">
-                            <span class="btn-title" data-i18n="assist.revealTitle">חשוף תא (Reveal)</span>
-                            <span class="btn-subtitle" data-i18n="assist.revealSubtitle">חשיפה ישירה מהפתרון</span>
+                            <span class="btn-title" data-i18n="assist.revealTitle">Reveal cell</span>
+                            <span class="btn-subtitle" data-i18n="assist.revealSubtitle">Direct reveal from the solution</span>
                         </div>
                     </button>
                 </div>
@@ -228,23 +228,23 @@
 
             <!-- Pencil Tools & Safety Card -->
             <div class="panel-card pencil-tools-card">
-                <div class="panel-card-title" data-i18n="tools.title">✏️ כלי מועמדים ובטיחות:</div>
+                <div class="panel-card-title" data-i18n="tools.title">✏️ Candidates and safety tools:</div>
                 <div class="pencil-tools-grid">
-                    <button id="btn-autofill-pencil" class="action-btn autofill-accent-btn" data-i18n-title="tools.autofillTitle" title="חשב ומלא אוטומטית את כל המועמדים החוקיים לכל התאים הריקים">
+                    <button id="btn-autofill-pencil" class="action-btn autofill-accent-btn" data-i18n-title="tools.autofillTitle" title="Calculate and fill all legal candidates in every empty cell">
                         <span style="font-size: 1.2rem;">🪄</span>
-                        <span data-i18n="tools.autofill">מילוי מועמדים</span>
+                        <span data-i18n="tools.autofill">Fill candidates</span>
                     </button>
-                    <button id="btn-refresh-neighborhood" class="action-btn" data-i18n-title="tools.refreshTitle" title="מחשב מחדש מועמדים חוקיים לשורה, לטור ולבלוק של התא הנבחר">
+                    <button id="btn-refresh-neighborhood" class="action-btn" data-i18n-title="tools.refreshTitle" title="Recalculate legal candidates in the selected row, column and box">
                         <span style="font-size: 1.1rem;">🔄</span>
-                        <span data-i18n="tools.refresh">רענן סביבה</span>
+                        <span data-i18n="tools.refresh">Refresh area</span>
                     </button>
-                    <button id="btn-clear-pencil" class="action-btn" data-i18n-title="tools.clearTitle" title="מחק את כל רישומי העיפרון בלוח">
+                    <button id="btn-clear-pencil" class="action-btn" data-i18n-title="tools.clearTitle" title="Remove all pencil marks from the board">
                         <span style="font-size: 1.1rem;">🧹</span>
-                        <span data-i18n="tools.clear">נקה מועמדים</span>
+                        <span data-i18n="tools.clear">Clear candidates</span>
                     </button>
-                    <button id="btn-erase" class="action-btn" data-i18n-title="tools.eraseTitle" title="מחק תא מסומן (Backspace)">
+                    <button id="btn-erase" class="action-btn" data-i18n-title="tools.eraseTitle" title="Erase the selected cell (Backspace)">
                         <span style="font-size: 1.1rem;">⌫</span>
-                        <span data-i18n="tools.erase">מחק תא</span>
+                        <span data-i18n="tools.erase">Erase cell</span>
                     </button>
                 </div>
             </div>
@@ -252,17 +252,17 @@
             <!-- Quick Action Toolbar -->
             <div class="panel-card quick-card">
                 <div class="quick-tools-grid">
-                    <button id="btn-undo" class="quick-btn" data-i18n-title="tools.undoTitle" title="בטל פעולה (Ctrl+Z)">
+                    <button id="btn-undo" class="quick-btn" data-i18n-title="tools.undoTitle" title="Undo action (Ctrl+Z)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-                        <span data-i18n="tools.undo">בטל</span>
+                        <span data-i18n="tools.undo">Undo</span>
                     </button>
-                    <button id="btn-redo" class="quick-btn" data-i18n-title="tools.redoTitle" title="בצע שוב (Ctrl+Y)">
+                    <button id="btn-redo" class="quick-btn" data-i18n-title="tools.redoTitle" title="Redo action (Ctrl+Y)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
-                        <span data-i18n="tools.redo">שוב</span>
+                        <span data-i18n="tools.redo">Redo</span>
                     </button>
-                    <button id="btn-solve" class="quick-btn" data-i18n-title="tools.solveTitle" title="פתור את הלוח במלואו">
+                    <button id="btn-solve" class="quick-btn" data-i18n-title="tools.solveTitle" title="Reveal the complete solution">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3"/></svg>
-                        <span data-i18n="tools.solve">פתור הכל</span>
+                        <span data-i18n="tools.solve">Solve all</span>
                     </button>
                 </div>
             </div>
@@ -276,14 +276,14 @@
     <div id="modal-settings" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 data-i18n="settings.title">הגדרות ממשק ותצוגה</h2>
-                <button class="modal-close" data-close="modal-settings" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
+                <h2 data-i18n="settings.title">Interface and display settings</h2>
+                <button class="modal-close" data-close="modal-settings" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="settings-list">
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.snyderTitle">אפשר סימון פינתי (Snyder Notation)</span>
-                        <span class="setting-desc" data-i18n="settings.snyderDesc">מוסיף מצב סימון פינתי למועמדים מוגבלים בבלוק (מאפשר מעבר משולש במקש רווח). כבוי כברירת מחדל</span>
+                        <span class="setting-title" data-i18n="settings.snyderTitle">Enable corner marks (Snyder Notation)</span>
+                        <span class="setting-desc" data-i18n="settings.snyderDesc">Adds a corner-mark mode for candidates restricted within a box. Disabled by default.</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-enable-snyder">
@@ -293,8 +293,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.soundTitle">צלילי משחק עדינים (Audio FX)</span>
-                        <span class="setting-desc" data-i18n="settings.soundDesc">משמיע קליקים סינתטיים עדינים בהזנה וצליל ניצחון</span>
+                        <span class="setting-title" data-i18n="settings.soundTitle">Gentle game sounds</span>
+                        <span class="setting-desc" data-i18n="settings.soundDesc">Plays subtle input clicks and a victory sound</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-sound-enabled" checked>
@@ -304,8 +304,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.sameTitle">הדגש מספרים זהים</span>
-                        <span class="setting-desc" data-i18n="settings.sameDesc">מדגיש את כל המופעים של המספר הנבחר (כולל ברישומי העיפרון)</span>
+                        <span class="setting-title" data-i18n="settings.sameTitle">Highlight matching digits</span>
+                        <span class="setting-desc" data-i18n="settings.sameDesc">Highlights every occurrence of the selected digit, including pencil marks</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-highlight-same" checked>
@@ -315,8 +315,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.areaTitle">הדגש שורה, טור ובלוק של התא המסומן</span>
-                        <span class="setting-desc" data-i18n="settings.areaDesc">מציג רקע רך סביב אזור התא הנבחר</span>
+                        <span class="setting-title" data-i18n="settings.areaTitle">Highlight selected row, column and box</span>
+                        <span class="setting-desc" data-i18n="settings.areaDesc">Shows a soft background around the selected cell</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-highlight-area" checked>
@@ -326,8 +326,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.linesTitle">הצללת שורות, טורים וקוביות של הספרה (Cross-hatching)</span>
-                        <span class="setting-desc" data-i18n="settings.linesDesc">מסמן את כל השורות, הטורים והבלוקים שבהם הספרה כבר קיימת כדי לזהות מיד היכן חסר</span>
+                        <span class="setting-title" data-i18n="settings.linesTitle">Digit cross-hatching</span>
+                        <span class="setting-desc" data-i18n="settings.linesDesc">Marks rows, columns and boxes where the digit already appears</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-highlight-digit-lines" checked>
@@ -337,8 +337,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.pruneTitle">הסרת מועמדים אוטומטית (עם שחזור בטוח במחיקה)</span>
-                        <span class="setting-desc" data-i18n="settings.pruneDesc">בעת הצבת מספר סופי, מסיר אותו מהסביבה. אם תמחק את המספר - המועמדים ישוחזרו אוטומטית!</span>
+                        <span class="setting-title" data-i18n="settings.pruneTitle">Remove candidates automatically</span>
+                        <span class="setting-desc" data-i18n="settings.pruneDesc">Removes a placed digit from nearby marks and safely restores them when erased</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-auto-remove-pencil" checked>
@@ -348,8 +348,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.conflictsTitle">התראת שגיאות בזמן אמת ורטט</span>
-                        <span class="setting-desc" data-i18n="settings.conflictsDesc">מסמן באדום ומרטיט את התא אם הוזן מספר סותר באותה שורה, טור או בלוק</span>
+                        <span class="setting-title" data-i18n="settings.conflictsTitle">Real-time conflict warnings</span>
+                        <span class="setting-desc" data-i18n="settings.conflictsDesc">Marks and shakes a cell when its digit conflicts in the same row, column or box</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-highlight-conflicts" checked>
@@ -359,8 +359,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.solutionTitle">התראת שגיאות מול הפתרון בזמן אמת</span>
-                        <span class="setting-desc" data-i18n="settings.solutionDesc">מתריע ומסמן כשגיאה מיידית אם הוזן מספר שאינו תואם את פתרון החידה</span>
+                        <span class="setting-title" data-i18n="settings.solutionTitle">Check mistakes against the solution</span>
+                        <span class="setting-desc" data-i18n="settings.solutionDesc">Warn immediately when a digit differs from the puzzle solution</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-validate-solution" checked>
@@ -370,8 +370,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.blockTitle">חסימת ספרות מתנגשות במקלדת (Smart Numpad)</span>
-                        <span class="setting-desc" data-i18n="settings.blockDesc">מעמעם וחוסם ספרות שכבר קיימות באותה שורה, טור או בלוק למניעת הקשות שגויות</span>
+                        <span class="setting-title" data-i18n="settings.blockTitle">Block conflicting numpad digits</span>
+                        <span class="setting-desc" data-i18n="settings.blockDesc">Dims and disables digits already present in the selected row, column or box</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-block-conflicts" checked>
@@ -381,8 +381,8 @@
 
                 <div class="setting-item">
                     <div class="setting-info">
-                        <span class="setting-title" data-i18n="settings.gridTitle">סידור מועמדים חכם (רשת 3×3)</span>
-                        <span class="setting-desc" data-i18n="settings.gridDesc">מציג כל ספרת עיפרון במיקום קבוע בלוח 3×3 (כמו מקלדת נומרית) לסריקה ויזואלית מיידית</span>
+                        <span class="setting-title" data-i18n="settings.gridTitle">Smart 3×3 candidate layout</span>
+                        <span class="setting-desc" data-i18n="settings.gridDesc">Keeps each pencil digit in a fixed 3×3 position for quick visual scanning</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="set-smart-pencil-grid" checked>
@@ -390,7 +390,7 @@
                     </label>
                 </div>
             </div>
-            <button class="action-btn primary full-width" data-close="modal-settings" style="margin-top: 10px;" data-i18n="settings.save">שמור וסגור</button>
+            <button class="action-btn primary full-width" data-close="modal-settings" style="margin-top: 10px;" data-i18n="settings.save">Save and close</button>
         </div>
     </div>
 
@@ -398,16 +398,14 @@
     <div id="modal-custom" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 data-i18n="custom.title">הזנת סודוקו מותאם אישית</h2>
-                <button class="modal-close" data-close="modal-custom" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
+                <h2 data-i18n="custom.title">Load a custom Sudoku</h2>
+                <button class="modal-close" data-close="modal-custom" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-i18n="custom.instructions">
-                הדבק מחרוזת של 81 תווים (ספרות 1-9, ו-0 או נקודה עבור תא ריק):
-            </p>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;" data-i18n="custom.instructions">Paste 81 characters (digits 1-9, with 0 or a dot for an empty cell):</p>
             <textarea id="custom-puzzle-input" class="custom-puzzle-textarea" placeholder="...5.1...4.............002..."></textarea>
             <div style="display: flex; gap: 10px;">
-                <button id="btn-load-custom" class="action-btn primary" style="flex: 1;" data-i18n="custom.load">טען ושחק</button>
-                <button class="action-btn" data-close="modal-custom" data-i18n="common.cancel">ביטול</button>
+                <button id="btn-load-custom" class="action-btn primary" style="flex: 1;" data-i18n="custom.load">Load and play</button>
+                <button class="action-btn" data-close="modal-custom" data-i18n="common.cancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -416,24 +414,21 @@
     <div id="modal-credits" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 data-i18n="credits.title">מאגרי החידות והקרדיטים</h2>
-                <button class="modal-close" data-close="modal-credits" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
+                <h2 data-i18n="credits.title">Puzzle libraries and credits</h2>
+                <button class="modal-close" data-close="modal-credits" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
             <div class="credits-body">
-                <p data-i18n-html="credits.intro">
-                    🎮 <b>סודוקו פרו - גרסה מקצועית למתקדמים:</b><br>
-                    כולל מנוע רמזים דדוקטיבי (Hidden Single, Pointing, Pairs, X-Wing), שיטת Snyder Notation, צביעת תאים, פריסה מותאמת וחידות ברמת אקסטרים.
-                </p>
+                <p data-i18n-html="credits.intro">🎮 <b>Sudoku Pro - a professional edition for advanced solvers:</b><br>Includes deductive hints (Hidden Single, Pointing, Pairs and X-Wing), Snyder Notation, cell coloring, responsive play and extreme puzzles.</p>
                 <div class="credit-box">
-                    <h4 data-i18n="credits.bank1Title">📚 מאגר 1: Sudoku Exchange Puzzle Bank</h4>
-                    <p data-i18n-html="credits.bank1Body">נוצר ע"י Grant McLean בעזרת QQWing ודורג על ידי Sudoku Explainer. משמש לרמות קל, בינוני, קשה, מומחה ומאסטר (דירוגים 1.0 עד 9.1+). ברישיון <b>נחלת הכלל (Public Domain / CC0)</b>.</p>
+                    <h4 data-i18n="credits.bank1Title">📚 Library 1: Sudoku Exchange Puzzle Bank</h4>
+                    <p data-i18n-html="credits.bank1Body">Created by Grant McLean with QQWing and rated by Sudoku Explainer. Used for Easy through Master levels (ratings 1.0 to 9.1+). Licensed as <b>Public Domain / CC0</b>.</p>
                 </div>
                 <div class="credit-box">
-                    <h4 data-i18n="credits.bank2Title">☠️ מאגר 2: Top1465 Benchmark & היסטוריית האקסטרים</h4>
-                    <p data-i18n-html="credits.bank2Body">מאגר ה-1,465 החידות הקשות ביותר שנאספו בהיסטוריה (מאת Guenter Stertenbrink), יחד עם יצירות המופת של ד"ר Arto Inkala, ובהן <b>AI Escargot</b> ו-<b>Platinum Blonde</b>.</p>
+                    <h4 data-i18n="credits.bank2Title">☠️ Library 2: Top1465 Benchmark and extreme history</h4>
+                    <p data-i18n-html="credits.bank2Body">A collection of 1,465 exceptionally hard puzzles by Guenter Stertenbrink, together with Dr. Arto Inkala classics such as <b>AI Escargot</b> and <b>Platinum Blonde</b>.</p>
                 </div>
             </div>
-            <button class="action-btn primary full-width" data-close="modal-credits" data-i18n="credits.close">הבנתי, סגור</button>
+            <button class="action-btn primary full-width" data-close="modal-credits" data-i18n="credits.close">Got it, close</button>
         </div>
     </div>
 
@@ -441,35 +436,31 @@
     <div id="modal-victory" class="modal-backdrop">
         <div class="modal-card victory-card">
             <div class="victory-icon">🏆</div>
-            <h2 data-i18n="victory.title">ניצחון אדיר! פתרת את הלוח!</h2>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;" data-i18n="victory.subtitle">פתרון מושלם ללא שום שגיאה שנותרה.</p>
+            <h2 data-i18n="victory.title">Amazing! You solved the puzzle!</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;" data-i18n="victory.subtitle">A complete, valid solution with no remaining errors.</p>
             
             <div class="victory-stats">
                 <div class="stat-box">
                     <div class="stat-val" id="victory-time">00:00</div>
-                    <div class="stat-label" data-i18n="victory.time">זמן פתרון</div>
+                    <div class="stat-label" data-i18n="victory.time">Solve time</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-val" id="victory-difficulty">סיוט עולמי</div>
-                    <div class="stat-label" data-i18n="victory.difficulty">רמת קושי</div>
+                    <div class="stat-val" id="victory-difficulty">World Nightmare</div>
+                    <div class="stat-label" data-i18n="victory.difficulty">Difficulty</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-val" id="victory-mistakes">0</div>
-                    <div class="stat-label" data-i18n="victory.mistakes">טעויות שנעשו</div>
+                    <div class="stat-label" data-i18n="victory.mistakes">Mistakes</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-val" id="victory-hints">0</div>
-                    <div class="stat-label" data-i18n="victory.hints">רמזים שנלקחו</div>
+                    <div class="stat-label" data-i18n="victory.hints">Hints used</div>
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; width: 100%;">
-                <button id="btn-share-result" class="action-btn" style="flex: 1; padding: 12px; font-size: 1rem; border-color: var(--accent); color: var(--accent);" data-i18n="victory.share">
-                    📋 שתף תוצאה
-                </button>
-                <button id="btn-victory-new-game" class="action-btn primary" style="flex: 1.5; padding: 12px; font-size: 1rem;" data-i18n="victory.newGame">
-                    משחק חדש 🎉
-                </button>
+                <button id="btn-share-result" class="action-btn" style="flex: 1; padding: 12px; font-size: 1rem; border-color: var(--accent); color: var(--accent);" data-i18n="victory.share">📋 Share result</button>
+                <button id="btn-victory-new-game" class="action-btn primary" style="flex: 1.5; padding: 12px; font-size: 1rem;" data-i18n="victory.newGame">New game 🎉</button>
             </div>
         </div>
     </div>
@@ -480,14 +471,12 @@
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 1.3rem;">⚡</span>
-                    <h2 data-i18n="algo.title">מעבדת אלגוריתמים ובחירת מנוע</h2>
+                    <h2 data-i18n="algo.title">Algorithm Lab and solver selection</h2>
                 </div>
-                <button class="modal-close" data-close="modal-algo" data-i18n-aria-label="common.close" aria-label="סגור">&times;</button>
+                <button class="modal-close" data-close="modal-algo" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
             </div>
 
-            <p class="algo-modal-intro" data-i18n="algo.intro">
-                בחר באיזה אלגוריתם ברצונך להשתמש. תוכל להפעיל אותו ישירות על הלוח הנוכחי או להריץ בנצ'מרק ביצועים:
-            </p>
+            <p class="algo-modal-intro" data-i18n="algo.intro">Choose an algorithm. You can solve the current board or run a performance comparison:</p>
 
             <div class="algo-options-list">
                 <!-- Option 1: Bitwise MRV -->
@@ -498,11 +487,9 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🚀 Bitwise MRV Backtracking</span>
-                            <span class="algo-badge badge-fast" data-i18n="algo.mrvBadge">מהיר ביותר (מומלץ)</span>
+                            <span class="algo-badge badge-fast" data-i18n="algo.mrvBadge">Fastest on most boards (recommended)</span>
                         </div>
-                        <p class="algo-card-desc" data-i18n="algo.mrvDescription">
-                            בוחר תמיד את המשבצת עם הכי מעט מועמדים (MRV) בעזרת מסכות ביטים ישירות בחומרה. כולל גיזום מיידי של ענפים מתים (0 מועמדים) ומעבר מיידי ליחיד גלוי (1 מועמד).
-                        </p>
+                        <p class="algo-card-desc" data-i18n="algo.mrvDescription">Always selects the cell with the fewest candidates (MRV) using bit masks. It prunes dead branches early and handles single-candidate cells efficiently.</p>
                     </div>
                 </label>
 
@@ -514,11 +501,9 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🐢 Sequential Backtracking</span>
-                            <span class="algo-badge badge-standard" data-i18n="algo.seqBadge">סריקה סדרתית (בקרת שפיות)</span>
+                            <span class="algo-badge badge-standard" data-i18n="algo.seqBadge">Sequential scan (comparison baseline)</span>
                         </div>
-                        <p class="algo-card-desc" data-i18n="algo.seqDescription">
-                            סורק את כל המשבצות לפי הסדר הרגיל (0 עד 80) ללא עדיפויות חכמות. מדגים עץ חיפוש רחב וממחיש כמה צמתים וזמן נחסכים בזכות היוריסטיקת MRV.
-                        </p>
+                        <p class="algo-card-desc" data-i18n="algo.seqDescription">Scans cells in order without smart prioritization. It provides a baseline for measuring the effect of the MRV heuristic on the search tree.</p>
                     </div>
                 </label>
 
@@ -530,11 +515,9 @@
                     <div class="algo-card-content">
                         <div class="algo-card-header">
                             <span class="algo-card-title">🧠 Deductive Logic Engine</span>
-                            <span class="algo-badge badge-logic" data-i18n="algo.deductiveBadge">לוגיקה אנושית ללא ניחוש</span>
+                            <span class="algo-badge badge-logic" data-i18n="algo.deductiveBadge">Human logic without guessing</span>
                         </div>
-                        <p class="algo-card-desc" data-i18n="algo.deductiveDescription">
-                            מפעיל הצבות לוגיות שלב-אחר-שלב ללא ניחוש. אם נדרשת מחיקת מועמדים או שרשרת מתקדמת, המנוע עוצר ומדווח במקום לעבור לפתרון כוחני.
-                        </p>
+                        <p class="algo-card-desc" data-i18n="algo.deductiveDescription">Applies logical placements step by step without guessing. If a technique that does not immediately place a digit is required, the engine stops and reports it instead of switching to brute force.</p>
                     </div>
                 </label>
             </div>
@@ -542,17 +525,17 @@
             <!-- Action Buttons -->
             <div class="algo-actions">
                 <button id="btn-run-algo-solve" class="action-btn primary full-width">
-                    <span data-i18n="algo.solve">▶️ פתור לוח עם האלגוריתם הנבחר</span>
+                    <span data-i18n="algo.solve">▶️ Solve with the selected algorithm</span>
                 </button>
                 <button id="btn-run-algo-compare" class="action-btn full-width" style="border-color: var(--accent); color: var(--accent);">
-                    <span data-i18n="algo.benchmark">📊 הרץ השוואת ביצועים (Benchmark)</span>
+                    <span data-i18n="algo.benchmark">📊 Run performance benchmark</span>
                 </button>
             </div>
 
             <!-- Benchmark Results Area (Dynamic) -->
             <div id="algo-benchmark-results" class="algo-results hidden"></div>
 
-            <button class="action-btn full-width" data-close="modal-algo" style="margin-top: 4px;" data-i18n="common.close">סגור</button>
+            <button class="action-btn full-width" data-close="modal-algo" style="margin-top: 4px;" data-i18n="common.close">Close</button>
         </div>
     </div>
 
@@ -560,9 +543,9 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260916d"></script>
-    <script src="puzzles.js?v=20260916c"></script>
-    <script src="solver.js?v=20260916c"></script>
-    <script src="app.js?v=20260916c"></script>
+    <script src="i18n.js?v=20260916e"></script>
+    <script src="puzzles.js?v=20260916e"></script>
+    <script src="solver.js?v=20260916e"></script>
+    <script src="app.js?v=20260916e"></script>
 </body>
 </html>

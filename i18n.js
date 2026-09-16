@@ -77,6 +77,9 @@
             'meta.automatic': 'אוטומטי',
             'meta.custom': 'מותאם אישית',
             'meta.personal': 'אישי',
+            'puzzleNote.aiEscargot': 'AI Escargot (ד״ר Arto Inkala) — נחשב בעבר לסודוקו הקשה בעולם',
+            'puzzleNote.platinumBlonde': 'Platinum Blonde (Arto Inkala, 2010) — דירוג 11',
+            'puzzleNote.goldenNugget': 'Golden Nugget — גוש הזהב',
             'timer.pause': 'השהה',
             'timer.pauseTitle': 'השהה משחק',
             'assist.title': '💡 עזרי פתרון ורמזים:',
@@ -261,6 +264,7 @@
             'difficulty.label': 'Difficulty:', 'difficulty.easyOption': '🟢 Easy (rating ~1.2)', 'difficulty.mediumOption': '🟡 Medium (rating ~2.3)', 'difficulty.hardOption': '🟠 Hard (rating ~3.5)', 'difficulty.expertOption': '🔴 Expert (rating 5.0 - 6.8)', 'difficulty.masterOption': '🟣 Master / Diabolical (rating 7.0 - 9.1+)', 'difficulty.extremeOption': '☠️ World Nightmare (Top1465 / Extreme 10-11)',
             'difficulty.easy': 'Easy', 'difficulty.medium': 'Medium', 'difficulty.hard': 'Hard', 'difficulty.expert': 'Expert', 'difficulty.master': 'Master / Diabolical', 'difficulty.extreme': 'World Nightmare',
             'game.new': 'New random board', 'meta.puzzle': 'Puzzle:', 'meta.rating': 'Rating:', 'meta.generator': 'Generator', 'meta.automatic': 'Automatic', 'meta.custom': 'Custom', 'meta.personal': 'Personal',
+            'puzzleNote.aiEscargot': 'AI Escargot (Dr. Arto Inkala) — once considered the world’s hardest Sudoku', 'puzzleNote.platinumBlonde': 'Platinum Blonde (Arto Inkala, 2010) — rating 11', 'puzzleNote.goldenNugget': 'Golden Nugget',
             'timer.pause': 'Pause', 'timer.pauseTitle': 'Pause game',
             'assist.title': '💡 Solving aids and hints:', 'assist.hintTitle': 'Logical hint', 'assist.hintSubtitle': '3 stages: direction 👉 highlight 👉 solution', 'assist.hintHelp': 'A three-stage deductive hint: direction, highlight and full solution', 'assist.revealTitle': 'Reveal cell', 'assist.revealSubtitle': 'Direct reveal from the solution', 'assist.revealHelp': 'Reveal the correct digit for the selected cell from the full solution',
             'tools.title': '✏️ Candidates and safety tools:', 'tools.autofill': 'Fill candidates', 'tools.autofillTitle': 'Calculate and fill all legal candidates in every empty cell', 'tools.refresh': 'Refresh area', 'tools.refreshTitle': 'Recalculate legal candidates in the selected row, column and box', 'tools.clear': 'Clear candidates', 'tools.clearTitle': 'Remove all pencil marks from the board', 'tools.erase': 'Erase cell', 'tools.eraseTitle': 'Erase the selected cell (Backspace)', 'tools.undo': 'Undo', 'tools.undoTitle': 'Undo action (Ctrl+Z)', 'tools.redo': 'Redo', 'tools.redoTitle': 'Redo action (Ctrl+Y)', 'tools.solve': 'Solve all', 'tools.solveTitle': 'Reveal the complete solution',
@@ -308,6 +312,7 @@
             'difficulty.label': 'שוועריקייט:', 'difficulty.easyOption': '🟢 גרינג (ראַנג ~1.2)', 'difficulty.mediumOption': '🟡 מיטל (ראַנג ~2.3)', 'difficulty.hardOption': '🟠 שווער (ראַנג ~3.5)', 'difficulty.expertOption': '🔴 עקספּערט (ראַנג 5.0 - 6.8)', 'difficulty.masterOption': '🟣 מײַסטער / טײַווליש (ראַנג 7.0 - 9.1+)', 'difficulty.extremeOption': '☠️ וועלט־קאשמאר (Top1465 / עקסטרעם 10-11)',
             'difficulty.easy': 'גרינג', 'difficulty.medium': 'מיטל', 'difficulty.hard': 'שווער', 'difficulty.expert': 'עקספּערט', 'difficulty.master': 'מײַסטער / טײַווליש', 'difficulty.extreme': 'וועלט־קאשמאר',
             'game.new': 'נײַער צופֿעליקער ברעט', 'meta.puzzle': 'רעטעניש:', 'meta.rating': 'ראַנג:', 'meta.generator': 'גענעראַטאָר', 'meta.automatic': 'אויטאָמאַטיש', 'meta.custom': 'אייגענע', 'meta.personal': 'פּערזענלעך',
+            'puzzleNote.aiEscargot': 'AI Escargot (ד״ר Arto Inkala) — אַ מאָל באַטראַכט ווי די שווערסטע סודאָקו אין דער וועלט', 'puzzleNote.platinumBlonde': 'Platinum Blonde (Arto Inkala, 2010) — ראַנג 11', 'puzzleNote.goldenNugget': 'Golden Nugget — גאָלדענער שטיקל',
             'timer.pause': 'פּאַוזע', 'timer.pauseTitle': 'פּאַוזיר די שפּיל',
             'assist.title': '💡 לייז־געצייג און הילפֿן:', 'assist.hintTitle': 'לאָגישע הילף', 'assist.hintSubtitle': '3 שטופֿעס: ריכטונג 👈 הויכפּונקט 👈 לייזונג', 'assist.hintHelp': 'אַ דעדוקטיווע הילף אין דרײַ שטופֿעס', 'assist.revealTitle': 'אַנטפּלעק אַ צעל', 'assist.revealSubtitle': 'דירעקט פֿון דער לייזונג', 'assist.revealHelp': 'ווײַז די ריכטיקע ציפֿער אינעם אויסגעקליבענעם צעל',
             'tools.title': '✏️ קאַנדידאַטן און זיכערקייט:', 'tools.autofill': 'פֿיל קאַנדידאַטן', 'tools.autofillTitle': 'רעכן און פֿיל אַלע לעגאַלע קאַנדידאַטן', 'tools.refresh': 'דערפֿריש געגנט', 'tools.refreshTitle': 'רעכן ווידער קאַנדידאַטן אין דער ריי, זייַל און קעסטל', 'tools.clear': 'מעק קאַנדידאַטן', 'tools.clearTitle': 'מעק אויס אַלע בלײַער־צייכנס', 'tools.erase': 'מעק צעל', 'tools.eraseTitle': 'מעק דעם אויסגעקליבענעם צעל', 'tools.undo': 'צוריק', 'tools.undoTitle': 'מאַך צוריק (Ctrl+Z)', 'tools.redo': 'ווידער', 'tools.redoTitle': 'מאַך ווידער (Ctrl+Y)', 'tools.solve': 'לייז אַלץ', 'tools.solveTitle': 'אַנטפּלעק די גאַנצע לייזונג',
@@ -361,6 +366,7 @@
         'difficulty.label': 'Difficultas:', 'difficulty.easyOption': '🟢 Facile (aestimatio ~1.2)', 'difficulty.mediumOption': '🟡 Medium (aestimatio ~2.3)', 'difficulty.hardOption': '🟠 Difficile (aestimatio ~3.5)', 'difficulty.expertOption': '🔴 Peritum (aestimatio 5.0–6.8)', 'difficulty.masterOption': '🟣 Magister / Diabolicum (aestimatio 7.0–9.1+)', 'difficulty.extremeOption': '☠️ Incubus Mundi (Top1465 / Extremum 10–11)',
         'difficulty.easy': 'Facile', 'difficulty.medium': 'Medium', 'difficulty.hard': 'Difficile', 'difficulty.expert': 'Peritum', 'difficulty.master': 'Magister / Diabolicum', 'difficulty.extreme': 'Incubus Mundi',
         'game.new': 'Nova tabula fortuita', 'meta.puzzle': 'Aenigma:', 'meta.rating': 'Aestimatio:', 'meta.generator': 'Generator', 'meta.automatic': 'Automaticum', 'meta.custom': 'Proprium', 'meta.personal': 'Personale',
+        'puzzleNote.aiEscargot': 'AI Escargot (Dr. Arto Inkala) — olim Sudoku difficillimum mundi habitum', 'puzzleNote.platinumBlonde': 'Platinum Blonde (Arto Inkala, 2010) — aestimatio 11', 'puzzleNote.goldenNugget': 'Golden Nugget — Massa Aurea',
         'timer.pause': 'Intermittere', 'timer.pauseTitle': 'Ludum intermittere',
         'assist.title': '💡 Auxilia et indicia:', 'assist.hintTitle': 'Indicium logicum', 'assist.hintSubtitle': '3 gradus: directio 👉 illustratio 👉 solutio', 'assist.hintHelp': 'Indicium deductivum tribus gradibus: directio, illustratio et solutio plena', 'assist.revealTitle': 'Cellulam revelare', 'assist.revealSubtitle': 'Revelatio directa ex solutione', 'assist.revealHelp': 'Numerum rectum cellulae selectae ex solutione plena revela',
         'tools.title': '✏️ Candidati et instrumenta tutelae:', 'tools.autofill': 'Candidatos implere', 'tools.autofillTitle': 'Omnes candidatos licitos in cellulis vacuis computa et imple', 'tools.refresh': 'Regionem renovare', 'tools.refreshTitle': 'Candidatos licitos in ordine, columna et quadrato selectis iterum computa', 'tools.clear': 'Candidatos delere', 'tools.clearTitle': 'Omnes notas graphideas e tabula remove', 'tools.erase': 'Cellulam delere', 'tools.eraseTitle': 'Cellulam selectam delere (Backspace)', 'tools.undo': 'Revocare', 'tools.undoTitle': 'Actionem revocare (Ctrl+Z)', 'tools.redo': 'Repetere', 'tools.redoTitle': 'Actionem repetere (Ctrl+Y)', 'tools.solve': 'Omnia solvere', 'tools.solveTitle': 'Solutionem plenam revelare',
@@ -392,10 +398,10 @@
         'unit.row': 'ordo {index}', 'unit.col': 'columna {index}', 'unit.box': 'quadratum {index}'
     };
 
-    let currentLanguage = 'he';
+    let currentLanguage = 'en';
 
     function normalizeLanguage(language) {
-        return Object.prototype.hasOwnProperty.call(translations, language) ? language : 'he';
+        return Object.prototype.hasOwnProperty.call(translations, language) ? language : 'en';
     }
 
     function interpolate(template, params = {}) {
@@ -405,8 +411,8 @@
     }
 
     function t(key, params = {}) {
-        const table = translations[currentLanguage] || translations.he;
-        const template = table[key] ?? translations.he[key] ?? key;
+        const table = translations[currentLanguage] || translations.en;
+        const template = table[key] ?? translations.en[key] ?? key;
         return interpolate(template, params);
     }
 
@@ -454,9 +460,9 @@
 
     function getSavedLanguage() {
         try {
-            return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || 'he');
+            return normalizeLanguage(localStorage.getItem(STORAGE_KEY) || 'en');
         } catch (_) {
-            return 'he';
+            return 'en';
         }
     }
 

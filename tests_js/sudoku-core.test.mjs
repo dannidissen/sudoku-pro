@@ -105,6 +105,18 @@ test('all languages expose the same translation keys and correct direction', () 
     for (const key of usedKeys) {
         assert.ok(Object.hasOwn(dictionaries.he, key), `missing translation key: ${key}`);
     }
+    for (const entries of Object.values(globalThis.SUDOKU_PUZZLES)) {
+        for (const entry of entries) {
+            if (!entry.noteKey) continue;
+            for (const [language, dictionary] of Object.entries(dictionaries)) {
+                assert.ok(Object.hasOwn(dictionary, entry.noteKey), `${language}: missing puzzle note ${entry.noteKey}`);
+            }
+        }
+    }
+
+    globalThis.SudokuI18n.setLanguage('unsupported', { persist: false });
+    assert.equal(globalThis.document.documentElement.lang, 'en');
+    assert.equal(globalThis.document.documentElement.dir, 'ltr');
 
     globalThis.SudokuI18n.setLanguage('he', { persist: false });
     assert.equal(globalThis.document.documentElement.dir, 'rtl');

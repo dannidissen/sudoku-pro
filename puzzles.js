@@ -3765,19 +3765,19 @@ window.SUDOKU_PUZZLES = {
       "id": "AI-Escargot",
       "puzzle": "100007090030020008009600500005300900010080002600004000300000010040000007007000300",
       "rating": 11.0,
-      "note": "AI Escargot (Dr. Arto Inkala) - נחשב בעבר לסודוקו הקשה בעולם"
+      "noteKey": "puzzleNote.aiEscargot"
     },
     {
       "id": "PlatinumBlonde",
       "puzzle": "000000012000000003002300400001800005060070800000009000008500000900040500470006000",
       "rating": 11.0,
-      "note": "Platinum Blonde (Arto Inkala 2010) - דירוג 11"
+      "noteKey": "puzzleNote.platinumBlonde"
     },
     {
       "id": "GoldenNugget",
       "puzzle": "000000010400000000020000000000050407008000300001090000300400200050100000000806000",
       "rating": 10.8,
-      "note": "Golden Nugget - גוש זהב"
+      "noteKey": "puzzleNote.goldenNugget"
     },
     {
       "id": "Top1465-0001",

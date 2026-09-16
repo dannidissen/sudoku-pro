@@ -1,125 +1,143 @@
-# סודוקו פרו (Sudoku Pro) - גרסת מומחים מתקדמת 🔢
+# Sudoku Pro 🔢
 
-משחק סודוקו מקצועי ומתקדם, בנוי ב-**Vanilla JS טהור ללא ספריות חיצוניות (Zero Dependencies)**, רץ 100% מקומית בדפדפן (Offline), כולל מנוע רמזים דדוקטיבי מדורג, שיטת סימון פינתי ומרכזי (Snyder Notation), צביעת תאים לשרשראות (Chains), הגנה ושחזור אוטומטי של מועמדים, תמיכה בעברית, אנגלית, לטינית ויידיש, ואפקטים קוליים מובנים (Web Audio API).
+A dependency-free, browser-based Sudoku game for advanced solvers. Sudoku Pro runs entirely offline and combines progressive deductive hints, Snyder notation, candidate management, cell coloring, multiple solver engines, and a responsive desktop/mobile interface.
 
----
+The interface is available in English, Hebrew, Yiddish, and Latin. English is the default; Hebrew and Yiddish use right-to-left layout automatically.
 
-## 🚀 איך להפעיל?
-פשוט לחצו פעמיים על **`open_game.bat`** (או פתחו ישירות את **`index.html`** בכל דפדפן).
-אין צורך בהתקנות, בשרת או בחיבור לאינטרנט.
+## Run locally
 
----
+No installation, server, or internet connection is required.
 
-## 🧠 1. מנוע רמזים דדוקטיבי מדורג ב-3 שלבים
-בניגוד לפתרונות פשוטים שחושפים את המספר ישירות מתוך הפתרון (Brute-Force Spoiler), מנוע הרמזים החדש מזהה טכניקות לוגיות אנושיות אמיתיות:
-1. **ספרה גלויה יחידה (Naked Single):** תא שרואה את כל שאר הספרות ונותר לו מועמד חוקי יחיד.
-2. **ספרה נסתרת יחידה (Hidden Single):** ספרה שיכולה להופיע אך ורק בתא אחד בתוך שורה, טור או בלוק.
-3. **זוג / שלשה מכוונת (Pointing Pairs / Triples):** מועמדים בבלוק המיושרים לאותה שורה או טור ומוחקים את המועמד בהמשך השורה/טור שמחוץ לבלוק.
-4. **זוג גלוי (Naked Pairs):** שני תאים באותה יחידה המכילים אך ורק את אותם 2 מועמדים, ונועלים אותם מפני שאר התאים.
-5. **כנף X (X-Wing):** נעילת ספרה בשתי שורות ושני טורים בלבד, המאפשרת מחיקת מועמדים לאורך הקווים.
+- On Windows, double-click `open_game.bat`.
+- On any platform, open `index.html` in a modern browser.
 
-### 🪜 מערכת רמז מדורגת:
-- **לחיצה 1 (כיוון כללי):** מציגה רמז מכוון בסרגל העליון (למשל: *"חפש Hidden Single עבור הספרה 3 בבלוק 1"*).
-- **לחיצה 2 (הדגשה חזותית):** מדגישה בצהוב זוהר את התאים הרלוונטיים ובתכלת את היחידה (שורה/טור/בלוק).
-- **לחיצה 3 (ביצוע והסבר מלא):** מבצעת את ההצבה או מחיקת המועמדים ומציגה הסבר מפורט ומנומק בעברית.
+## Features
 
-### 👁️ כפתור נפרד: "חשוף תא" (Reveal Cell)
-הפרדה מלאה בין רמז לוגי חינוכי לבין חשיפה ישירה של המספר הנכון מהפתרון המלא עבור התא המסומן.
+### Progressive deductive hints
 
----
+The hint engine identifies human-solving techniques instead of revealing a brute-force answer immediately:
 
-## 📐 2. תמיכה מלאה ב-Snyder Notation (פינתי מול מרכזי)
-שחקני סודוקו מהירים נעזרים בשיטת תומאס סניידר (Snyder Notation):
-- **✍️ מצב רגיל (Normal):** הזנת מספר סופי לתא.
-- **📐 מצב פינתי (Corner Marks - Snyder):** סימון ספרות קטנות בפינות התא (לספרות שמוגבלות לשני מקומות בלבד בבלוק).
-- **🎯 מצב מרכזי (Center Marks):** סימון כלל המועמדים האפשריים במרכז התא.
+1. **Naked Single** — a cell has only one legal candidate.
+2. **Hidden Single** — a digit can appear in only one cell of a row, column, or box.
+3. **Pointing Pair/Triple** — candidates in a box align on one row or column and eliminate candidates outside the box.
+4. **Naked Pair** — two cells in one unit contain the same two candidates, eliminating them elsewhere in that unit.
+5. **X-Wing** — a digit is restricted to the same two columns in two rows, or the same two rows in two columns.
 
-### ⌨️ מעבר מהיר בין המצבים:
-- לחיצה על **`Space`** או **`Tab`** מחליפה מעגלית: **רגיל 🔁 פינתי 🔁 מרכזי**.
-- **`Shift + 1-9`**: הזנה/הסרה מהירה של סימון פינתי (Corner).
-- **`Ctrl + 1-9`**: הזנה/הסרה מהירה של סימון מרכזי (Center).
-- מקשי קיצור ישירים: **`Z`** (רגיל), **`X`** (פינתי), **`C`** (מרכזי).
+Hints are presented in three stages:
 
----
+1. A direction that tells the player where and what to inspect.
+2. A visual highlight of the relevant cells and unit.
+3. The placement or elimination, followed by a localized explanation.
 
-## 🛡️ 3. מנגנון בטיחות ושחזור מועמדים בטעויות
-- **שחזור אוטומטי בעת מחיקה:** בעת הזנת מספר בתא, המערכת שומרת תמונת מצב מדויקת (Snapshot) של כל מועמדי העיפרון שהוסרו בסביבה. אם תמחקו את המספר (בגלל טעות, בדיקה או התחרטות), **כל מועמדי העיפרון שנמחקו בסביבה ישוחזרו מיד אוטומטית!**
-- **רענן מועמדים בסביבה (Refresh Neighborhood):** כפתור ייעודי לחישוב מחדש של מועמדים חוקיים עבור כל התאים הריקים באותה שורה, טור ובלוק של התא הנבחר.
+A separate **Reveal Cell** action is available when the player wants the correct value directly.
 
----
+### Snyder notation and candidate entry
 
-## 🎨 4. כלי צביעת תאים (Cell Coloring)
-כלי הכרחי לשחקנים מתקדמים למעקב אחר שרשראות (Chains), זוגות מתחלפים והסקה לוגית:
-- פלטת 4 צבעי פסטל רכים שאינם מעייפים את העיניים:
-  - 🟢 **ירוק בהיר**
-  - 🔵 **כחול בהיר**
-  - 🟠 **כתום פסטל**
-  - 🟣 **סגול לבנדר**
-  - 🚫 **מחק צבע תא**
-- הצבעים משתלבים בצורה מושלמת עם מצב לילה ומצב יום, נשמרים בהיסטוריית ה-Undo/Redo וב-LocalStorage.
+- **Normal mode** enters a final digit.
+- **Corner mode** stores Snyder-style candidates around the cell perimeter.
+- **Center mode** stores general candidates in a fixed 3×3 layout.
 
----
+Keyboard shortcuts:
 
-## 🖥️ 5. פריסה רספונסיבית ואפס גלילה במחשב
-- כל המשחק (הלוח הענק, מקלדת המספרים, כלי העיפרון, הטיימר ולוח הבקרה) מותאם במדויק לגובה המסך (`100dvh`).
-- נוסחת גודל לוח דינמית: `min(670px, calc(100dvh - 175px), calc(100vw - 420px))`.
-- מקלדת הספרות (1-9) ממוקמת כשורה נגישה ישירות מתחת ללוח.
-- במסכי מחשב הפריסה שומרת על סביבת עבודה קומפקטית; במסכים צרים היא עוברת לפריסה אנכית וניתנת לגלילה כדי ששום כלי לא ייחתך.
-- סרגל הכותרת, בחירת השפה וטבלת הבנצ׳מרק מותאמים גם למסכים צרים במיוחד.
+- `Space` or `Tab`: switch input mode.
+- `Shift + 1-9`: toggle a corner mark when Snyder mode is enabled.
+- `Ctrl + 1-9`: toggle a center mark.
+- `Z`, `X`, `C`: select Normal, Corner, or Center mode.
+- Arrow keys: move between cells according to the active LTR/RTL layout.
+- `Backspace`: erase the selected cell.
+- `Ctrl+Z` / `Ctrl+Y`: undo / redo.
+- `H`: request a logical hint.
 
----
+### Candidate safety
 
-## 🔊 6. משוב קולי עדין (Web Audio API) ומיקרו-אינטראקציות
-- **קולות סינתטיים מובנים (ללא קבצי שמע כבדים):**
-  - קליק נקי ועדין בהזנת מספר (520Hz).
-  - צליל הקשה רך בסימון עיפרון (380Hz).
-  - צליל מחיקה עדין (240Hz).
-  - צליל אזהרה רך בהתנגשות (180Hz).
-  - פנפרת ניצחון מוזיקלית בסיום לוח (ארפג'ו אקורד C-E-G-C).
-  - ניתן להשתקה/הפעלה בכל עת בהגדרות (`צלילי משחק`).
-- **אפקט רטט בשגיאה (Conflict Shake):** בהזנת מספר המתנגש עם מספר קיים, התא מרטט באנימציית שגיאה עדינה.
-- **שיתוף תוצאה בסגנון Wordle:** במודאל הניצחון נוסף כפתור **"שתף תוצאה"** שמעתיק ללוח סיכום מעוצב עם אימוג'ים, זמן, רמת קושי וסטטיסטיקת רמזים וטעויות.
+When a final digit is placed, matching candidates are pruned from neighboring cells. The game records those changes and restores them safely if the digit is erased or replaced. A **Refresh Area** action can also recalculate candidates in the selected row, column, and box.
 
----
+### Cell coloring
 
-## ⚖️ מאגרי חידות וזכויות
-- **Sudoku Exchange Puzzle Bank** (מאת Grant McLean, נוצר עם QQWing, דורג ע"י Sudoku Explainer, נחלת הכלל CC0 / Public Domain).
-- **Top1465 Benchmark & Extreme History** (כולל יצירות המופת של ד"ר Arto Inkala: AI Escargot ו-Platinum Blonde בדירוג 11.0).
+Four pastel colors help track chains, alternating inferences, and other advanced deductions. Colors work in both themes and participate in undo/redo history.
 
----
+### Responsive layout
 
-## 🌍 שפות וכיווניות
+The desktop layout keeps the board, keypad, timer, and controls in a compact workspace. Narrow screens switch to a scrollable single-column layout, with additional handling for the header, language selector, modals, and benchmark table.
 
-- עברית ויידיש מוצגות ב־RTL; אנגלית מוצגת ב־LTR.
-- כל רכיבי הממשק, ההודעות הדינמיות, תוויות הנגישות ומעבדת האלגוריתמים מתורגמים בזמן אמת.
-- בחירת השפה נשמרת מקומית בדפדפן.
+### Audio and feedback
 
----
+Small synthesized effects are generated with the Web Audio API, so no audio assets are required. Sounds can be disabled in Settings. Conflict animations, victory feedback, and a localized share summary are also included.
 
-## ⚡ מעבדת אלגוריתמים
+## Languages and directionality
 
-המשחק כולל שלושה מצבי פתרון:
+Supported interface languages:
 
-- **Bitwise MRV** — Backtracking עם מסכות ביטים ובחירת התא בעל מספר המועמדים הקטן ביותר.
-- **Sequential Backtracking** — קו בסיס סדרתי לצורך השוואה.
-- **Deductive Logic** — הצבות לוגיות ללא ניחוש. אם אין הצבה ישירה נוספת, הוא עוצר ומדווח במקום להחליף בשקט ל־Backtracking.
+- English (`en`, LTR; default)
+- Hebrew (`he`, RTL)
+- Yiddish (`yi`, RTL)
+- Latin (`la`, LTR)
 
-הבנצ׳מרק מריץ כמה דגימות ומציג זמן חציוני, מספר צמתים ומספר פתרונות. הוא מדווח במפורש גם על מקרים שבהם MRV אינו מהיר יותר במדידת הזמן.
+Static controls, dynamic messages, accessibility labels, puzzle notes, hint explanations, result sharing, and the Algorithm Lab update immediately when the language changes. The selected language is stored locally in the browser.
 
----
+Translations live in `i18n.js`. Every locale must expose the same keys and preserve the same interpolation placeholders; the test suite enforces both rules.
 
-## 🧪 בדיקות וכלי אימות
+## Algorithm Lab
 
-להרצת בדיקות הליבה:
+The game includes three solver modes:
+
+- **Bitwise MRV** — bit-mask backtracking that selects the empty cell with the fewest candidates.
+- **Sequential Backtracking** — a simple row-major baseline for comparison.
+- **Deductive Logic** — applies logical placements without guessing and reports when it stalls instead of silently falling back to brute force.
+
+The benchmark runs multiple samples and reports median execution time, explored nodes, and detected solutions. It explicitly reports whether MRV was faster, slower, or effectively similar in the measured run.
+
+## Puzzle sources
+
+- **Sudoku Exchange Puzzle Bank** — created by Grant McLean with QQWing and rated with Sudoku Explainer; used for Easy through Master levels. The included puzzle data is identified as Public Domain / CC0 by its source.
+- **Top1465 benchmark collection** — exceptionally difficult puzzles collected by Guenter Stertenbrink.
+- Selected extreme puzzles associated with Dr. Arto Inkala, including **AI Escargot** and **Platinum Blonde**.
+
+Source attribution is also available from the in-game Library dialog.
+
+## Tests
+
+Run the JavaScript test suite from the repository root:
 
 ```powershell
 node --test tests_js\sudoku-core.test.mjs
 ```
 
-קיים גם מאמת C אופציונלי. להרכבה ב־Windows:
+The suite verifies:
+
+- all bundled puzzles are structurally valid, unique, and have exactly one solution;
+- the deductive solver reports success only when its own logic completes the board;
+- benchmark calculations remain consistent;
+- every locale has the complete translation-key and placeholder set;
+- RTL/LTR behavior is correct for all supported languages.
+
+## Optional C validator
+
+Build the command-line validator on Windows with:
 
 ```powershell
 .\build_validator.bat
 ```
 
-סקריפט הבנייה מזהה GCC, Clang או Microsoft C/C++. אם אף מהדר אינו מותקן, הוא מסיים עם הודעת שגיאה ברורה ואינו משנה את המשחק בדפדפן.
+The build script detects GCC, Clang, or Microsoft C/C++. If no supported compiler is installed, it exits with a clear error and does not affect the browser game.
+
+## Project structure
+
+```text
+index.html                     Application markup
+style.css                      Responsive layout and themes
+app.js                         UI, game state, history, and interactions
+solver.js                      Puzzle generation, solving, hints, and benchmarks
+puzzles.js                     Bundled puzzle catalogue
+i18n.js                        English, Hebrew, Yiddish, and Latin translations
+tests_js/sudoku-core.test.mjs  Core and localization tests
+tools/sudoku_validator.c       Optional native validator
+```
+
+## Privacy
+
+Sudoku Pro has no backend, analytics, advertisements, or external runtime dependencies. Game settings and progress are stored only in the browser's local storage.
+
+## License
+
+The repository does not currently declare a software license. Public visibility alone does not grant permission to copy, modify, or redistribute the source code. Puzzle datasets retain the attribution and licensing information described above.

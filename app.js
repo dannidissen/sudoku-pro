@@ -615,7 +615,8 @@ class SudokuApp {
             this.currentPuzzleMeta = {
                 id: puzzleObj.id || 'N/A',
                 rating: puzzleObj.rating || '-',
-                note: puzzleObj.note || ''
+                note: puzzleObj.note || '',
+                noteKey: puzzleObj.noteKey || ''
             };
         } else {
             const gen = SudokuEngine.generate(difficulty === 'extreme' ? 'expert' : difficulty);
@@ -678,7 +679,7 @@ class SudokuApp {
         this.puzzleIdDisplay.textContent = meta.idKey ? tr(meta.idKey) : `${meta.id ?? ''}`;
         this.puzzleRatingDisplay.textContent = meta.ratingKey ? tr(meta.ratingKey) : `${meta.rating ?? '-'}`;
         if (this.puzzleNoteDisplay) {
-            this.puzzleNoteDisplay.textContent = meta.note || '';
+            this.puzzleNoteDisplay.textContent = meta.noteKey ? tr(meta.noteKey) : (meta.note || '');
         }
     }
 
@@ -1228,7 +1229,7 @@ class SudokuApp {
     }
 
     getLocalizedHintName(hint) {
-        return this.getLocalizedHintPart(hint, 'name', hint.nameHebrew || hint.technique || '');
+        return this.getLocalizedHintPart(hint, 'name', hint.nameFallback || hint.technique || '');
     }
 
     renderCurrentHintStage() {

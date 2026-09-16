@@ -319,10 +319,10 @@ class SudokuEngine {
                         return {
                             technique: 'Naked Single',
                             nameKey: 'hint.nakedSingle.name',
-                            nameHebrew: 'ספרה גלויה יחידה (Naked Single)',
+                            nameFallback: 'Naked Single',
                             stage1Key: 'hint.nakedSingle.direction',
                             stage1Params: { box: boxIdx + 1, row: r + 1, col: c + 1 },
-                            stage1Direction: `חפש תא עם מועמד יחיד בבלוק ${boxIdx + 1} (שורה ${r + 1}, טור ${c + 1})`,
+                            stage1Direction: `Find a cell with one candidate in box ${boxIdx + 1} (row ${r + 1}, column ${c + 1})`,
                             stage2Highlight: {
                                 cells: [{ row: r, col: c, role: 'primary' }],
                                 units: [
@@ -334,7 +334,7 @@ class SudokuEngine {
                             },
                             stage3Key: 'hint.nakedSingle.explanation',
                             stage3Params: { row: r + 1, col: c + 1, value: val },
-                            stage3Explanation: `התא בשורה ${r + 1}, טור ${c + 1} "רואה" את כל שאר הספרות (1-9) באותה שורה, טור או בלוק. לכן הספרה היחידה האפשרית עבורו היא ${val}.`,
+                            stage3Explanation: `The cell at row ${r + 1}, column ${c + 1} sees every other digit in its row, column, or box. Its only possible digit is ${val}.`,
                             action: {
                                 type: 'set_value',
                                 row: r,
@@ -376,10 +376,10 @@ class SudokuEngine {
                     return {
                         technique: 'Hidden Single',
                         nameKey: 'hint.hiddenSingle.name',
-                        nameHebrew: 'ספרה נסתרת יחידה (Hidden Single)',
+                        nameFallback: 'Hidden Single',
                         stage1Key: 'hint.hiddenSingle.boxDirection',
                         stage1Params: { digit: d, box: b + 1 },
-                        stage1Direction: `חפש Hidden Single עבור הספרה ${d} בבלוק ${b + 1}`,
+                        stage1Direction: `Find a Hidden Single for ${d} in box ${b + 1}`,
                         stage2Highlight: {
                             cells: [{ row: target.r, col: target.c, role: 'primary' }],
                             units: [{ type: 'box', index: b }],
@@ -387,7 +387,7 @@ class SudokuEngine {
                         },
                         stage3Key: 'hint.hiddenSingle.boxExplanation',
                         stage3Params: { box: b + 1, digit: d, row: target.r + 1, col: target.c + 1 },
-                        stage3Explanation: `בבלוק ${b + 1}, הספרה ${d} אינה יכולה להתאים לאף תא אחר (הם נחסמים ע"י שורות וטורים חופפים). לפיכך ${d} חייבת להיות בתא בשורה ${target.r + 1}, טור ${target.c + 1}.`,
+                        stage3Explanation: `In box ${b + 1}, ${d} cannot fit in any other cell, so it must go at row ${target.r + 1}, column ${target.c + 1}.`,
                         action: {
                             type: 'set_value',
                             row: target.r,
@@ -416,10 +416,10 @@ class SudokuEngine {
                     return {
                         technique: 'Hidden Single',
                         nameKey: 'hint.hiddenSingle.name',
-                        nameHebrew: 'ספרה נסתרת יחידה (Hidden Single)',
+                        nameFallback: 'Hidden Single',
                         stage1Key: 'hint.hiddenSingle.rowDirection',
                         stage1Params: { digit: d, row: r + 1 },
-                        stage1Direction: `חפש Hidden Single עבור הספרה ${d} בשורה ${r + 1}`,
+                        stage1Direction: `Find a Hidden Single for ${d} in row ${r + 1}`,
                         stage2Highlight: {
                             cells: [{ row: target.r, col: target.c, role: 'primary' }],
                             units: [{ type: 'row', index: r }],
@@ -427,7 +427,7 @@ class SudokuEngine {
                         },
                         stage3Key: 'hint.hiddenSingle.rowExplanation',
                         stage3Params: { row: r + 1, digit: d, col: target.c + 1 },
-                        stage3Explanation: `בשורה ${r + 1}, התא היחיד שיכול להכיל את הספרה ${d} הוא טור ${target.c + 1} (בכל שאר התאים ${d} נפסלת). לכן ${d} משובצת כאן.`,
+                        stage3Explanation: `In row ${r + 1}, only column ${target.c + 1} can contain ${d}, so it must be placed here.`,
                         action: {
                             type: 'set_value',
                             row: target.r,
@@ -456,10 +456,10 @@ class SudokuEngine {
                     return {
                         technique: 'Hidden Single',
                         nameKey: 'hint.hiddenSingle.name',
-                        nameHebrew: 'ספרה נסתרת יחידה (Hidden Single)',
+                        nameFallback: 'Hidden Single',
                         stage1Key: 'hint.hiddenSingle.colDirection',
                         stage1Params: { digit: d, col: c + 1 },
-                        stage1Direction: `חפש Hidden Single עבור הספרה ${d} בטור ${c + 1}`,
+                        stage1Direction: `Find a Hidden Single for ${d} in column ${c + 1}`,
                         stage2Highlight: {
                             cells: [{ row: target.r, col: target.c, role: 'primary' }],
                             units: [{ type: 'col', index: c }],
@@ -467,7 +467,7 @@ class SudokuEngine {
                         },
                         stage3Key: 'hint.hiddenSingle.colExplanation',
                         stage3Params: { col: c + 1, digit: d, row: target.r + 1 },
-                        stage3Explanation: `בטור ${c + 1}, התא היחיד שיכול להכיל את הספרה ${d} הוא שורה ${target.r + 1}. לכן ${d} חייבת להופיע בתא זה.`,
+                        stage3Explanation: `In column ${c + 1}, only row ${target.r + 1} can contain ${d}, so it must go here.`,
                         action: {
                             type: 'set_value',
                             row: target.r,
@@ -528,10 +528,10 @@ class SudokuEngine {
                             return {
                                 technique: 'Pointing Pair / Triple',
                                 nameKey: 'hint.pointing.name',
-                                nameHebrew: 'זוג/שלשה מכוונת (Pointing)',
+                                nameFallback: 'Pointing Pair/Triple',
                                 stage1Key: 'hint.pointing.rowDirection',
                                 stage1Params: { digit: d, box: b + 1, row: firstRow + 1 },
-                                stage1Direction: `חפש Pointing של הספרה ${d} בבלוק ${b + 1} (המשפיע על שורה ${firstRow + 1})`,
+                                stage1Direction: `Find pointing candidates for ${d} in box ${b + 1}, affecting row ${firstRow + 1}`,
                                 stage2Highlight: {
                                     cells: blockCellsWithD.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
                                     units: [{ type: 'row', index: firstRow }, { type: 'box', index: b }],
@@ -539,7 +539,7 @@ class SudokuEngine {
                                 },
                                 stage3Key: 'hint.pointing.rowExplanation',
                                 stage3Params: { box: b + 1, digit: d, row: firstRow + 1, count: eliminations.length },
-                                stage3Explanation: `בבלוק ${b + 1}, כל המועמדים לספרה ${d} נמצאים בשורה ${firstRow + 1} בלבד. לפיכך ${d} חייבת להיות באחד מהם בתוך הבלוק, וניתן למחוק את ${d} מכל שאר התאים בשורה ${firstRow + 1} שמחוץ לבלוק (${eliminations.length} מחיקות).`,
+                                stage3Explanation: `In box ${b + 1}, every candidate for ${d} lies in row ${firstRow + 1}. Remove ${d} from the rest of that row outside the box (${eliminations.length} eliminations).`,
                                 action: {
                                     type: 'eliminate_candidates',
                                     eliminations
@@ -568,10 +568,10 @@ class SudokuEngine {
                             return {
                                 technique: 'Pointing Pair / Triple',
                                 nameKey: 'hint.pointing.name',
-                                nameHebrew: 'זוג/שלשה מכוונת (Pointing)',
+                                nameFallback: 'Pointing Pair/Triple',
                                 stage1Key: 'hint.pointing.colDirection',
                                 stage1Params: { digit: d, box: b + 1, col: firstCol + 1 },
-                                stage1Direction: `חפש Pointing של הספרה ${d} בבלוק ${b + 1} (המשפיע על טור ${firstCol + 1})`,
+                                stage1Direction: `Find pointing candidates for ${d} in box ${b + 1}, affecting column ${firstCol + 1}`,
                                 stage2Highlight: {
                                     cells: blockCellsWithD.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
                                     units: [{ type: 'col', index: firstCol }, { type: 'box', index: b }],
@@ -579,7 +579,7 @@ class SudokuEngine {
                                 },
                                 stage3Key: 'hint.pointing.colExplanation',
                                 stage3Params: { box: b + 1, digit: d, col: firstCol + 1, count: eliminations.length },
-                                stage3Explanation: `בבלוק ${b + 1}, כל המועמדים לספרה ${d} נמצאים בטור ${firstCol + 1} בלבד. לכן ${d} נעולה בטור זה בתוך הבלוק, וניתן למחוק את ${d} מכל שאר התאים בטור ${firstCol + 1} שמחוץ לבלוק (${eliminations.length} מחיקות).`,
+                                stage3Explanation: `In box ${b + 1}, every candidate for ${d} lies in column ${firstCol + 1}. Remove ${d} from the rest of that column outside the box (${eliminations.length} eliminations).`,
                                 action: {
                                     type: 'eliminate_candidates',
                                     eliminations
@@ -605,7 +605,7 @@ class SudokuEngine {
             units.push({
                 type: 'row',
                 index: r,
-                nameHebrew: `שורה ${r + 1}`,
+                nameFallback: `row ${r + 1}`,
                 cells: Array.from({ length: 9 }, (_, c) => ({ r, c }))
             });
         }
@@ -614,7 +614,7 @@ class SudokuEngine {
             units.push({
                 type: 'col',
                 index: c,
-                nameHebrew: `טור ${c + 1}`,
+                nameFallback: `column ${c + 1}`,
                 cells: Array.from({ length: 9 }, (_, r) => ({ r, c }))
             });
         }
@@ -631,7 +631,7 @@ class SudokuEngine {
             units.push({
                 type: 'box',
                 index: b,
-                nameHebrew: `בלוק ${b + 1}`,
+                nameFallback: `box ${b + 1}`,
                 cells
             });
         }
@@ -670,10 +670,10 @@ class SudokuEngine {
                             return {
                                 technique: 'Naked Pair',
                                 nameKey: 'hint.nakedPair.name',
-                                nameHebrew: 'זוג גלוי (Naked Pair)',
+                                nameFallback: 'Naked Pair',
                                 stage1Key: 'hint.nakedPair.direction',
                                 stage1Params: { unitType: unit.type, unitIndex: unit.index + 1 },
-                                stage1Direction: `חפש Naked Pair (זוג גלוי) ב${unit.nameHebrew}`,
+                                stage1Direction: `Find a Naked Pair in ${unit.nameFallback}`,
                                 stage2Highlight: {
                                     cells: [
                                         { row: p1.r, col: p1.c, role: 'primary' },
@@ -694,7 +694,7 @@ class SudokuEngine {
                                     digit2: d2,
                                     count: eliminations.length
                                 },
-                                stage3Explanation: `התאים (${p1.r + 1}, ${p1.c + 1}) ו-(${p2.r + 1}, ${p2.c + 1}) ב${unit.nameHebrew} מכילים אך ורק את הספרות ${d1} ו-${d2}. שתי ספרות אלו נעולות בשני תאים אלו, וניתן למחוק אותן מכל שאר התאים ב${unit.nameHebrew} (${eliminations.length} מחיקות).`,
+                                stage3Explanation: `Cells (${p1.r + 1}, ${p1.c + 1}) and (${p2.r + 1}, ${p2.c + 1}) in ${unit.nameFallback} contain only ${d1} and ${d2}. Remove those digits from the other cells in the unit (${eliminations.length} eliminations).`,
                                 action: {
                                     type: 'eliminate_candidates',
                                     eliminations
@@ -756,10 +756,10 @@ class SudokuEngine {
                             return {
                                 technique: 'X-Wing',
                                 nameKey: 'hint.xWing.name',
-                                nameHebrew: 'כנף X (X-Wing)',
+                                nameFallback: 'X-Wing',
                                 stage1Key: 'hint.xWing.rowsDirection',
                                 stage1Params: { digit: d, row1: r1.r + 1, row2: r2.r + 1 },
-                                stage1Direction: `חפש מבנה X-Wing עבור הספרה ${d} בשורות ${r1.r + 1} ו-${r2.r + 1}`,
+                                stage1Direction: `Find an X-Wing for ${d} in rows ${r1.r + 1} and ${r2.r + 1}`,
                                 stage2Highlight: {
                                     cells: [
                                         { row: r1.r, col: colA, role: 'primary' },
@@ -777,7 +777,7 @@ class SudokuEngine {
                                 },
                                 stage3Key: 'hint.xWing.rowsExplanation',
                                 stage3Params: { digit: d, row1: r1.r + 1, row2: r2.r + 1, col1: colA + 1, col2: colB + 1, count: eliminations.length },
-                                stage3Explanation: `הספרה ${d} מופיעה בשורות ${r1.r + 1} ו-${r2.r + 1} רק בטורים ${colA + 1} ו-${colB + 1}. נוצר מלבן X-Wing הנועל את ${d} בשני טורים אלו. לפיכך ניתן למחוק את ${d} משאר התאים בטורים אלו (${eliminations.length} מחיקות).`,
+                                stage3Explanation: `In rows ${r1.r + 1} and ${r2.r + 1}, ${d} appears only in columns ${colA + 1} and ${colB + 1}. Remove it from the other cells in those columns (${eliminations.length} eliminations).`,
                                 action: {
                                     type: 'eliminate_candidates',
                                     eliminations
@@ -831,10 +831,10 @@ class SudokuEngine {
                             return {
                                 technique: 'X-Wing',
                                 nameKey: 'hint.xWing.name',
-                                nameHebrew: 'כנף X (X-Wing)',
+                                nameFallback: 'X-Wing',
                                 stage1Key: 'hint.xWing.colsDirection',
                                 stage1Params: { digit: d, col1: c1.c + 1, col2: c2.c + 1 },
-                                stage1Direction: `חפש מבנה X-Wing עבור הספרה ${d} בטורים ${c1.c + 1} ו-${c2.c + 1}`,
+                                stage1Direction: `Find an X-Wing for ${d} in columns ${c1.c + 1} and ${c2.c + 1}`,
                                 stage2Highlight: {
                                     cells: [
                                         { row: rowA, col: c1.c, role: 'primary' },
@@ -852,7 +852,7 @@ class SudokuEngine {
                                 },
                                 stage3Key: 'hint.xWing.colsExplanation',
                                 stage3Params: { digit: d, col1: c1.c + 1, col2: c2.c + 1, row1: rowA + 1, row2: rowB + 1, count: eliminations.length },
-                                stage3Explanation: `הספרה ${d} מופיעה בטורים ${c1.c + 1} ו-${c2.c + 1} רק בשורות ${rowA + 1} ו-${rowB + 1}. נוצר מלבן X-Wing הנועל את ${d} בשתי שורות אלו. לפיכך ניתן למחוק את ${d} משאר התאים בשורות אלו (${eliminations.length} מחיקות).`,
+                                stage3Explanation: `In columns ${c1.c + 1} and ${c2.c + 1}, ${d} appears only in rows ${rowA + 1} and ${rowB + 1}. Remove it from the other cells in those rows (${eliminations.length} eliminations).`,
                                 action: {
                                     type: 'eliminate_candidates',
                                     eliminations
@@ -915,7 +915,7 @@ class SudokuEngine {
                 row: r,
                 col: c,
                 value: solvedBoard[r][c],
-                reason: `המספר הנכון לתא (${r + 1}, ${c + 1}) מתוך הפתרון המלא הוא ${solvedBoard[r][c]}.`
+                reason: `The correct digit for cell (${r + 1}, ${c + 1}) is ${solvedBoard[r][c]}.`
             };
         }
 
@@ -934,7 +934,7 @@ class SudokuEngine {
             row: pick.r,
             col: pick.c,
             value: solvedBoard[pick.r][pick.c],
-            reason: `המספר הנכון לתא (${pick.r + 1}, ${pick.c + 1}) מתוך הפתרון המלא הוא ${solvedBoard[pick.r][pick.c]}.`
+            reason: `The correct digit for cell (${pick.r + 1}, ${pick.c + 1}) is ${solvedBoard[pick.r][pick.c]}.`
         };
     }
 
@@ -1215,7 +1215,7 @@ class SudokuEngine {
                             nodesExplored: 0,
                             timeUs: (t1 - t0) * 1000,
                             solvedBoard: null,
-                            error: `סתירה ראשונית בלוח: ספרה כפולה '${val}' בשורה ${r + 1} או טור ${c + 1}`
+                            error: `Initial board conflict: duplicate digit '${val}' in row ${r + 1} or column ${c + 1}`
                         };
                     }
                     cells[idx] = val;
@@ -1355,7 +1355,7 @@ class SudokuEngine {
                             nodesExplored: 0,
                             timeUs: (t1 - t0) * 1000,
                             solvedBoard: null,
-                            error: `סתירה ראשונית בלוח: ספרה כפולה '${val}'`
+                            error: `Initial board conflict: duplicate digit '${val}'`
                         };
                     }
                     cells[idx] = val;
