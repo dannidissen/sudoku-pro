@@ -83,7 +83,15 @@ test('all languages expose the same translation keys and correct direction', () 
     const dictionaries = globalThis.SudokuI18n.translations;
     const hebrewKeys = Object.keys(dictionaries.he).sort();
     assert.deepEqual(Object.keys(dictionaries.en).sort(), hebrewKeys);
+    assert.deepEqual(Object.keys(dictionaries.la).sort(), hebrewKeys);
     assert.deepEqual(Object.keys(dictionaries.yi).sort(), hebrewKeys);
+    for (const [language, dictionary] of Object.entries(dictionaries)) {
+        for (const key of hebrewKeys) {
+            const expectedParams = [...new Set([...dictionaries.he[key].matchAll(/\{(\w+)\}/g)].map(match => match[1]))].sort();
+            const actualParams = [...new Set([...dictionary[key].matchAll(/\{(\w+)\}/g)].map(match => match[1]))].sort();
+            assert.deepEqual(actualParams, expectedParams, `${language}.${key}: placeholder mismatch`);
+        }
+    }
 
     const usedKeys = new Set();
     const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -101,6 +109,9 @@ test('all languages expose the same translation keys and correct direction', () 
     globalThis.SudokuI18n.setLanguage('he', { persist: false });
     assert.equal(globalThis.document.documentElement.dir, 'rtl');
     globalThis.SudokuI18n.setLanguage('en', { persist: false });
+    assert.equal(globalThis.document.documentElement.dir, 'ltr');
+    globalThis.SudokuI18n.setLanguage('la', { persist: false });
+    assert.equal(globalThis.document.documentElement.lang, 'la');
     assert.equal(globalThis.document.documentElement.dir, 'ltr');
     globalThis.SudokuI18n.setLanguage('yi', { persist: false });
     assert.equal(globalThis.document.documentElement.dir, 'rtl');
