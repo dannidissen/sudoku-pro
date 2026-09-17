@@ -761,6 +761,14 @@
         Object.assign(translations[language], entries);
     });
 
+    const focusTranslations = {
+        en: { 'focus.toggle': 'Focus mode', 'focus.tools': 'Tools' },
+        he: { 'focus.toggle': 'מצב ממוקד', 'focus.tools': 'כלים' },
+        yi: { 'focus.toggle': 'פֿאָקוס־מאָדוס', 'focus.tools': 'געצייג' },
+        la: { 'focus.toggle': 'Modus intentus', 'focus.tools': 'Instrumenta' }
+    };
+    Object.entries(focusTranslations).forEach(([language, entries]) => Object.assign(translations[language], entries));
+
     let currentLanguage = 'en';
 
     function normalizeLanguage(language) {

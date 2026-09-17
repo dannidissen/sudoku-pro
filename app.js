@@ -265,6 +265,7 @@ class SudokuApp {
 
     setupEvents() {
         this.training = new SudokuTrainingUI(this);
+        this.focusUI = new SudokuFocusUI(this);
         // New Game Button
         document.getElementById('btn-new-game').addEventListener('click', () => {
             if (this.hasGameProgress() && !confirm(tr('confirm.newGame'))) {
@@ -3315,6 +3316,9 @@ class SudokuApp {
     }
 
     openModal(modalId) {
+        if (modalId !== 'modal-tools' && document.getElementById('modal-tools')?.classList.contains('open')) {
+            this.closeModal('modal-tools');
+        }
         const modal = document.getElementById(modalId);
         if (modal) {
             const activeElement = document.activeElement;
@@ -3344,6 +3348,10 @@ class SudokuApp {
             modal.hidden = false;
             modal.setAttribute('aria-hidden', 'false');
             modal.classList.add('open');
+            if (modalId === 'modal-tools') {
+                document.querySelector('.top-header').inert = true;
+                document.querySelector('.workspace-wrapper').inert = true;
+            }
             document.body.classList.add('modal-open');
             const dialog = modal.querySelector('[role="dialog"]');
             requestAnimationFrame(() => dialog?.focus({ preventScroll: true }));
@@ -3354,6 +3362,10 @@ class SudokuApp {
         const modal = document.getElementById(modalId);
         if (!modal) return;
         modal.classList.remove('open');
+        if (modalId === 'modal-tools') {
+            document.querySelector('.top-header').inert = false;
+            document.querySelector('.workspace-wrapper').inert = false;
+        }
         if (modalId === 'modal-algo') this.stopAlgorithmDemo();
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
