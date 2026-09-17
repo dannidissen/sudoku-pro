@@ -769,6 +769,70 @@
     };
     Object.entries(focusTranslations).forEach(([language, entries]) => Object.assign(translations[language], entries));
 
+    const checkpointTrainingTranslations = {
+        en: {
+            'checkpoint.title': 'Checkpoints',
+            'checkpoint.intro': 'Save up to three positions in this game. Restores include notes and colors and can be undone. Time and assistance are not reset. Starting a new game clears checkpoints.',
+            'checkpoint.save': 'Save current position', 'checkpoint.empty': 'No checkpoints yet.',
+            'checkpoint.entry': 'Checkpoint {index} · {time}', 'checkpoint.restore': 'Restore', 'checkpoint.delete': 'Delete',
+            'checkpoint.confirmDelete': 'Delete this checkpoint? The current board will not change.',
+            'checkpoint.saved': 'Checkpoint saved on this device.',
+            'checkpoint.sessionOnly': 'Device storage is unavailable. This change lasts only for this session.',
+            'checkpoint.restored': 'Position restored. Use Undo to return to the previous position.',
+            'training.mode': 'Practice mode', 'training.guided': 'Guided', 'training.independent': 'Independent',
+            'training.showPattern': 'Show pattern (hint)',
+            'training.independentLegend': 'Find the pattern yourself. Row 1 is at the top; column 1 is on the left. Switching mode restarts this exercise.',
+            'training.independentEliminate': 'Find a pattern for the chosen technique and mark its eliminated candidates. Grading checks the prepared deduction; another valid deduction may not match. Ask for a pattern hint if needed.',
+            'training.independentProgress': 'Solved without hints this session: {count}'
+        },
+        he: {
+            'checkpoint.title': 'נקודות שמירה',
+            'checkpoint.intro': 'אפשר לשמור עד שלושה מצבים במשחק הזה. השחזור כולל רישומים וצבעים וניתן לביטול. הזמן והשימוש בעזרה לא מתאפסים. משחק חדש מוחק את נקודות השמירה.',
+            'checkpoint.save': 'שמירת המצב הנוכחי', 'checkpoint.empty': 'אין עדיין נקודות שמירה.',
+            'checkpoint.entry': 'נקודת שמירה {index} · {time}', 'checkpoint.restore': 'שחזור', 'checkpoint.delete': 'מחיקה',
+            'checkpoint.confirmDelete': 'למחוק את נקודת השמירה? הלוח הנוכחי לא ישתנה.',
+            'checkpoint.saved': 'נקודת השמירה נשמרה במכשיר הזה.',
+            'checkpoint.sessionOnly': 'האחסון במכשיר אינו זמין. השינוי יישמר רק עד סגירת הדף.',
+            'checkpoint.restored': 'המצב שוחזר. אפשר ללחוץ על ביטול כדי לחזור למצב הקודם.',
+            'training.mode': 'מצב אימון', 'training.guided': 'מודרך', 'training.independent': 'עצמאי',
+            'training.showPattern': 'הצגת התבנית (רמז)',
+            'training.independentLegend': 'מצאו את התבנית בעצמכם. שורה 1 למעלה ועמודה 1 משמאל. החלפת מצב מתחילה את התרגיל מחדש.',
+            'training.independentEliminate': 'מצאו תבנית בטכניקה שנבחרה וסמנו את המועמדים שהיא פוסלת. הבדיקה מתייחסת להסקה שהוכנה לתרגיל; הסקה תקפה אחרת עשויה שלא להתקבל. אפשר לבקש רמז לתבנית.',
+            'training.independentProgress': 'תרגילים שנפתרו ללא רמזים במפגש הזה: {count}'
+        },
+        yi: {
+            'checkpoint.title': 'אָפּהיט־פּונקטן',
+            'checkpoint.intro': 'היט אָפּ ביז דרײַ שטעלונגען אין דעם שפּיל. צוריקשטעלן נעמט אַרײַן נאָטיצן און קאָלירן און קען מען בטל מאַכן. צײַט און הילף ווערן נישט צוריקגעשטעלט. אַ נײַער שפּיל מעקט אויס די אָפּהיט־פּונקטן.',
+            'checkpoint.save': 'אָפּהיטן די איצטיקע שטעלונג', 'checkpoint.empty': 'נאָך נישטאָ קיין אָפּהיט־פּונקטן.',
+            'checkpoint.entry': 'אָפּהיט־פּונקט {index} · {time}', 'checkpoint.restore': 'צוריקשטעלן', 'checkpoint.delete': 'אויסמעקן',
+            'checkpoint.confirmDelete': 'אויסמעקן דעם אָפּהיט־פּונקט? דאָס איצטיקע ברעט וועט זיך נישט ענדערן.',
+            'checkpoint.saved': 'דער אָפּהיט־פּונקט איז אָפּגעהיט אויף דעם מכשיר.',
+            'checkpoint.sessionOnly': 'אָפּהיטן אויפֿן מכשיר איז נישט מעגלעך. די ענדערונג בלײַבט נאָר ביז מען פֿאַרמאַכט דעם בלאַט.',
+            'checkpoint.restored': 'די שטעלונג איז צוריקגעשטעלט. מיט בטל מאַכן קענט איר צוריקגיין.',
+            'training.mode': 'אימון־מאָדוס', 'training.guided': 'מיט הדרכה', 'training.independent': 'זעלבסטשטענדיק',
+            'training.showPattern': 'ווײַזן דעם מוסטער (אָנצוהערעניש)',
+            'training.independentLegend': 'געפֿינט דעם מוסטער אַליין. ריי 1 איז אויבן, זייַל 1 לינקס. בײַם בײַטן דעם מאָדוס הייבט זיך די געניטונג אָן פֿון נײַ.',
+            'training.independentEliminate': 'געפֿינט אַ מוסטער פֿון דער אויסגעקליבענער טעכניק און באַצייכנט די אויסגעשלאָסענע קאַנדידאַטן. די פּרוּוו קאָנטראָלירט די צוגעגרייטע מסקנא; אַן אַנדער ריכטיקער שריט קען נישט פּאַסן. בעט אַן אָנצוהערעניש אויב נייטיק.',
+            'training.independentProgress': 'געלייזט אָן אָנצוהערענישן אין דעם זיצונג: {count}'
+        },
+        la: {
+            'checkpoint.title': 'Status servati',
+            'checkpoint.intro': 'Usque ad tres status huius ludi serva. Restitutio notas et colores includit et revocari potest. Tempus et auxilia non restituuntur. Ludus novus status servatos delet.',
+            'checkpoint.save': 'Statum praesentem serva', 'checkpoint.empty': 'Nulli status adhuc servati.',
+            'checkpoint.entry': 'Status {index} · {time}', 'checkpoint.restore': 'Restitue', 'checkpoint.delete': 'Dele',
+            'checkpoint.confirmDelete': 'Hunc statum servatum delere? Tabula praesens non mutabitur.',
+            'checkpoint.saved': 'Status in hoc instrumento servatus est.',
+            'checkpoint.sessionOnly': 'Memoria instrumenti non praesto est. Haec mutatio tantum hac sessione manet.',
+            'checkpoint.restored': 'Status restitutus. Utere Revoca ut ad statum priorem redeas.',
+            'training.mode': 'Modus exercitationis', 'training.guided': 'Cum auxilio', 'training.independent': 'Sine auxilio',
+            'training.showPattern': 'Figuram monstra (indicium)',
+            'training.independentLegend': 'Figuram ipse reperi. Ordo 1 summus est; columna 1 a sinistra. Mutato modo, exercitatio denuo incipit.',
+            'training.independentEliminate': 'Figuram artis electae reperi et candidatos exclusos nota. Examen deductionem praeparatam verificat; alia deductio valida discrepare potest. Indicium figurae pete si opus est.',
+            'training.independentProgress': 'Hac sessione sine indiciis soluta: {count}'
+        }
+    };
+    for (const [language, entries] of Object.entries(checkpointTrainingTranslations)) Object.assign(translations[language], entries);
+
     let currentLanguage = 'en';
 
     function normalizeLanguage(language) {

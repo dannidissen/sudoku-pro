@@ -44,6 +44,8 @@ A separate **Reveal Cell** action is available when the player wants the correct
 
 ### Technique practice
 
+Choose **Independent** mode to find the pattern without cell outlines, location hints, or an elimination count. The general technique rule remains available. **Show pattern (hint)** provides guidance when needed; answers solved after that do not increase the separate hint-free session counter. Correct answers and **Show explanation** expose the pattern and reasoning. Changing mode restarts the exercise. Grading still targets the prepared deduction, not every other valid deduction on the board. Both counters reset on reload.
+
 Open **Technique practice** in the header to practice all ten supported deductive techniques, from Naked Single to XY-Wing. Each technique has four guided exercises from different Sudoku Exchange puzzles (40 total), cycling in order. Each drill explains the rule and outlines its pattern; select a cell and use the keypad or number keys to mark a placement or all candidate eliminations. Arrow keys navigate the practice board. The board keeps column 1 on the left in every language so coordinates and candidate positions stay consistent.
 
 Answer checking distinguishes incorrect, incomplete, and correct selections. **Show explanation** reveals the answer and its localized reasoning without counting an independent solve. The session counter tracks distinct correctly answered exercises and resets on page reload. These guided drills assess the displayed pattern rather than every possible valid move on the board.
@@ -61,6 +63,7 @@ To inspect or regenerate the recipe list, run `node tools/find_training_recipes.
 Keyboard shortcuts:
 
 - `Space`, or `Tab` while a board cell has focus: switch input mode. `Shift+Tab` leaves the board.
+- Clicking/tapping a number, mode, erase, undo, or redo control returns focus to the selected cell so Space and arrow shortcuts keep working. Keyboard activation retains button focus for native navigation; shortcuts do not intercept inputs, menus, or dialogs. Holding Space switches only once.
 - `Shift + 1-9`: toggle a corner mark when Snyder mode is enabled.
 - `Ctrl + 1-9`: toggle a center mark.
 - `Z`, `X`, `C`: select Normal, Corner, or Center mode.
@@ -68,6 +71,12 @@ Keyboard shortcuts:
 - `Backspace`: erase the selected cell.
 - `Ctrl+Z` / `Ctrl+Y`: undo / redo.
 - `H`: request a logical hint.
+
+### Checkpoints
+
+Open **Checkpoints** in the controls (inside **Tools** in focus mode) to save up to three positions for the current game. Positions include the board, center and corner notes, colors, proven eliminations, and candidate-pruning safety data. They are saved locally with the game and survive reloads when browser storage is available. A warning reports storage failure; no account or cloud sync is involved.
+
+Restoring a position is an undoable action: **Undo** returns to the position before restoration and **Redo** restores it again. Time, mistakes, assistance counts, revealed-cell tracking, and recorded wins never roll back. Delete a checkpoint to free a slot; deletion requires confirmation and does not change the board. Starting any new or custom game clears the checkpoints, even when replaying the same puzzle. Saving and restoring are disabled while paused or while auto-completion is running.
 
 ### Candidate safety
 
@@ -98,6 +107,8 @@ Four pastel colors help track chains, alternating inferences, and other advanced
 **Tools** opens a scrollable drawer containing hints, candidate tools, colors, difficulty/new game, language, display controls, practice, and other secondary features. Escape, the close button, or the backdrop dismisses it; choosing an action returns to the game or opens the relevant dialog. The timer and pause button remain in the header. Existing controls are moved, not copied, preserving their listeners and the game's state and undo history. The focus preference is independent of game saves and remains optional when storage is unavailable.
 
 The layout reserves device safe-area space and uses a conservative viewport height for the board. Long hints, browser zoom, and exceptionally short screens can scroll rather than clipping controls. Focus mode supports every language and both themes, and is included in the offline app shell. In focus mode, open **Tools → Technique practice** to access drills.
+
+Mobile layouts use regular-weight pencil marks, medium-weight givens, and thinner block borders. Matching notes retain a colored background without enlargement or glow. Note sizes, contrast, and the existing larger-note options are preserved; technique-practice candidates use the same lighter weight. Desktop typography is unchanged.
 
 The desktop layout keeps the board, keypad, timer, and controls in a compact workspace. Narrow screens switch to a scrollable single-column layout, with additional handling for the header, language selector, modals, and benchmark table.
 
@@ -160,7 +171,7 @@ Source attribution is also available from the in-game Library dialog.
 Run the JavaScript test suite from the repository root:
 
 ```powershell
-node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs
+node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs tests_js/checkpoints-training.test.cjs tests_js/mobile-keyboard.test.cjs
 ```
 
 The suite verifies:
@@ -192,6 +203,7 @@ solver.js                      Puzzle generation, solving, hints, and benchmarks
 training.js                    Practice replay and answer checking
 training-ui.js                 Isolated technique practice interface
 focus-ui.js                    Responsive focus mode and secondary-tool drawer
+checkpoint-ui.js               Persistent board checkpoints and restore controls
 training-recipes.js            Forty source puzzle IDs and deduction offsets
 puzzles.js                     Bundled puzzle catalogue
 i18n.js                        English, Hebrew, Yiddish, and Latin translations

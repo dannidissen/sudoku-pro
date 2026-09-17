@@ -440,8 +440,8 @@ test('timer checkpoint prevents reload rollback for the same puzzle', () => {
 
 test('modal markup is hidden by default and exposes dialog semantics', () => {
     const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-    assert.equal([...html.matchAll(/class="modal-backdrop" hidden aria-hidden="true"/g)].length, 8);
-    assert.equal([...html.matchAll(/role="dialog" aria-modal="true"/g)].length, 8);
+    assert.equal([...html.matchAll(/class="modal-backdrop" hidden aria-hidden="true"/g)].length, 9);
+    assert.equal([...html.matchAll(/role="dialog" aria-modal="true"/g)].length, 9);
 
     const serviceWorker = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
     assert.match(serviceWorker, /await cache\.put\(/);

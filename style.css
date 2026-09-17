@@ -2708,3 +2708,26 @@ body.focus-mode.modal-open { overflow: hidden !important; }
     body:not(.focus-mode) .top-header { height: auto; flex-wrap: wrap; }
     body:not(.focus-mode) .header-actions { flex-wrap: wrap; }
 }
+/* Checkpoints remain usable in the mobile tools workflow and in RTL layouts. */
+.checkpoint-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--card-border); }
+.checkpoint-row p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
+.checkpoint-row button, #checkpoint-save, #training-mode { min-height: 44px; }
+#training-mode { display: block; width: 100%; margin-block: 8px; }
+#checkpoint-list { max-height: 48dvh; overflow-y: auto; }
+
+/* Lighter mobile typography: retain note sizes and contrast for legibility.
+   Apply in both layouts, including short landscape phones. Desktop is unchanged. */
+@media (max-width: 900px), (pointer: coarse) and (max-height: 600px) {
+    .cell, .cell.user-input { font-weight: 400; }
+    .cell.given, .training-cell.given { font-weight: 500; }
+    .center-mark, .corner-mark, .training-candidates { font-weight: 400; }
+    .center-mark.highlight, .corner-mark.highlight {
+        font-weight: 500;
+        transform: none;
+        box-shadow: none;
+    }
+    .sudoku-board { border-width: 2px; }
+    .cell[data-col="2"], .cell[data-col="5"] { border-inline-end-width: 2px !important; }
+    .cell[data-row="2"], .cell[data-row="5"] { border-bottom-width: 2px !important; }
+    .num-btn, .mode-btn, #focus-edit-tools button { font-weight: 500; }
+}

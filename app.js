@@ -114,6 +114,7 @@ class SudokuApp {
         // History for undo/redo
         this.history = [];
         this.historyIndex = -1;
+        this.checkpoints = [];
 
         // Timer
         this.timerSeconds = 0;
@@ -265,6 +266,7 @@ class SudokuApp {
 
     setupEvents() {
         this.training = new SudokuTrainingUI(this);
+        this.checkpointUI = new SudokuCheckpointUI(this);
         this.focusUI = new SudokuFocusUI(this);
         // New Game Button
         document.getElementById('btn-new-game').addEventListener('click', () => {
@@ -503,6 +505,9 @@ class SudokuApp {
     }
 
     setupKeyboard() {
+        // Pointer users can mix the on-screen keypad with physical shortcuts.
+        // Keyboard/assistive clicks (detail === 0) retain native button focus.
+        window.addEventListener('click', e => this.restoreBoardFocusAfterPointer(e));
         window.addEventListener('keydown', (e) => {
             if (this.isExecutingCascade) return;
 
@@ -556,9 +561,12 @@ class SudokuApp {
             // Tab only switches modes while focus is on the board, so keyboard users can still Tab
             // between buttons; Shift+Tab always moves focus out of the board.
             const tabSwitchesMode = e.key === 'Tab' && !e.shiftKey && this.boardEl.contains(document.activeElement);
-            const spaceSwitchesMode = e.key === ' ' && this.boardEl.contains(document.activeElement);
+            const spaceSwitchesMode = (e.code === 'Space' || e.key === ' ')
+                && !e.ctrlKey && !e.metaKey && !e.altKey
+                && (this.boardEl.contains(document.activeElement) || this.selectedCell);
             if (spaceSwitchesMode || tabSwitchesMode) {
                 e.preventDefault();
+                if (e.repeat) return;
                 if (this.settings.enableSnyder) {
                     const modes = ['normal', 'corner', 'center'];
                     const nextIdx = (modes.indexOf(this.inputMode) + 1) % modes.length;
@@ -669,6 +677,17 @@ class SudokuApp {
         });
     }
 
+    restoreBoardFocusAfterPointer(event) {
+        if (!(event.detail > 0) || !this.selectedCell || this.isPaused || this.isExecutingCascade
+            || document.querySelector('.modal-backdrop.open')) return;
+        const target = event.target;
+        if (!(target instanceof Element) || !target.closest(
+            '#numpad .num-btn, .mode-btn, #btn-erase, #btn-undo, #btn-redo'
+        )) return;
+        const { row, col } = this.selectedCell;
+        this.boardEl.children[row * 9 + col]?.focus({ preventScroll: true });
+    }
+
     setInputMode(mode) {
         if (!this.settings.enableSnyder && mode === 'corner') {
             mode = 'normal';
@@ -735,6 +754,7 @@ class SudokuApp {
     // True when replacing the board would discard player-created work.
     hasGameProgress() {
         if (!this.initialBoard || !this.currentBoard) return false;
+        if (this.checkpoints?.length) return true;
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 if (this.initialBoard[r][c] !== this.currentBoard[r][c]
@@ -790,6 +810,7 @@ class SudokuApp {
         }
 
         this.initialBoard = SudokuEngine.stringToGrid(puzzleString);
+        this.checkpoints = [];
         this.currentBoard = this.initialBoard.map(row => [...row]);
         this.solutionBoard = SudokuEngine.solve(this.initialBoard);
 
@@ -895,10 +916,9 @@ class SudokuApp {
         }
         this.updateVisualHighlights();
 
-        // Keep keyboard focus on the selected cell while navigating with the arrow keys.
-        if (this.boardEl.contains(document.activeElement)) {
-            this.boardEl.children[r * 9 + c]?.focus({ preventScroll: true });
-        }
+        // Some touch browsers do not focus a div[tabindex] on tap. Explicitly
+        // focus the selection so the next Space/arrow key reaches the board.
+        this.boardEl.children[r * 9 + c]?.focus({ preventScroll: true });
     }
 
     handleNumpadClick(num) {
@@ -1821,7 +1841,9 @@ class SudokuApp {
         const action = this.history[this.historyIndex];
         this.historyIndex--;
 
-        if (action.type === 'value_change') {
+        if (action.type === 'checkpoint_restore') {
+            this.applyCheckpointState(action.before);
+        } else if (action.type === 'value_change') {
             // Grace period check (2.5s) for mistake cancellation on undo
             if (action.newVal !== 0 && this.lastMistakeCell) {
                 if (this.lastMistakeCell.row === action.row && this.lastMistakeCell.col === action.col) {
@@ -1935,7 +1957,8 @@ class SudokuApp {
         this.updateRemainingCounts();
         this.updateVisualHighlights();
         this.saveGameState();
-        this.checkGameCompletion();
+        // Restoring a saved completed board is not a new solve.
+        if (action.type !== 'checkpoint_restore') this.checkGameCompletion();
         this.checkCascadeAvailability();
     }
 
@@ -1953,7 +1976,9 @@ class SudokuApp {
         this.historyIndex++;
         const action = this.history[this.historyIndex];
 
-        if (action.type === 'value_change') {
+        if (action.type === 'checkpoint_restore') {
+            this.applyCheckpointState(action.after);
+        } else if (action.type === 'value_change') {
             // Replay the silent restoration that setCellValue performed when it first
             // replaced prevVal with newVal, so neighbor candidates end up identical
             // to the original apply instead of missing the prevVal-snapshot restore.
@@ -2063,7 +2088,7 @@ class SudokuApp {
         // Skip for full_solve: revealing the solution was never treated as a "win" when
         // first applied (solveBoard doesn't call checkGameCompletion either), so redoing
         // it shouldn't suddenly pop the victory modal that the original action never showed.
-        if (action.type !== 'full_solve') {
+        if (action.type !== 'full_solve' && action.type !== 'checkpoint_restore') {
             this.checkGameCompletion();
         }
         this.checkCascadeAvailability();
@@ -3259,6 +3284,7 @@ class SudokuApp {
         this.solutionIsUnique = check.status === 'unique';
         this.diffSelect.value = 'custom';
         this.initialBoard = grid;
+        this.checkpoints = [];
         this.currentBoard = grid.map(r => [...r]);
         this.solutionBoard = solved;
         this.centerMarks = Array(9).fill(null).map(() => Array(9).fill(null).map(() => new Set()));
@@ -3816,6 +3842,51 @@ class SudokuApp {
         return snapshots;
     }
 
+    // Board-only snapshots deliberately exclude time, assistance counters and win bookkeeping.
+    captureCheckpointState() {
+        return JSON.parse(JSON.stringify({
+            currentBoard: this.currentBoard,
+            centerMarks: this.centerMarks.map(row => row.map(set => [...set])),
+            cornerMarks: this.cornerMarks.map(row => row.map(set => [...set])),
+            cellColors: this.cellColors,
+            prunedSnapshots: this.serializePrunedSnapshots(),
+            provenEliminations: [...this.provenEliminations]
+        }));
+    }
+
+    applyCheckpointState(state) {
+        this.currentBoard = state.currentBoard.map(row => [...row]);
+        this.centerMarks = state.centerMarks.map(row => row.map(values => new Set(values)));
+        this.cornerMarks = state.cornerMarks.map(row => row.map(values => new Set(values)));
+        this.cellColors = state.cellColors.map(row => [...row]);
+        this.prunedSnapshots = this.deserializePrunedSnapshots(state.prunedSnapshots);
+        this.provenEliminations = new Set(state.provenEliminations);
+        this.checkedMistakes.clear();
+        this.lastMistakeCell = null;
+        this.lastMistakeTimestamp = 0;
+        this.selectedNumber = 0;
+        this.dismissDeductiveHint();
+        this.pendingCascadeSteps = null;
+        this.cascadeBannerEl?.classList.add('hidden');
+        this.renderBoard();
+        if (SudokuEngine.isBoardCompleteAndValid(this.currentBoard)) this.stopTimer();
+        else this.startTimer();
+    }
+
+    restoreCheckpoint(index) {
+        if (this.isExecutingCascade || this.isPaused) return false;
+        const checkpoint = this.checkpoints[index];
+        if (!SudokuCheckpointUI.valid(checkpoint, this.initialBoard)) return false;
+        const before = this.captureCheckpointState();
+        this.applyCheckpointState(checkpoint.state);
+        this.pushAction({ type: 'checkpoint_restore', before, after: this.captureCheckpointState() });
+        this.updateRemainingCounts();
+        this.updateVisualHighlights();
+        this.checkCascadeAvailability();
+        this.saveGameState();
+        return true;
+    }
+
     saveGameState() {
         try {
             const data = {
@@ -3835,12 +3906,15 @@ class SudokuApp {
                 solutionIsUnique: this.solutionIsUnique,
                 prunedSnapshots: this.serializePrunedSnapshots(),
                 provenEliminations: Array.from(this.provenEliminations),
-                gameResultRecorded: this.gameResultRecorded
+                gameResultRecorded: this.gameResultRecorded,
+                checkpoints: this.checkpoints
             };
             localStorage.setItem('sudoku_pro_game_state_v2', JSON.stringify(data));
             this.saveTimerCheckpoint();
+            return true;
         } catch (e) {
             console.warn('Could not save game state to localStorage', e);
+            return false;
         }
     }
 
@@ -3853,6 +3927,8 @@ class SudokuApp {
             if (!data.initialBoard || !data.currentBoard) return false;
 
             this.initialBoard = data.initialBoard;
+            this.checkpoints = Array.isArray(data.checkpoints)
+                ? data.checkpoints.slice(0, 3).filter(point => SudokuCheckpointUI.valid(point, this.initialBoard)) : [];
             this.currentBoard = data.currentBoard;
             this.solutionBoard = SudokuEngine.solve(this.initialBoard);
 

@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260917b">
+    <link rel="stylesheet" href="style.css?v=20260917d">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -191,6 +191,7 @@
 
         <!-- Right Column: Compact Control Center -->
         <aside class="control-column">
+            <button id="btn-checkpoints" class="action-btn full-width" data-i18n="checkpoint.title">Checkpoints</button>
 
             <!-- Difficulty & New Game Card -->
             <div class="panel-card diff-card">
@@ -884,6 +885,19 @@ bool solve_mrv(Board *board) {
         </div>
     </div>
 
+    <div id="modal-checkpoints" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkpoint-title" tabindex="-1">
+            <div class="modal-header">
+                <h2 id="checkpoint-title" data-i18n="checkpoint.title">Checkpoints</h2>
+                <button class="modal-close" data-close="modal-checkpoints" data-i18n-aria-label="common.close" aria-label="Close">&times;</button>
+            </div>
+            <p data-i18n="checkpoint.intro">Save up to three positions in this game. Restores include notes and colors and can be undone. Time and assistance are not reset. Starting a new game clears checkpoints.</p>
+            <button id="checkpoint-save" class="action-btn primary" data-i18n="checkpoint.save">Save current position</button>
+            <p id="checkpoint-empty" data-i18n="checkpoint.empty">No checkpoints yet.</p>
+            <div id="checkpoint-list"></div>
+        </div>
+    </div>
+
     <div id="modal-training" class="modal-backdrop" hidden aria-hidden="true">
         <div class="modal-card training-card" role="dialog" aria-modal="true" aria-labelledby="training-title" tabindex="-1">
             <div class="modal-header">
@@ -893,17 +907,24 @@ bool solve_mrv(Board *board) {
             <p data-i18n="training.intro">Practice one deduction at a time. Your game waits here; its timer pauses during practice.</p>
             <label for="training-technique" data-i18n="training.choose">Choose a technique</label>
             <select id="training-technique" class="diff-select"></select>
+            <label for="training-mode" data-i18n="training.mode">Practice mode</label>
+            <select id="training-mode" class="diff-select">
+                <option value="guided" data-i18n="training.guided">Guided</option>
+                <option value="independent" data-i18n="training.independent">Independent</option>
+            </select>
             <p id="training-progress"></p>
+            <p id="training-independent-progress"></p>
             <p id="training-rule" class="training-rule"></p>
             <p id="training-direction"></p>
             <p id="training-instruction"></p>
-            <p data-i18n="training.legend">Outlined cells form the pattern. Marked digits are your answer. Row 1 is at the top; column 1 is on the left.</p>
+            <p id="training-legend"></p>
             <div id="training-board" class="training-board" role="group" data-i18n-aria-label="training.board" aria-label="Practice board" aria-describedby="training-instruction"></div>
             <p id="training-selection" aria-live="polite"></p>
             <div id="training-keypad" class="training-keypad" role="group" data-i18n-aria-label="training.keypad" aria-label="Choose a digit"></div>
             <div class="training-actions">
                 <button id="training-check" class="action-btn primary" data-i18n="training.check">Check answer</button>
                 <button id="training-clear" class="action-btn" data-i18n="training.clear">Clear marks</button>
+                <button id="training-hint" class="action-btn" data-i18n="training.showPattern" hidden>Show pattern (hint)</button>
                 <button id="training-reveal" class="action-btn" data-i18n="training.reveal">Show explanation</button>
                 <button id="training-next" class="action-btn" data-i18n="training.next">Next exercise</button>
             </div>
@@ -917,13 +938,14 @@ bool solve_mrv(Board *board) {
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260917b"></script>
+    <script src="i18n.js?v=20260917c"></script>
     <script src="puzzles.js?v=20260917a"></script>
     <script src="solver.js?v=20260917a"></script>
     <script src="training-recipes.js?v=20260917a"></script>
     <script src="training.js?v=20260917a"></script>
-    <script src="training-ui.js?v=20260917a"></script>
+    <script src="training-ui.js?v=20260917c"></script>
+    <script src="checkpoint-ui.js?v=20260917c"></script>
     <script src="focus-ui.js?v=20260917b"></script>
-    <script src="app.js?v=20260917b"></script>
+    <script src="app.js?v=20260917d"></script>
 </body>
 </html>

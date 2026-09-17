@@ -18,4 +18,4 @@ jobs:
         with:
           node-version: 22
       - name: Run test suite
-        run: node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs
+        run: node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs tests_js/checkpoints-training.test.cjs tests_js/mobile-keyboard.test.cjs
