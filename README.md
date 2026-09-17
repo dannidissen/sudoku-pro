@@ -93,6 +93,12 @@ Four pastel colors help track chains, alternating inferences, and other advanced
 
 ### Responsive layout
 
+**Focus mode** keeps the board, number keys, input modes, erase, undo, and redo together. It starts automatically at widths up to 900px (also on short, coarse-pointer screens); the header toggle saves an explicit on/off preference locally. Rotation changes the layout without restarting the puzzle: portrait places the controls below the board, while landscape places a 3×3 keypad beside it. Buttons in the focus dock have a minimum 44px height; number keys wrap instead of shrinking into a narrow nine-key strip.
+
+**Tools** opens a scrollable drawer containing hints, candidate tools, colors, difficulty/new game, language, display controls, practice, and other secondary features. Escape, the close button, or the backdrop dismisses it; choosing an action returns to the game or opens the relevant dialog. The timer and pause button remain in the header. Existing controls are moved, not copied, preserving their listeners and the game's state and undo history. The focus preference is independent of game saves and remains optional when storage is unavailable.
+
+The layout reserves device safe-area space and uses a conservative viewport height for the board. Long hints, browser zoom, and exceptionally short screens can scroll rather than clipping controls. Focus mode supports every language and both themes, and is included in the offline app shell. In focus mode, open **Tools → Technique practice** to access drills.
+
 The desktop layout keeps the board, keypad, timer, and controls in a compact workspace. Narrow screens switch to a scrollable single-column layout, with additional handling for the header, language selector, modals, and benchmark table.
 
 ### Audio and feedback
@@ -154,7 +160,7 @@ Source attribution is also available from the in-game Library dialog.
 Run the JavaScript test suite from the repository root:
 
 ```powershell
-node --test tests_js\sudoku-core.test.mjs
+node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs
 ```
 
 The suite verifies:
@@ -185,6 +191,7 @@ app.js                         UI, game state, history, and interactions
 solver.js                      Puzzle generation, solving, hints, and benchmarks
 training.js                    Practice replay and answer checking
 training-ui.js                 Isolated technique practice interface
+focus-ui.js                    Responsive focus mode and secondary-tool drawer
 training-recipes.js            Forty source puzzle IDs and deduction offsets
 puzzles.js                     Bundled puzzle catalogue
 i18n.js                        English, Hebrew, Yiddish, and Latin translations

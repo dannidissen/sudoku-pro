@@ -2635,3 +2635,76 @@ button, .cell, .num-btn, .action-btn, .mode-btn, .color-btn, .quick-btn, .icon-b
     outline-offset: -3px;
     z-index: 5;
 }
+
+/* Focus mode: reuse the live game controls, with a separate scrollable tool drawer. */
+.focus-header-actions { display: flex; gap: 6px; align-items: center; }
+#btn-focus[aria-pressed="true"] { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+#btn-focus-tools[hidden], #focus-dock[hidden] { display: none; }
+#focus-timer:empty { display: none; }
+body.focus-mode { height: auto; min-height: 100dvh; max-height: none; overflow-y: auto !important; }
+.focus-mode .top-header { height: auto; min-height: 52px; flex-shrink: 0; gap: 8px; padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 4px max(8px, env(safe-area-inset-left)); }
+.focus-mode .logo-section, .focus-mode .board-controls-row, .focus-mode .keyboard-helper { display: none; }
+.focus-mode .focus-header-actions { flex: 1; }
+.focus-mode .top-header button { min-height: 44px; white-space: normal; }
+#focus-timer .timer-card { flex-direction: row; align-items: center; padding: 0; border: 0; box-shadow: none; background: transparent; gap: 8px; }
+#focus-timer .timer-digits { font-size: 1rem; }
+#focus-timer .timer-icon { display: none; }
+.focus-mode .workspace-wrapper { height: auto; max-height: none; min-height: calc(100svh - 53px); overflow: visible; padding: 6px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); justify-content: center !important; }
+.focus-mode .board-column { flex: none; display: grid; grid-template-areas: 'board' 'dock'; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; height: auto; width: 100%; min-width: 0; max-width: 560px; gap: 8px; }
+.focus-mode .board-column:has(.hint-banner:not(.hidden)), .focus-mode .board-column:has(.cascade-banner:not(.hidden)) { grid-template-areas: 'hint' 'board' 'cascade' 'dock'; }
+.focus-mode .board-container { grid-area: board; width: min(100%, 480px, max(240px, calc(100svh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom)))); height: auto; margin: 0; }
+.focus-mode .cell { font-size: clamp(1.25rem, 5vw, 2.3rem); }
+.focus-mode .hint-banner { grid-area: hint; max-width: 100%; width: 100%; flex-wrap: wrap; }
+.focus-mode .hint-banner-content, .focus-mode .hint-banner-actions { min-width: 0; flex-wrap: wrap; }
+.focus-mode .hint-banner-content { flex-basis: 100%; }
+.focus-mode .hint-banner-actions { width: 100%; justify-content: space-between; }
+.focus-mode .hint-text { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.focus-mode .hint-step-btn, .focus-mode .cascade-btn { white-space: normal; }
+.focus-mode .cascade-banner { grid-area: cascade; width: 100%; max-width: 100%; flex-wrap: wrap; }
+#focus-dock { grid-area: dock; display: grid; grid-template-areas: 'modes' 'numbers' 'edit'; gap: 6px; width: 100%; max-width: 480px; padding: 6px; border-radius: var(--radius-md); background: var(--bg-primary); position: sticky; bottom: env(safe-area-inset-bottom, 0px); }
+#focus-dock .numpad-row { grid-area: numbers; width: 100%; max-width: none; height: auto; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+#focus-dock .num-btn { min-width: 0; min-height: 44px; height: 44px; line-height: 1.15; font-size: 1.35rem; touch-action: manipulation; }
+#focus-dock .mode-selector-group { grid-area: modes; width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#focus-dock .mode-btn { min-width: 0; min-height: 44px; white-space: normal; padding: 4px; line-height: 1.15; }
+#focus-edit-tools { grid-area: edit; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#focus-edit-tools button { min-width: 0; min-height: 44px; padding: 4px; white-space: normal; }
+#modal-tools { align-items: flex-end; justify-content: flex-end; padding: 0; }
+.modal-card.tools-drawer { width: min(100%, 460px); max-width: 460px; max-height: 92dvh; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; }
+#focus-secondary { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#focus-secondary .header-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; }
+#focus-secondary .header-actions span { display: inline !important; }
+#focus-secondary .pencil-size-control { display: flex !important; flex-wrap: wrap; }
+#focus-secondary button, #focus-secondary select { min-height: 44px; }
+#focus-secondary .language-select { min-width: 90px; max-width: none; font-size: .9rem; }
+#focus-secondary .color-palette-group { justify-content: center; }
+#focus-secondary .color-btn { width: 44px; height: 44px; }
+#focus-secondary .control-column { width: 100%; height: auto; max-width: none; order: initial; }
+#focus-secondary .diff-select { min-width: 0; max-width: 100%; }
+#focus-secondary .diff-header { flex-wrap: wrap; }
+#focus-secondary .action-btn { white-space: normal; }
+body.focus-mode.modal-open { overflow: hidden !important; }
+@media (max-width: 450px) {
+    #focus-timer #btn-pause span { display: none; }
+    #focus-timer #btn-pause { min-width: 44px; }
+    .focus-mode .top-header { gap: 4px; }
+    .focus-mode .top-header .icon-btn { font-size: .78rem; padding: 4px 6px; }
+}
+@media (orientation: landscape) and (min-width: 480px) {
+    .focus-mode .board-column { max-width: 1000px; grid-template-areas: 'board dock'; grid-template-columns: minmax(220px, min(560px, calc(100svh - 84px))) minmax(200px, 300px); justify-content: center; align-items: center; }
+    .focus-mode .board-column:has(.hint-banner:not(.hidden)), .focus-mode .board-column:has(.cascade-banner:not(.hidden)) { grid-template-areas: 'hint hint' 'board dock' 'cascade cascade'; }
+    .focus-mode .board-container { width: min(100%, 560px, max(220px, calc(100svh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom)))); }
+    #focus-dock { position: static; padding: 0; gap: 4px; }
+    #focus-dock .mode-selector-group { padding: 0; border: 0; }
+    #focus-dock .numpad-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+    #focus-dock .mode-btn { font-size: .72rem; }
+    .focus-mode .cell { font-size: clamp(1.1rem, 5svh, 2.3rem); }
+}
+/* Classic mobile layout remains reachable without a crowded, clipped header. */
+@media (min-width: 901px) and (max-width: 1400px) {
+    .subtitle { display: none; }
+    .logo-section, .focus-header-actions { flex-shrink: 0; }
+}
+@media (max-width: 900px) {
+    body:not(.focus-mode) .top-header { height: auto; flex-wrap: wrap; }
+    body:not(.focus-mode) .header-actions { flex-wrap: wrap; }
+}
