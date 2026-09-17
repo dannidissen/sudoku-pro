@@ -4,6 +4,7 @@ class SudokuTrainingUI {
         this.app = app;
         this.indexes = {};
         this.completed = new Set();
+        this.independentCompleted = new Set();
         this.el = id => document.getElementById(`training-${id}`);
         this.select = this.el('technique');
         for (const key of SudokuTraining.techniques) {
@@ -44,6 +45,11 @@ class SudokuTrainingUI {
             app.openModal('modal-training');
         });
         this.select.addEventListener('change', () => this.load());
+        this.el('mode').addEventListener('change', () => this.load());
+        this.el('hint').addEventListener('click', () => {
+            this.assisted = true;
+            this.render();
+        });
         this.el('next').addEventListener('click', () => {
             const key = this.select.value;
             this.indexes[key] = ((this.indexes[key] || 0) + 1) % SUDOKU_TRAINING_RECIPES[key].length;
@@ -60,6 +66,7 @@ class SudokuTrainingUI {
             if (this.feedback === 'correct') {
                 this.resolved = true;
                 this.completed.add(this.exerciseId);
+                if (this.independent && !this.assisted) this.independentCompleted.add(this.exerciseId);
             }
             this.render();
         });
@@ -79,6 +86,8 @@ class SudokuTrainingUI {
         const index = this.indexes[key] || 0;
         this.exercise = SudokuTraining.create(key, SUDOKU_TRAINING_RECIPES[key][index], window.SUDOKU_PUZZLES);
         this.exerciseId = `${key}:${index}`;
+        this.independent = this.el('mode').value === 'independent';
+        this.assisted = false;
         this.selection = new Set();
         this.resolved = false;
         this.feedback = '';
@@ -131,6 +140,7 @@ class SudokuTrainingUI {
     render() {
         const { board, candidates, hint } = this.exercise;
         const placing = hint.action.type === 'set_value';
+        const showPattern = !this.independent || this.assisted || this.resolved;
         const pattern = new Set(hint.stage2Highlight.cells.filter(cell => cell.role === 'primary')
             .map(({ row, col }) => `${row},${col}`));
         for (let index = 0; index < 81; index++) {
@@ -140,12 +150,12 @@ class SudokuTrainingUI {
             const marked = legal.filter(digit => this.selection.has(`${row},${col},${digit}`));
             cell.tabIndex = index === this.active ? 0 : -1;
             cell.classList.toggle('active', index === this.active);
-            cell.classList.toggle('pattern', pattern.has(`${row},${col}`));
+            cell.classList.toggle('pattern', showPattern && pattern.has(`${row},${col}`));
             cell.classList.toggle('given', !!value);
             cell.setAttribute('aria-label', tr(value ? 'training.given' : 'training.cell', {
                 row: row + 1, col: col + 1, value,
                 candidates: legal.join(', '), marked: marked.join(', ') || tr('training.none')
-            }) + (pattern.has(`${row},${col}`) ? `; ${tr('training.pattern')}` : ''));
+            }) + (showPattern && pattern.has(`${row},${col}`) ? `; ${tr('training.pattern')}` : ''));
             cell.replaceChildren();
             if (value) cell.textContent = value;
             else {
@@ -170,8 +180,13 @@ class SudokuTrainingUI {
         });
         this.el('selection').textContent = tr('training.selection', { row: row + 1, col: col + 1, count: this.selection.size });
         this.el('rule').textContent = tr(`training.rule.${this.select.value}`);
-        this.el('direction').textContent = this.app.getLocalizedHintPart(hint, 'stage1', hint.stage1Direction);
-        this.el('instruction').textContent = tr(placing ? 'training.place' : 'training.eliminate', { count: this.exercise.answer.size });
+        this.el('direction').textContent = showPattern ? this.app.getLocalizedHintPart(hint, 'stage1', hint.stage1Direction) : '';
+        this.el('legend').textContent = tr(showPattern ? 'training.legend' : 'training.independentLegend');
+        this.el('instruction').textContent = tr(placing ? 'training.place'
+            : showPattern ? 'training.eliminate' : 'training.independentEliminate', { count: this.exercise.answer.size });
+        this.el('hint').hidden = !this.independent;
+        this.el('hint').disabled = this.assisted || this.resolved;
+        this.el('independent-progress').textContent = tr('training.independentProgress', { count: this.independentCompleted.size });
         this.el('progress').textContent = tr('training.progress', {
             index: (this.indexes[this.select.value] || 0) + 1,
             total: SUDOKU_TRAINING_RECIPES[this.select.value].length, count: this.completed.size
@@ -184,3 +199,5 @@ class SudokuTrainingUI {
         for (const id of ['check', 'clear', 'reveal']) this.el(id).disabled = this.resolved;
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) module.exports = SudokuTrainingUI;
