@@ -746,3 +746,94 @@ test('setSettingsActiveTab updates active class, aria-selected and data-active-t
         if (originalQuerySelector) globalThis.document.querySelector = originalQuerySelector;
     }
 });
+
+test('index.html contains #set-pencil-layout and pencilLayout options in settings modal', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    assert.match(html, /id="set-pencil-layout"/);
+    assert.match(html, /data-i18n="settings\.pencilLayoutTitle"/);
+    assert.match(html, /data-i18n="settings\.pencilLayoutDesc"/);
+    assert.match(html, /value="phone"[^>]*data-i18n="settings\.pencilLayoutPhone"/);
+    assert.match(html, /value="numpad"[^>]*data-i18n="settings\.pencilLayoutNumpad"/);
+});
+
+test('applyPencilLayout and setPencilLayout update body class, select value, and settings', () => {
+    const SudokuApp = require('../app.js');
+    const classes = new Set();
+    const fakeBody = {
+        classList: {
+            add(cls) { classes.add(cls); },
+            remove(cls) { classes.delete(cls); },
+            toggle(cls, force) {
+                if (force) classes.add(cls);
+                else classes.delete(cls);
+            },
+            contains(cls) { return classes.has(cls); }
+        }
+    };
+    const select = { value: 'phone' };
+    const prevDoc = globalThis.document;
+    globalThis.document = {
+        body: fakeBody,
+        getElementById(id) {
+            if (id === 'set-pencil-layout') return select;
+            return null;
+        }
+    };
+
+    try {
+        let saved = false;
+        let rendered = false;
+        const fakeApp = {
+            settings: { pencilLayout: 'phone' },
+            applyPencilLayout: SudokuApp.prototype.applyPencilLayout,
+            setPencilLayout: SudokuApp.prototype.setPencilLayout,
+            saveSettings() { saved = true; },
+            renderBoard() { rendered = true; }
+        };
+
+        // Test applyPencilLayout with numpad
+        fakeApp.applyPencilLayout('numpad');
+        assert.equal(classes.has('pencil-layout-numpad'), true);
+        assert.equal(select.value, 'numpad');
+
+        // Test applyPencilLayout with phone
+        fakeApp.applyPencilLayout('phone');
+        assert.equal(classes.has('pencil-layout-numpad'), false);
+        assert.equal(select.value, 'phone');
+
+        // Test setPencilLayout with numpad
+        fakeApp.setPencilLayout('numpad');
+        assert.equal(fakeApp.settings.pencilLayout, 'numpad');
+        assert.equal(classes.has('pencil-layout-numpad'), true);
+        assert.equal(select.value, 'numpad');
+        assert.equal(saved, true);
+        assert.equal(rendered, true);
+
+        // Test setPencilLayout fallback for invalid layout
+        saved = false;
+        rendered = false;
+        fakeApp.setPencilLayout('invalid');
+        assert.equal(fakeApp.settings.pencilLayout, 'phone');
+        assert.equal(classes.has('pencil-layout-numpad'), false);
+        assert.equal(select.value, 'phone');
+        assert.equal(saved, true);
+        assert.equal(rendered, true);
+    } finally {
+        globalThis.document = prevDoc;
+    }
+});
+
+test('style.css defines computer numpad 3x3 layout for center-mark and corner-mark', () => {
+    const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+    assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="1"\]/);
+    assert.match(css, /body\.pencil-layout-numpad\s+\.corner-mark\[data-num="1"\]/);
+    // 7 should be top row (grid-area: 1 / 1 / 2 / 2)
+    assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="7"\],\s*body\.pencil-layout-numpad\s+\.corner-mark\[data-num="7"\]\s*\{\s*grid-area:\s*1\s*\/\s*1\s*\/\s*2\s*\/\s*2;\s*\}/);
+    // 1 should be bottom row (grid-area: 3 / 1 / 4 / 2)
+    assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="1"\],\s*body\.pencil-layout-numpad\s+\.corner-mark\[data-num="1"\]\s*\{\s*grid-area:\s*3\s*\/\s*1\s*\/\s*4\s*\/\s*2;\s*\}/);
+    // 9 should be top-right (grid-area: 1 / 3 / 2 / 4)
+    assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="9"\],\s*body\.pencil-layout-numpad\s+\.corner-mark\[data-num="9"\]\s*\{\s*grid-area:\s*1\s*\/\s*3\s*\/\s*2\s*\/\s*4;\s*\}/);
+    // 3 should be bottom-right (grid-area: 3 / 3 / 4 / 4)
+    assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="3"\],\s*body\.pencil-layout-numpad\s+\.corner-mark\[data-num="3"\]\s*\{\s*grid-area:\s*3\s*\/\s*3\s*\/\s*4\s*\/\s*4;\s*\}/);
+});
+

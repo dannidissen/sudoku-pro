@@ -655,6 +655,39 @@ html, body {
 .center-mark[data-num="8"] { grid-area: 3 / 2 / 4 / 3; }
 .center-mark[data-num="9"] { grid-area: 3 / 3 / 4 / 4; }
 
+/* Computer Numpad 3×3 Candidate Layout (7 8 9 top, 4 5 6 mid, 1 2 3 bottom) */
+body.pencil-layout-numpad .center-mark[data-num="1"],
+body.pencil-layout-numpad .corner-mark[data-num="1"] { grid-area: 3 / 1 / 4 / 2; }
+
+body.pencil-layout-numpad .center-mark[data-num="2"],
+body.pencil-layout-numpad .corner-mark[data-num="2"] { grid-area: 3 / 2 / 4 / 3; }
+
+body.pencil-layout-numpad .center-mark[data-num="3"],
+body.pencil-layout-numpad .corner-mark[data-num="3"] { grid-area: 3 / 3 / 4 / 4; }
+
+body.pencil-layout-numpad .center-mark[data-num="4"],
+body.pencil-layout-numpad .corner-mark[data-num="4"] { grid-area: 2 / 1 / 3 / 2; }
+
+body.pencil-layout-numpad .center-mark[data-num="5"],
+body.pencil-layout-numpad .corner-mark[data-num="5"] { grid-area: 2 / 2 / 3 / 3; }
+
+body.pencil-layout-numpad .center-mark[data-num="6"],
+body.pencil-layout-numpad .corner-mark[data-num="6"] { grid-area: 2 / 3 / 3 / 4; }
+
+body.pencil-layout-numpad .center-mark[data-num="7"],
+body.pencil-layout-numpad .corner-mark[data-num="7"] { grid-area: 1 / 1 / 2 / 2; }
+
+body.pencil-layout-numpad .center-mark[data-num="8"],
+body.pencil-layout-numpad .corner-mark[data-num="8"] { grid-area: 1 / 2 / 2 / 3; }
+
+body.pencil-layout-numpad .center-mark[data-num="9"],
+body.pencil-layout-numpad .corner-mark[data-num="9"] { grid-area: 1 / 3 / 2 / 4; }
+
+#setting-pencil-layout.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
 /* Fallback if player toggles off smart grid in settings */
 body.classic-pencil-flow .center-marks-grid {
     display: flex;

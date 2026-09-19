@@ -168,6 +168,7 @@ class SudokuApp {
             blockConflictingPencil: true,
             validateAgainstSolution: true,
             smartPencilGrid: true,
+            pencilLayout: 'phone',
             highlightRevealed: true,
             theme: 'dark',
             pencilSize: 'normal',
@@ -182,6 +183,7 @@ class SudokuApp {
         this.audio.enabled = this.settings.soundEnabled;
         this.applyTheme(this.settings.theme);
         this.applyPencilSize(this.settings.pencilSize);
+        this.applyPencilLayout(this.settings.pencilLayout || 'phone');
         document.body.classList.toggle('classic-pencil-flow', !this.settings.smartPencilGrid);
         this.setupDOM();
         this.updateSnyderModeUI();
@@ -456,8 +458,22 @@ class SudokuApp {
         this.bindSettingCheckbox('set-block-conflicting-pencil', 'blockConflictingPencil');
         this.bindSettingCheckbox('set-smart-pencil-grid', 'smartPencilGrid', (val) => {
             document.body.classList.toggle('classic-pencil-flow', !val);
+            const layoutItem = document.getElementById('setting-pencil-layout');
+            const layoutSelect = document.getElementById('set-pencil-layout');
+            if (layoutItem) layoutItem.classList.toggle('disabled', !val);
+            if (layoutSelect) layoutSelect.disabled = !val;
             this.renderBoard();
         });
+        const layoutSelect = document.getElementById('set-pencil-layout');
+        if (layoutSelect) {
+            layoutSelect.value = this.settings.pencilLayout || 'phone';
+            layoutSelect.disabled = !this.settings.smartPencilGrid;
+            const layoutItem = document.getElementById('setting-pencil-layout');
+            if (layoutItem) layoutItem.classList.toggle('disabled', !this.settings.smartPencilGrid);
+            layoutSelect.addEventListener('change', (e) => {
+                this.setPencilLayout(e.target.value);
+            });
+        }
         this.bindSettingCheckbox('set-highlight-revealed', 'highlightRevealed', () => {
             this.renderBoard();
         });
@@ -3356,6 +3372,15 @@ class SudokuApp {
                     const el = document.getElementById(id);
                     if (el) el.checked = !!this.settings[key];
                 });
+                const layoutSelect = document.getElementById('set-pencil-layout');
+                if (layoutSelect) {
+                    layoutSelect.value = this.settings.pencilLayout || 'phone';
+                    layoutSelect.disabled = !this.settings.smartPencilGrid;
+                }
+                const layoutItem = document.getElementById('setting-pencil-layout');
+                if (layoutItem) {
+                    layoutItem.classList.toggle('disabled', !this.settings.smartPencilGrid);
+                }
                 this.setSettingsActiveTab('all');
             } else if (modalId === 'modal-stats') {
                 this.renderStats();
@@ -4023,6 +4048,21 @@ class SudokuApp {
                 else btn.classList.remove('active');
             }
         });
+    }
+
+    setPencilLayout(layout) {
+        this.settings.pencilLayout = layout === 'numpad' ? 'numpad' : 'phone';
+        this.applyPencilLayout(this.settings.pencilLayout);
+        this.saveSettings();
+        this.renderBoard();
+    }
+
+    applyPencilLayout(layout) {
+        if (typeof document !== 'undefined' && document.body) {
+            document.body.classList.toggle('pencil-layout-numpad', layout === 'numpad');
+            const select = document.getElementById('set-pencil-layout');
+            if (select) select.value = layout;
+        }
     }
 }
 
