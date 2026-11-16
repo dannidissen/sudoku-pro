@@ -179,6 +179,96 @@ const SUDOKU_TRAINING_RECIPES = {
       "id": "0001767b888a",
       "step": 27
     }
+  ],
+  "skyscraper": [
+    {
+      "id": "0000b2c3fc62",
+      "step": 21
+    },
+    {
+      "id": "0004145d74ed",
+      "step": 33
+    },
+    {
+      "id": "00048ced7f79",
+      "step": 27
+    },
+    {
+      "id": "000654a43039",
+      "step": 36
+    }
+  ],
+  "twoStringKite": [
+    {
+      "id": "0000d2fa4f03",
+      "step": 23
+    },
+    {
+      "id": "0004145d74ed",
+      "step": 23
+    },
+    {
+      "id": "000605330c87",
+      "step": 15
+    },
+    {
+      "id": "000654a43039",
+      "step": 20
+    }
+  ],
+  "xyzWing": [
+    {
+      "id": "0001786dfc8c",
+      "step": 23
+    },
+    {
+      "id": "0004176c8af1",
+      "step": 13
+    },
+    {
+      "id": "00048ced7f79",
+      "step": 28
+    },
+    {
+      "id": "000605330c87",
+      "step": 18
+    }
+  ],
+  "wWing": [
+    {
+      "id": "0001786dfc8c",
+      "step": 24
+    },
+    {
+      "id": "0002fd0d447f",
+      "step": 35
+    },
+    {
+      "id": "000506ef56fc",
+      "step": 27
+    },
+    {
+      "id": "000654a43039",
+      "step": 23
+    }
+  ],
+  "simpleColoring": [
+    {
+      "id": "000605330c87",
+      "step": 20
+    },
+    {
+      "id": "0014ac2d49ce",
+      "step": 15
+    },
+    {
+      "id": "00057d44a4af",
+      "step": 12
+    },
+    {
+      "id": "00152aa39f09",
+      "step": 25
+    }
   ]
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = SUDOKU_TRAINING_RECIPES;

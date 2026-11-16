@@ -1207,6 +1207,460 @@ class SudokuEngine {
     }
 
     /**
+     * Every cell that still lists `d` as a candidate. Shared by the single-digit patterns below.
+     * @param {number[][]} board
+     * @param {Object.<string, number[]>} candidatesMap
+     * @param {number} d
+     * @returns {{r: number, c: number}[]}
+     */
+    static digitPositions(board, candidatesMap, d) {
+        const positions = [];
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (this.hasCandidate(board, candidatesMap, r, c, d)) positions.push({ r, c });
+            }
+        }
+        return positions;
+    }
+
+    /** Cells of `unit` where `d` is still a candidate. */
+    static unitSpots(board, candidatesMap, unit, d) {
+        return unit.cells.filter(({ r, c }) => this.hasCandidate(board, candidatesMap, r, c, d));
+    }
+
+    /** True when `cell` is one of `group`. */
+    static cellIn(group, cell) {
+        return group.some(member => member.r === cell.r && member.c === cell.c);
+    }
+
+    /** Cells holding exactly `count` candidates, used by the wing patterns. */
+    static cellsWithCandidateCount(board, candidatesMap, count) {
+        const found = [];
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cands = board[r][c] === 0 ? (candidatesMap[`${r},${c}`] || []) : [];
+                if (cands.length === count) found.push({ r, c, cands });
+            }
+        }
+        return found;
+    }
+
+    /**
+     * 11. Skyscraper: two lines hold `d` twice each and share one cross-line (the base).
+     * At most one base cell is `d`, so at least one of the two far ends (the roof) must be,
+     * and `d` leaves every cell that sees both roof cells.
+     */
+    static findSkyscraper(board, candidatesMap) {
+        for (let d = 1; d <= 9; d++) {
+            const positions = this.digitPositions(board, candidatesMap, d);
+
+            for (const byRows of [true, false]) {
+                const lineOf = cell => (byRows ? cell.r : cell.c);
+                const crossOf = cell => (byRows ? cell.c : cell.r);
+
+                const lines = new Map();
+                for (const cell of positions) {
+                    if (!lines.has(lineOf(cell))) lines.set(lineOf(cell), []);
+                    lines.get(lineOf(cell)).push(cell);
+                }
+                const pairs = [...lines.values()].filter(cells => cells.length === 2);
+
+                for (let i = 0; i < pairs.length; i++) {
+                    for (let j = i + 1; j < pairs.length; j++) {
+                        const cellsA = pairs[i];
+                        const cellsB = pairs[j];
+
+                        for (const baseA of cellsA) {
+                            for (const baseB of cellsB) {
+                                if (crossOf(baseA) !== crossOf(baseB)) continue;
+                                const roofA = cellsA.find(cell => cell !== baseA);
+                                const roofB = cellsB.find(cell => cell !== baseB);
+                                // Equal roof lines make this an X-Wing, which runs earlier.
+                                if (crossOf(roofA) === crossOf(roofB)) continue;
+
+                                const pattern = [baseA, baseB, roofA, roofB];
+                                const eliminations = positions
+                                    .filter(cell => !this.cellIn(pattern, cell)
+                                        && this.cellsSee(cell, roofA) && this.cellsSee(cell, roofB))
+                                    .map(cell => ({ row: cell.r, col: cell.c, digit: d }));
+                                if (eliminations.length === 0) continue;
+
+                                const lineNumbers = [lineOf(baseA) + 1, lineOf(baseB) + 1].sort((x, y) => x - y).join(', ');
+                                const lineLabel = byRows ? 'rows' : 'columns';
+                                const crossLabel = byRows ? 'column' : 'row';
+                                return {
+                                    technique: 'Skyscraper',
+                                    nameKey: 'hint.skyscraper.name',
+                                    nameFallback: 'Skyscraper',
+                                    stage1Key: byRows ? 'hint.skyscraper.rowsDirection' : 'hint.skyscraper.colsDirection',
+                                    stage1Params: { digit: d, lines: lineNumbers },
+                                    stage1Direction: `Find a Skyscraper for ${d} in ${lineLabel} ${lineNumbers}`,
+                                    stage2Highlight: {
+                                        cells: pattern.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                                        units: [
+                                            { type: byRows ? 'row' : 'col', index: lineOf(baseA) },
+                                            { type: byRows ? 'row' : 'col', index: lineOf(baseB) }
+                                        ],
+                                        digits: [d]
+                                    },
+                                    stage3Key: byRows ? 'hint.skyscraper.rowsExplanation' : 'hint.skyscraper.colsExplanation',
+                                    stage3Params: {
+                                        digit: d,
+                                        lines: lineNumbers,
+                                        base: crossOf(baseA) + 1,
+                                        row1: roofA.r + 1,
+                                        col1: roofA.c + 1,
+                                        row2: roofB.r + 1,
+                                        col2: roofB.c + 1,
+                                        count: eliminations.length
+                                    },
+                                    stage3Explanation: `${d} has exactly two places in ${lineLabel} ${lineNumbers}, and both pairs reach ${crossLabel} ${crossOf(baseA) + 1}. At most one of those two cells is ${d}, so (${roofA.r + 1}, ${roofA.c + 1}) or (${roofB.r + 1}, ${roofB.c + 1}) must be. Remove ${d} from every cell that sees both (${eliminations.length} eliminations).`,
+                                    action: { type: 'eliminate_candidates', eliminations }
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 12. Two-String Kite: a row and a column each hold `d` twice, and one cell from each
+     * shares a box. Those two cannot both be `d`, so one of the far ends is, and `d` leaves
+     * the cell where the two far ends cross.
+     */
+    static findTwoStringKite(board, candidatesMap) {
+        for (let d = 1; d <= 9; d++) {
+            const positions = this.digitPositions(board, candidatesMap, d);
+
+            const rows = new Map();
+            const cols = new Map();
+            for (const cell of positions) {
+                if (!rows.has(cell.r)) rows.set(cell.r, []);
+                rows.get(cell.r).push(cell);
+                if (!cols.has(cell.c)) cols.set(cell.c, []);
+                cols.get(cell.c).push(cell);
+            }
+
+            for (const rowCells of rows.values()) {
+                if (rowCells.length !== 2) continue;
+                for (const colCells of cols.values()) {
+                    if (colCells.length !== 2) continue;
+
+                    for (const rowLink of rowCells) {
+                        for (const colLink of colCells) {
+                            if (rowLink.r === colLink.r && rowLink.c === colLink.c) continue;
+                            if (this.boxIndex(rowLink.r, rowLink.c) !== this.boxIndex(colLink.r, colLink.c)) continue;
+
+                            const rowEnd = rowCells.find(cell => cell !== rowLink);
+                            const colEnd = colCells.find(cell => cell !== colLink);
+                            if (rowEnd.r === colEnd.r && rowEnd.c === colEnd.c) continue;
+
+                            const target = { r: colEnd.r, c: rowEnd.c };
+                            const pattern = [rowLink, colLink, rowEnd, colEnd];
+                            if (this.cellIn(pattern, target)) continue;
+                            if (!this.hasCandidate(board, candidatesMap, target.r, target.c, d)) continue;
+
+                            const box = this.boxIndex(rowLink.r, rowLink.c);
+                            return {
+                                technique: 'Two-String Kite',
+                                nameKey: 'hint.twoStringKite.name',
+                                nameFallback: 'Two-String Kite',
+                                stage1Key: 'hint.twoStringKite.direction',
+                                stage1Params: { digit: d, row: rowLink.r + 1, col: colLink.c + 1 },
+                                stage1Direction: `Find a Two-String Kite for ${d} built from row ${rowLink.r + 1} and column ${colLink.c + 1}`,
+                                stage2Highlight: {
+                                    cells: pattern.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                                    units: [
+                                        { type: 'row', index: rowLink.r },
+                                        { type: 'col', index: colLink.c },
+                                        { type: 'box', index: box }
+                                    ],
+                                    digits: [d]
+                                },
+                                stage3Key: 'hint.twoStringKite.explanation',
+                                stage3Params: {
+                                    digit: d,
+                                    row: rowLink.r + 1,
+                                    col: colLink.c + 1,
+                                    box: box + 1,
+                                    row1: rowEnd.r + 1,
+                                    col1: rowEnd.c + 1,
+                                    row2: colEnd.r + 1,
+                                    col2: colEnd.c + 1,
+                                    targetRow: target.r + 1,
+                                    targetCol: target.c + 1
+                                },
+                                stage3Explanation: `In row ${rowLink.r + 1} and column ${colLink.c + 1}, ${d} has two places each, and one from each meets inside box ${box + 1}. Those two cannot both be ${d}, so (${rowEnd.r + 1}, ${rowEnd.c + 1}) or (${colEnd.r + 1}, ${colEnd.c + 1}) must be. Remove ${d} from (${target.r + 1}, ${target.c + 1}), which sees both.`,
+                                action: { type: 'eliminate_candidates', eliminations: [{ row: target.r, col: target.c, digit: d }] }
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 13. XYZ-Wing: a pivot {x,y,z} sees two bivalue wings {x,z} and {y,z}. One of the three
+     * holds z whatever the pivot takes, so z leaves every cell that sees all three.
+     */
+    static findXYZWing(board, candidatesMap) {
+        const bivalue = this.cellsWithCandidateCount(board, candidatesMap, 2);
+        const trivalue = this.cellsWithCandidateCount(board, candidatesMap, 3);
+
+        for (const pivot of trivalue) {
+            const wings = bivalue.filter(cell => this.cellsSee(cell, pivot)
+                && cell.cands.every(digit => pivot.cands.includes(digit)));
+
+            for (let i = 0; i < wings.length; i++) {
+                for (let j = i + 1; j < wings.length; j++) {
+                    const wingA = wings[i];
+                    const wingB = wings[j];
+                    const shared = wingA.cands.filter(digit => wingB.cands.includes(digit));
+                    if (shared.length !== 1) continue;
+                    if (new Set([...wingA.cands, ...wingB.cands]).size !== 3) continue;
+                    const z = shared[0];
+
+                    const eliminations = [];
+                    for (let r = 0; r < 9; r++) {
+                        for (let c = 0; c < 9; c++) {
+                            const cell = { r, c };
+                            if (!this.hasCandidate(board, candidatesMap, r, c, z)) continue;
+                            if (this.cellsSee(cell, pivot) && this.cellsSee(cell, wingA) && this.cellsSee(cell, wingB)) {
+                                eliminations.push({ row: r, col: c, digit: z });
+                            }
+                        }
+                    }
+                    if (eliminations.length === 0) continue;
+
+                    return {
+                        technique: 'XYZ-Wing',
+                        nameKey: 'hint.xyzWing.name',
+                        nameFallback: 'XYZ-Wing',
+                        stage1Key: 'hint.xyzWing.direction',
+                        stage1Params: { row: pivot.r + 1, col: pivot.c + 1 },
+                        stage1Direction: `Find an XYZ-Wing that pivots on the three-candidate cell at row ${pivot.r + 1}, column ${pivot.c + 1}`,
+                        stage2Highlight: {
+                            cells: [pivot, wingA, wingB].map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                            units: [],
+                            digits: pivot.cands.slice()
+                        },
+                        stage3Key: 'hint.xyzWing.explanation',
+                        stage3Params: {
+                            row: pivot.r + 1,
+                            col: pivot.c + 1,
+                            digits: pivot.cands.join(', '),
+                            z,
+                            row1: wingA.r + 1,
+                            col1: wingA.c + 1,
+                            row2: wingB.r + 1,
+                            col2: wingB.c + 1,
+                            count: eliminations.length
+                        },
+                        stage3Explanation: `The pivot (${pivot.r + 1}, ${pivot.c + 1}) holds ${pivot.cands.join(', ')}, and the wings (${wingA.r + 1}, ${wingA.c + 1}) and (${wingB.r + 1}, ${wingB.c + 1}) each hold ${z}. One of the three must be ${z}, so remove ${z} from every cell that sees all three (${eliminations.length} eliminations).`,
+                        action: { type: 'eliminate_candidates', eliminations }
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 14. W-Wing: two cells hold the same pair {x,y} and do not see each other. A unit where x
+     * has exactly two places links them, so one of the pair must be y and y leaves every cell
+     * that sees both.
+     */
+    static findWWing(board, candidatesMap) {
+        const bivalue = this.cellsWithCandidateCount(board, candidatesMap, 2);
+        const units = this.getUnits();
+
+        for (let i = 0; i < bivalue.length; i++) {
+            for (let j = i + 1; j < bivalue.length; j++) {
+                const a = bivalue[i];
+                const b = bivalue[j];
+                if (a.cands[0] !== b.cands[0] || a.cands[1] !== b.cands[1]) continue;
+                if (this.cellsSee(a, b)) continue;
+
+                for (const x of a.cands) {
+                    const y = a.cands[0] === x ? a.cands[1] : a.cands[0];
+
+                    for (const unit of units) {
+                        const spots = this.unitSpots(board, candidatesMap, unit, x);
+                        if (spots.length !== 2) continue;
+                        if (this.cellIn(spots, a) || this.cellIn(spots, b)) continue;
+                        const [s1, s2] = spots;
+                        const linked = (this.cellsSee(s1, a) && this.cellsSee(s2, b))
+                            || (this.cellsSee(s2, a) && this.cellsSee(s1, b));
+                        if (!linked) continue;
+
+                        const eliminations = [];
+                        for (let r = 0; r < 9; r++) {
+                            for (let c = 0; c < 9; c++) {
+                                const cell = { r, c };
+                                if (!this.hasCandidate(board, candidatesMap, r, c, y)) continue;
+                                if (this.cellsSee(cell, a) && this.cellsSee(cell, b)) {
+                                    eliminations.push({ row: r, col: c, digit: y });
+                                }
+                            }
+                        }
+                        if (eliminations.length === 0) continue;
+
+                        return {
+                            technique: 'W-Wing',
+                            nameKey: 'hint.wWing.name',
+                            nameFallback: 'W-Wing',
+                            stage1Key: 'hint.wWing.direction',
+                            stage1Params: { digit1: a.cands[0], digit2: a.cands[1] },
+                            stage1Direction: `Find two cells holding only ${a.cands[0]} and ${a.cands[1]} that a strong link joins`,
+                            stage2Highlight: {
+                                cells: [a, b, s1, s2].map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                                units: [{ type: unit.type, index: unit.index }],
+                                digits: [x, y]
+                            },
+                            stage3Key: 'hint.wWing.explanation',
+                            stage3Params: {
+                                row1: a.r + 1,
+                                col1: a.c + 1,
+                                row2: b.r + 1,
+                                col2: b.c + 1,
+                                x,
+                                y,
+                                unitType: unit.type,
+                                unitIndex: unit.index + 1,
+                                count: eliminations.length
+                            },
+                            stage3Explanation: `(${a.r + 1}, ${a.c + 1}) and (${b.r + 1}, ${b.c + 1}) both hold only ${x} and ${y}, and ${x} has just two places in ${unit.nameFallback}, one seeing each of them. One of those two cells must therefore be ${y}, so remove ${y} from every cell that sees both (${eliminations.length} eliminations).`,
+                            action: { type: 'eliminate_candidates', eliminations }
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 15. Simple Colouring: follow the strong links for one digit and paint the chain in two
+     * alternating colours. Exactly one colour is true, which gives two deductions: a colour
+     * that repeats inside a unit is false, and an outside cell seeing both colours cannot
+     * hold the digit.
+     */
+    static findSimpleColoring(board, candidatesMap) {
+        const units = this.getUnits();
+        const keyOf = cell => `${cell.r},${cell.c}`;
+
+        for (let d = 1; d <= 9; d++) {
+            const positions = this.digitPositions(board, candidatesMap, d);
+            if (positions.length < 4) continue;
+
+            const links = new Map(positions.map(cell => [keyOf(cell), []]));
+            for (const unit of units) {
+                const spots = this.unitSpots(board, candidatesMap, unit, d);
+                if (spots.length !== 2) continue;
+                links.get(keyOf(spots[0])).push(spots[1]);
+                links.get(keyOf(spots[1])).push(spots[0]);
+            }
+
+            const colors = new Map();
+            for (const start of positions) {
+                if (colors.has(keyOf(start)) || links.get(keyOf(start)).length === 0) continue;
+
+                const chain = [start];
+                colors.set(keyOf(start), 0);
+                for (let head = 0; head < chain.length; head++) {
+                    const cell = chain[head];
+                    const next = colors.get(keyOf(cell)) === 0 ? 1 : 0;
+                    for (const neighbour of links.get(keyOf(cell))) {
+                        if (colors.has(keyOf(neighbour))) continue;
+                        colors.set(keyOf(neighbour), next);
+                        chain.push(neighbour);
+                    }
+                }
+                if (chain.length < 4) continue;
+
+                // An odd cycle would break the alternation and make every conclusion unsound.
+                const alternates = chain.every(cell => links.get(keyOf(cell))
+                    .every(neighbour => colors.get(keyOf(neighbour)) !== colors.get(keyOf(cell))));
+                if (!alternates) continue;
+
+                const groups = [
+                    chain.filter(cell => colors.get(keyOf(cell)) === 0),
+                    chain.filter(cell => colors.get(keyOf(cell)) === 1)
+                ];
+                const highlight = {
+                    cells: chain.map(cell => ({ row: cell.r, col: cell.c, role: 'primary' })),
+                    units: [],
+                    digits: [d]
+                };
+
+                // Rule 2: one colour twice in a unit makes that whole colour false.
+                for (const group of groups) {
+                    let clash = null;
+                    for (let m = 0; m < group.length && !clash; m++) {
+                        for (let n = m + 1; n < group.length; n++) {
+                            if (this.cellsSee(group[m], group[n])) {
+                                clash = [group[m], group[n]];
+                                break;
+                            }
+                        }
+                    }
+                    if (!clash) continue;
+
+                    const eliminations = group.map(cell => ({ row: cell.r, col: cell.c, digit: d }));
+                    return {
+                        technique: 'Simple Colouring',
+                        nameKey: 'hint.simpleColoring.name',
+                        nameFallback: 'Simple Colouring',
+                        stage1Key: 'hint.simpleColoring.direction',
+                        stage1Params: { digit: d },
+                        stage1Direction: `Follow the chain of two-place links for ${d} and colour it in alternating colours`,
+                        stage2Highlight: highlight,
+                        stage3Key: 'hint.simpleColoring.unitExplanation',
+                        stage3Params: {
+                            digit: d,
+                            row1: clash[0].r + 1,
+                            col1: clash[0].c + 1,
+                            row2: clash[1].r + 1,
+                            col2: clash[1].c + 1,
+                            count: eliminations.length
+                        },
+                        stage3Explanation: `Along the ${d} chain, (${clash[0].r + 1}, ${clash[0].c + 1}) and (${clash[1].r + 1}, ${clash[1].c + 1}) carry the same colour and share a unit, so that colour cannot be the true one. Remove ${d} from every cell of that colour (${eliminations.length} eliminations).`,
+                        action: { type: 'eliminate_candidates', eliminations }
+                    };
+                }
+
+                // Rule 4: a cell outside the chain that sees both colours cannot hold the digit.
+                const eliminations = positions
+                    .filter(cell => !colors.has(keyOf(cell))
+                        && groups[0].some(member => this.cellsSee(cell, member))
+                        && groups[1].some(member => this.cellsSee(cell, member)))
+                    .map(cell => ({ row: cell.r, col: cell.c, digit: d }));
+                if (eliminations.length === 0) continue;
+
+                return {
+                    technique: 'Simple Colouring',
+                    nameKey: 'hint.simpleColoring.name',
+                    nameFallback: 'Simple Colouring',
+                    stage1Key: 'hint.simpleColoring.direction',
+                    stage1Params: { digit: d },
+                    stage1Direction: `Follow the chain of two-place links for ${d} and colour it in alternating colours`,
+                    stage2Highlight: highlight,
+                    stage3Key: 'hint.simpleColoring.seesBothExplanation',
+                    stage3Params: { digit: d, count: eliminations.length },
+                    stage3Explanation: `Exactly one of the two colours on the ${d} chain is true, so any cell outside the chain that sees both colours cannot be ${d} (${eliminations.length} eliminations).`,
+                    action: { type: 'eliminate_candidates', eliminations }
+                };
+            }
+        }
+        return null;
+    }
+
+    /**
      * Master Deductive Hint Method
      * Runs human deductive strategies in increasing order of difficulty.
      * @param {number[][]} board
@@ -1224,7 +1678,15 @@ class SudokuEngine {
             this.findNakedTriple,
             this.findXWing,
             this.findSwordfish,
-            this.findXYWing
+            this.findXYWing,
+            // Appended in increasing difficulty. New finders go at the end: an earlier
+            // insertion would change which hint each step produces and invalidate the
+            // stored training recipes.
+            this.findSkyscraper,
+            this.findTwoStringKite,
+            this.findXYZWing,
+            this.findWWing,
+            this.findSimpleColoring
         ];
         for (const finder of finders) {
             const hint = finder.call(this, board, candidatesMap);

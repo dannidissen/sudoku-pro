@@ -254,7 +254,23 @@ class SudokuApp {
                 cell.dataset.col = c;
                 cell.setAttribute('role', 'button');
                 cell.tabIndex = r === 0 && c === 0 ? 0 : -1;
-                cell.addEventListener('click', () => this.selectCell(r, c));
+                // A second tap on the selected cell clears the selection and every digit
+                // highlight, giving a neutral board. Whether the cell was already selected
+                // is read on press: the focus handler below selects it before the click.
+                cell.addEventListener('pointerdown', () => {
+                    const sel = this.selectedCell;
+                    this.cellWasSelectedOnPress = !!sel && sel.row === r && sel.col === c;
+                });
+                cell.addEventListener('click', (event) => {
+                    const retapped = event.detail > 0 && this.cellWasSelectedOnPress && this.activeColor === null;
+                    this.cellWasSelectedOnPress = false;
+                    if (retapped) {
+                        this.clearSelection();
+                        cell.blur();
+                        return;
+                    }
+                    this.selectCell(r, c);
+                });
                 // Tabbing into the board selects the cell that receives focus.
                 cell.addEventListener('focus', () => {
                     const sel = this.selectedCell;
@@ -267,6 +283,17 @@ class SudokuApp {
     }
 
     setupEvents() {
+        // iOS Safari only applies :active styles when the page listens for touchstart.
+        // Without this, keypad buttons give no feedback until the finger lifts.
+        document.addEventListener('touchstart', () => {}, { passive: true });
+
+        // Tapping empty space around the board (not a control) returns to a neutral board.
+        document.querySelectorAll('.workspace-wrapper, .board-column, .board-container').forEach(area => {
+            area.addEventListener('click', (event) => {
+                if (event.target === area) this.clearSelection();
+            });
+        });
+
         this.training = new SudokuTrainingUI(this);
         this.checkpointUI = new SudokuCheckpointUI(this);
         this.focusUI = new SudokuFocusUI(this);
@@ -535,9 +562,7 @@ class SudokuApp {
                     return;
                 }
                 this.dismissDeductiveHint();
-                this.selectedCell = null;
-                this.selectedNumber = 0;
-                this.updateVisualHighlights();
+                this.clearSelection();
                 return;
             }
 
@@ -911,6 +936,15 @@ class SudokuApp {
             this.renderAlgorithmDemo();
         }
         this.refreshCustomModalLocalization();
+    }
+
+    /** Deselect the cell and drop every digit highlight, leaving a neutral board. */
+    clearSelection() {
+        if (this.isPaused || this.isExecutingCascade) return;
+        if (!this.selectedCell && !this.selectedNumber) return;
+        this.selectedCell = null;
+        this.selectedNumber = 0;
+        this.updateVisualHighlights();
     }
 
     selectCell(r, c) {
