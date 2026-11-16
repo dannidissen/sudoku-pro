@@ -16,8 +16,9 @@ const STAMPED = /\s(?:href|src)="(?!https?:|data:|\/\/)([^"?#]+)\?v=([^"#]*)"/g;
 const UNSTAMPED = /\s(?:href|src)="(?!https?:|data:|\/\/)([^"?#]+\.(?:js|css))"/g;
 
 function stampFor(assetPath) {
-    const bytes = fs.readFileSync(path.join(ROOT, assetPath));
-    return crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+    // Same LF normalisation as tools/stamp_assets.cjs.
+    const text = fs.readFileSync(path.join(ROOT, assetPath), 'utf8').replace(/\r\n/g, '\n');
+    return crypto.createHash('sha256').update(text).digest('hex').slice(0, 8);
 }
 
 test('every stamped asset in index.html exists and its stamp matches its contents', () => {

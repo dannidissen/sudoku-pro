@@ -25,8 +25,10 @@ const STAMPED = /(\s(?:href|src)=")(?!https?:|data:|\/\/)([^"?#]+)\?v=([^"#]*)("
 const UNSTAMPED = /\s(?:href|src)="(?!https?:|data:|\/\/)([^"?#]+\.(?:js|css))"/g;
 
 function stampFor(assetPath) {
-    const bytes = fs.readFileSync(path.join(ROOT, assetPath));
-    return crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+    // Hash with LF endings: that is what git stores and Pages serves, even when
+    // core.autocrlf checks the file out with CRLF on Windows.
+    const text = fs.readFileSync(path.join(ROOT, assetPath), 'utf8').replace(/\r\n/g, '\n');
+    return crypto.createHash('sha256').update(text).digest('hex').slice(0, 8);
 }
 
 function analyze() {
