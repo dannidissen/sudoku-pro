@@ -29,9 +29,11 @@ function cacheKey(request) {
 }
 
 self.addEventListener('install', event => {
+    // `cache: 'reload'` bypasses the browser's HTTP cache, so the offline copy is
+    // taken from the network rather than from a possibly stale cached response.
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(APP_SHELL))
+            .then(cache => cache.addAll(APP_SHELL.map(asset => new Request(asset, { cache: 'reload' }))))
             .then(() => self.skipWaiting())
     );
 });

@@ -31,8 +31,13 @@ The hint engine identifies human-solving techniques instead of revealing a brute
 8. **X-Wing** — a digit is restricted to the same two columns in two rows, or the same two rows in two columns.
 9. **Swordfish** — the three-row (or three-column) extension of X-Wing.
 10. **XY-Wing** — a two-candidate pivot and two pincers force a shared digit out of every cell that sees both pincers.
+11. **Skyscraper** — a digit has two places in each of two lines and the pairs share one cross-line, so one of the far ends must hold it.
+12. **Two-String Kite** — a row and a column each hold a digit twice and one cell of each shares a box, which clears the cell where the far ends cross.
+13. **XYZ-Wing** — a three-candidate pivot and two bivalue wings all share one digit, which leaves every cell that sees all three.
+14. **W-Wing** — two cells hold the same pair and a strong link joins them, forcing one of them to the second digit.
+15. **Simple Colouring** — the chain of two-place links for one digit is painted in alternating colours; a colour repeated in a unit is false, and a cell seeing both colours cannot hold the digit.
 
-Eliminations made by an applied hint are remembered for the rest of the puzzle (and undone with the hint), so the next hint builds on them instead of repeating the same step. The Deductive Logic solver uses the same rule and solves every bundled Easy and Medium puzzle and more than half of the Hard ones without guessing.
+Eliminations made by an applied hint are remembered for the rest of the puzzle (and undone with the hint), so the next hint builds on them instead of repeating the same step. The Deductive Logic solver uses the same rule and finishes 62% of the bundled catalogue without guessing: every Easy and Medium puzzle, 91% of Hard, 56% of Extreme, 22% of Expert and 2% of Master. Run `node tools/measure_deductive.cjs` to reproduce the table. The Master tier needs chains and almost-locked sets that the engine does not implement yet, so it still stalls there and falls back to **Reveal Cell**.
 
 Hints are presented in three stages:
 
@@ -46,7 +51,7 @@ A separate **Reveal Cell** action is available when the player wants the correct
 
 Choose **Independent** mode to find the pattern without cell outlines, location hints, or an elimination count. The general technique rule remains available. **Show pattern (hint)** provides guidance when needed; answers solved after that do not increase the separate hint-free session counter. Correct answers and **Show explanation** expose the pattern and reasoning. Changing mode restarts the exercise. Grading still targets the prepared deduction, not every other valid deduction on the board. Both counters reset on reload.
 
-Open **Technique practice** in the header to practice all ten supported deductive techniques, from Naked Single to XY-Wing. Each technique has four guided exercises from different Sudoku Exchange puzzles (40 total), cycling in order. Each drill explains the rule and outlines its pattern; select a cell and use the keypad or number keys to mark a placement or all candidate eliminations. Arrow keys navigate the practice board. The board keeps column 1 on the left in every language so coordinates and candidate positions stay consistent.
+Open **Technique practice** in the header to practice all fifteen supported deductive techniques, from Naked Single to Simple Colouring. Each technique has four guided exercises from different Sudoku Exchange puzzles (60 total), cycling in order. Each drill explains the rule and outlines its pattern; select a cell and use the keypad or number keys to mark a placement or all candidate eliminations. Arrow keys navigate the practice board. The board keeps column 1 on the left in every language so coordinates and candidate positions stay consistent.
 
 Answer checking distinguishes incorrect, incomplete, and correct selections. **Show explanation** reveals the answer and its localized reasoning without counting an independent solve. The session counter tracks distinct correctly answered exercises and resets on page reload. These guided drills assess the displayed pattern rather than every possible valid move on the board.
 
@@ -56,9 +61,9 @@ To inspect or regenerate the recipe list, run `node tools/find_training_recipes.
 
 ### Snyder notation and candidate entry
 
-- **Normal mode** enters a final digit.
-- **Corner mode** stores Snyder-style candidates around the cell perimeter.
-- **Center mode** stores general candidates in a fixed 3×3 layout.
+- **Digit** mode enters a final digit.
+- **Corners (Snyder)** mode stores Snyder-style candidates around the cell perimeter.
+- **Candidates** mode pencils in general candidates in a fixed 3×3 layout.
 
 Keyboard shortcuts:
 
@@ -66,9 +71,10 @@ Keyboard shortcuts:
 - Clicking/tapping a number, mode, erase, undo, or redo control returns focus to the selected cell so Space and arrow shortcuts keep working. Keyboard activation retains button focus for native navigation; shortcuts do not intercept inputs, menus, or dialogs. Holding Space switches only once.
 - `Shift + 1-9`: toggle a corner mark when Snyder mode is enabled.
 - `Ctrl + 1-9`: toggle a center mark.
-- `Z`, `X`, `C`: select Normal, Corner, or Center mode.
+- `Z`, `X`, `C`: select Digit, Corners, or Candidates mode.
 - Arrow keys: move between cells according to the active LTR/RTL layout.
 - `Backspace`: erase the selected cell.
+- `Escape`, tapping the selected cell again, or tapping empty space around the board: clear the selection and every digit highlight for a neutral board.
 - `Ctrl+Z` / `Ctrl+Y`: undo / redo.
 - `H`: request a logical hint.
 
@@ -171,7 +177,7 @@ Source attribution is also available from the in-game Library dialog.
 Run the JavaScript test suite from the repository root:
 
 ```powershell
-node --test tests_js/sudoku-core.test.mjs tests_js/focus-ui.test.cjs tests_js/checkpoints-training.test.cjs tests_js/mobile-keyboard.test.cjs
+node --test "tests_js/*.test.*js"
 ```
 
 The suite verifies:
@@ -179,9 +185,30 @@ The suite verifies:
 - all bundled puzzles are structurally valid, unique, and have exactly one solution;
 - the deductive solver reports success only when its own logic completes the board;
 - every placement and elimination made by the hint engine agrees with the puzzle's unique solution;
+- every technique, including the five added after XY-Wing, is exercised at least once and finds nothing on a board with no candidates;
+- every translation key the solver emits for a hint exists in all four languages;
 - benchmark calculations remain consistent;
 - every locale has the complete translation-key and placeholder set;
-- RTL/LTR behavior is correct for all supported languages.
+- RTL/LTR behavior is correct for all supported languages;
+- every script and stylesheet `index.html` loads carries a `?v=` stamp that matches the file's current contents, and is listed in the service worker's offline shell.
+
+## Updating assets
+
+`index.html` loads every script and stylesheet with a `?v=` stamp. The stamp is the
+first eight hex characters of the file's SHA-256, so it changes exactly when the
+file's bytes change and a returning player can never run a cached script against a
+newer `index.html`.
+
+After changing any file that `index.html` loads, refresh the stamps:
+
+```powershell
+node tools/stamp_assets.cjs
+```
+
+The script rewrites only the stamps that are out of date and prints what it changed.
+`node tools/stamp_assets.cjs --check` reports stale stamps without writing; the test
+suite and CI run that check, so a forgotten stamp fails the build instead of reaching
+players.
 
 ## Optional native validator
 
@@ -204,14 +231,18 @@ training.js                    Practice replay and answer checking
 training-ui.js                 Isolated technique practice interface
 focus-ui.js                    Responsive focus mode and secondary-tool drawer
 checkpoint-ui.js               Persistent board checkpoints and restore controls
-training-recipes.js            Forty source puzzle IDs and deduction offsets
+training-recipes.js            Sixty source puzzle IDs and deduction offsets
 puzzles.js                     Bundled puzzle catalogue
 i18n.js                        English, Hebrew, Yiddish, and Latin translations
 sw.js                          Offline service worker
 manifest.webmanifest           Installable app metadata
 icons/                         App icons and link-preview image
 tests_js/sudoku-core.test.mjs  Core and localization tests
+tests_js/asset-stamps.test.cjs Cache-busting and offline-shell checks
+tests_js/advanced-techniques.test.cjs  Guards for the five techniques after XY-Wing
 tools/sudoku_validator.c       Optional native validator
+tools/stamp_assets.cjs         Refreshes the ?v= cache-busting stamps in index.html
+tools/measure_deductive.cjs    Reports how much of the catalogue the hint engine solves
 .github/workflows/tests.yml    Runs the test suite on every push and pull request
 ```
 

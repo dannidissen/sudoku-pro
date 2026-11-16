@@ -15,11 +15,12 @@ function parseBoard(puzzle) {
     ));
 }
 
-test('all 40 training drills replay to the requested technique without mutating the catalogue', () => {
+test('every training drill replays to the requested technique without mutating the catalogue', () => {
     const Training = require('../training.js');
     const recipes = require('../training-recipes.js');
     const before = JSON.stringify(globalThis.SUDOKU_PUZZLES);
     assert.deepEqual(Object.keys(recipes), Training.techniques);
+    assert.equal(Training.techniques.length * 4, Object.values(recipes).flat().length);
     for (const technique of Training.techniques) {
         assert.equal(recipes[technique].length, 4);
         assert.equal(new Set(recipes[technique].map(recipe => recipe.id)).size, 4);
@@ -127,7 +128,8 @@ test('every deductive hint agrees with the unique solution', () => {
     }
 
     assert.ok(checkedSteps > 0);
-    for (const technique of ['Claiming', 'Hidden Pair', 'Naked Triple', 'X-Wing', 'Swordfish', 'XY-Wing']) {
+    for (const technique of ['Claiming', 'Hidden Pair', 'Naked Triple', 'X-Wing', 'Swordfish', 'XY-Wing',
+        'Skyscraper', 'Two-String Kite', 'XYZ-Wing', 'W-Wing', 'Simple Colouring']) {
         assert.ok(used.has(technique), `${technique} was never exercised`);
     }
 });
@@ -837,3 +839,56 @@ test('style.css defines computer numpad 3x3 layout for center-mark and corner-ma
     assert.match(css, /body\.pencil-layout-numpad\s+\.center-mark\[data-num="3"\],\s*body\.pencil-layout-numpad\s+\.corner-mark\[data-num="3"\]\s*\{\s*grid-area:\s*3\s*\/\s*3\s*\/\s*4\s*\/\s*4;\s*\}/);
 });
 
+
+test('clearSelection returns to a neutral board and respects pause and auto-completion', () => {
+    const SudokuApp = require('../app.js');
+    let redraws = 0;
+    const fakeApp = {
+        isPaused: false,
+        isExecutingCascade: false,
+        selectedCell: { row: 0, col: 5 },
+        selectedNumber: 6,
+        updateVisualHighlights() { redraws++; }
+    };
+
+    SudokuApp.prototype.clearSelection.call(fakeApp);
+    assert.equal(fakeApp.selectedCell, null);
+    assert.equal(fakeApp.selectedNumber, 0);
+    assert.equal(redraws, 1);
+
+    // Already neutral: nothing to redraw.
+    SudokuApp.prototype.clearSelection.call(fakeApp);
+    assert.equal(redraws, 1);
+
+    // A scanning digit with no selected cell is cleared too.
+    fakeApp.selectedNumber = 4;
+    SudokuApp.prototype.clearSelection.call(fakeApp);
+    assert.equal(fakeApp.selectedNumber, 0);
+
+    for (const flag of ['isPaused', 'isExecutingCascade']) {
+        const locked = { ...fakeApp, [flag]: true, selectedCell: { row: 1, col: 1 }, selectedNumber: 3 };
+        SudokuApp.prototype.clearSelection.call(locked);
+        assert.deepEqual(locked.selectedCell, { row: 1, col: 1 }, `${flag} must keep the selection`);
+    }
+});
+
+test('hover styles only apply on devices that can hover', () => {
+    const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+    // Strip every @media (hover: hover) { ... } block; no :hover may remain outside one.
+    let outside = '';
+    let depth = 0;
+    let inHoverBlock = false;
+    for (let i = 0; i < css.length; i++) {
+        if (!inHoverBlock && css.startsWith('@media (hover: hover) {', i)) {
+            inHoverBlock = true;
+            depth = 0;
+        }
+        if (inHoverBlock) {
+            if (css[i] === '{') depth++;
+            if (css[i] === '}' && --depth === 0) inHoverBlock = false;
+            continue;
+        }
+        outside += css[i];
+    }
+    assert.ok(!outside.includes(':hover'), 'a :hover rule outside @media (hover: hover) sticks after a tap on touch screens');
+});

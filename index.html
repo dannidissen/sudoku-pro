@@ -25,7 +25,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Sudoku Pro board with highlighted row and column next to the app name">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="style.css?v=20260917d">
+    <link rel="stylesheet" href="style.css?v=4acf04b9">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
@@ -137,18 +137,18 @@
                 <!-- 1 to 9 generated dynamically -->
             </div>
 
-            <!-- Input Modes (Snyder / Normal / Center) & Cell Color Palette Row -->
+            <!-- Input Modes (Digit / Corners (Snyder) / Candidates) & Cell Color Palette Row -->
             <div class="board-controls-row">
                 <!-- Snyder Mode Selector -->
                 <div class="mode-selector-group" data-i18n-title="input.title" title="Input mode">
-                    <button id="mode-normal" class="mode-btn active" data-mode="normal">
-                        <span data-i18n="input.normal">✍️ Normal</span>
+                    <button id="mode-normal" class="mode-btn active" data-mode="normal" data-i18n-title="input.normalTitle" title="Write the final digit in the cell">
+                        <span data-i18n="input.normal">✍️ Digit</span>
                     </button>
                     <button id="mode-corner" class="mode-btn" data-mode="corner" data-i18n-title="input.cornerTitle" title="Corner marks for digits restricted within a box (Snyder)">
-                        <span data-i18n="input.corner">📐 Corner (Snyder)</span>
+                        <span data-i18n="input.corner">📐 Corners (Snyder)</span>
                     </button>
-                    <button id="mode-center" class="mode-btn" data-mode="center" data-i18n-title="input.centerTitle" title="Centered marks for all possible candidates">
-                        <span data-i18n="input.center">🎯 Center</span>
+                    <button id="mode-center" class="mode-btn" data-mode="center" data-i18n-title="input.centerTitle" title="Pencil in every digit the cell could still hold">
+                        <span data-i18n="input.center">✏️ Candidates</span>
                     </button>
                 </div>
 
@@ -175,7 +175,7 @@
                 <span>•</span>
                 <kbd>Shift + 1-9</kbd> <span data-i18n="keyboard.corner">corner mark</span>
                 <span>•</span>
-                <kbd>Ctrl + 1-9</kbd> <span data-i18n="keyboard.center">center mark</span>
+                <kbd>Ctrl + 1-9</kbd> <span data-i18n="keyboard.center">candidate mark</span>
                 <span>•</span>
                 <kbd data-i18n="keyboard.arrows">Arrows</kbd> <span data-i18n="keyboard.navigation">navigate</span>
                 <span>•</span>
@@ -949,14 +949,14 @@ bool solve_mrv(Board *board) {
     <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Scripts -->
-    <script src="i18n.js?v=20260917c"></script>
-    <script src="puzzles.js?v=20260917a"></script>
-    <script src="solver.js?v=20260917a"></script>
-    <script src="training-recipes.js?v=20260917a"></script>
-    <script src="training.js?v=20260917a"></script>
-    <script src="training-ui.js?v=20260917c"></script>
-    <script src="checkpoint-ui.js?v=20260917c"></script>
-    <script src="focus-ui.js?v=20260917b"></script>
-    <script src="app.js?v=20260917d"></script>
+    <script src="i18n.js?v=ecf86b7a"></script>
+    <script src="puzzles.js?v=70328116"></script>
+    <script src="solver.js?v=e4959c44"></script>
+    <script src="training-recipes.js?v=86cfef3a"></script>
+    <script src="training.js?v=aaecc3a1"></script>
+    <script src="training-ui.js?v=1590c108"></script>
+    <script src="checkpoint-ui.js?v=ff14f4b2"></script>
+    <script src="focus-ui.js?v=b04c6dae"></script>
+    <script src="app.js?v=93d7857d"></script>
 </body>
 </html>

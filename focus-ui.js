@@ -41,7 +41,31 @@ class SudokuFocusUI {
             app.closeModal('modal-tools');
         }, true);
         this.media.addEventListener('change', () => this.sync());
+        this.watchBanners();
         this.sync();
+    }
+
+    /**
+     * The hint and auto-complete banners sit above the board in focus mode. Publish
+     * their live height (plus the grid gap) as --focus-banner-h so the board shrinks
+     * by that much instead of pushing the keypad below the bottom of a short phone.
+     */
+    watchBanners() {
+        const column = document.querySelector('.board-column');
+        const banners = ['hint-banner', 'cascade-banner']
+            .map(id => document.getElementById(id))
+            .filter(Boolean);
+        if (!column?.style || banners.length === 0) return;
+        const gap = 8;
+        const publish = () => {
+            const total = banners.reduce((sum, banner) => sum + (banner.offsetHeight ? banner.offsetHeight + gap : 0), 0);
+            column.style.setProperty('--focus-banner-h', `${total}px`);
+        };
+        if (typeof ResizeObserver === 'function') {
+            const observer = new ResizeObserver(publish);
+            banners.forEach(banner => observer.observe(banner));
+        }
+        publish();
     }
 
     sync() {

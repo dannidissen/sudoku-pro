@@ -1,7 +1,9 @@
 /** Guided technique drills reconstructed from verified catalogue solving paths. */
 class SudokuTraining {
+    // Same order as the solver's finder list, so drills run from easiest to hardest.
     static techniques = ['nakedSingle', 'hiddenSingle', 'pointing', 'claiming', 'nakedPair',
-        'hiddenPair', 'nakedTriple', 'xWing', 'swordfish', 'xyWing'];
+        'hiddenPair', 'nakedTriple', 'xWing', 'swordfish', 'xyWing',
+        'skyscraper', 'twoStringKite', 'xyzWing', 'wWing', 'simpleColoring'];
 
     static apply(board, eliminated, hint) {
         const action = hint.action;
